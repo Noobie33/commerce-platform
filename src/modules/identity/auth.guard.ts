@@ -1,0 +1,72 @@
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import type { CanActivate, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { permits } from '../authorization/policy.js';
+import { IdentityService } from './identity.service.js';
+import {
+  AUTHENTICATED,
+  PASSWORD_CHANGE_ALLOWED,
+  PERMISSION,
+  PUBLIC,
+} from '../authorization/route-policy.js';
+import type { AuthConfig } from './auth.config.js';
+import type { StaffRequest } from './http.types.js';
+
+export class StaffGuard implements CanActivate {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly identity: IdentityService,
+    private readonly config: AuthConfig,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest<StaffRequest>();
+    const targets = [context.getHandler(), context.getClass()];
+    const writing = !['GET', 'HEAD', 'OPTIONS'].includes(req.method ?? '');
+    // Public login is also origin-checked. No wildcard CORS is enabled.
+    if (
+      writing &&
+      (req.headers.origin !== this.config.origin ||
+        req.headers['x-requested-with'] !== 'commerce-staff' ||
+        req.headers['content-type']?.split(';')[0]?.trim().toLowerCase() !== 'application/json' ||
+        req.headers['sec-fetch-site'] === 'cross-site')
+    ) {
+      throw new ForbiddenException('Request verification failed');
+    }
+    if (this.reflector.getAllAndOverride<boolean>(PUBLIC, targets)) return true;
+    const cookies = (req.headers.cookie ?? '')
+      .split(';')
+      .map((cookie) => cookie.trim())
+      .filter((cookie) => cookie.startsWith(this.config.cookieName + '='));
+    if (cookies.length !== 1) throw new UnauthorizedException('Authentication required');
+    const token = cookies[0]!.slice(this.config.cookieName.length + 1);
+    const principal = await this.identity.authenticate(token);
+    req.principal = principal;
+    if (writing) this.identity.assertCsrf(principal, req.headers['x-csrf-token']);
+    if (
+      principal.mustChangePassword &&
+      !this.reflector.getAllAndOverride<boolean>(PASSWORD_CHANGE_ALLOWED, targets)
+    ) {
+      throw new ForbiddenException({ code: 'PASSWORD_CHANGE_REQUIRED' });
+    }
+    const permission = this.reflector.getAllAndOverride<{ code: string; locationParam?: string }>(
+      PERMISSION,
+      targets,
+    );
+    if (!permission) {
+      if (this.reflector.getAllAndOverride<boolean>(AUTHENTICATED, targets)) return true;
+      throw new ForbiddenException('Permission required');
+    }
+    let locationId: string | undefined;
+    if (permission.locationParam) {
+      locationId = req.params[permission.locationParam]?.toLowerCase();
+      if (!locationId || !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(locationId))
+        throw new BadRequestException('Invalid location');
+    }
+    if (!permits(principal.grants, permission.code, locationId)) {
+      await this.identity.denied(principal, permission.code, req.requestId);
+      throw new ForbiddenException('Permission denied');
+    }
+    return true;
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "commerce-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.16.0 <25"
+  },
+  "packageManager": "npm@11.13.0",
+  "scripts": {
+    "build": "node src/scripts/build.mjs",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/src/main.js",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
+    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js",
+    "db:provision-local": "node --env-file=.env.setup src/scripts/provision-local.mjs",
+    "db:verify-local": "node src/scripts/verify-local-databases.mjs",
+    "start:local": "node --env-file=.env dist/src/main.js",
+    "db:migrate": "npm run build && node --env-file=.env dist/src/scripts/migrate.js",
+    "staff:bootstrap-owner": "npm run build && node --env-file=.env dist/src/scripts/bootstrap-owner.js",
+    "format": "prettier --write \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"docs/**/*.md\" \"*.json\" \"*.md\"",
+    "format:check": "prettier --check \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"docs/**/*.md\" \"*.json\" \"*.md\""
+  },
+  "dependencies": {
+    "@nestjs/common": "12.4.0",
+    "@nestjs/core": "12.4.0",
+    "@nestjs/platform-express": "12.4.0",
+    "pg": "8.23.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "typeorm": "1.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,26 @@
+import type { EntityManager } from 'typeorm';
+
+export type AuditAction =
+  | 'staff.bootstrap'
+  | 'staff.login'
+  | 'staff.login_failed'
+  | 'staff.logout'
+  | 'staff.password_changed'
+  | 'access.denied';
+
+export class AuditService {
+  async append(
+    sql: Pick<EntityManager, 'query'>,
+    actorId: string | null,
+    action: AuditAction,
+    requestId: string,
+    permission?: string,
+  ): Promise<void> {
+    // Explicit fields only: callers cannot pass request bodies, tokens or password hashes.
+    const metadata = permission ? { permission } : {};
+    await sql.query(
+      'INSERT INTO audit_events(actor_id,action,request_id,metadata) VALUES ($1,$2,$3,$4::jsonb)',
+      [actorId, action, requestId, JSON.stringify(metadata)],
+    );
+  }
+}

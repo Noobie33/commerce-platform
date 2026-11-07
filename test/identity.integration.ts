@@ -1,3 +1,6 @@
+import { IdentityService } from '../src/modules/identity/identity.service.js';
+import { AuditService } from '../src/modules/audit/audit.service.js';
+import { createRuntimeDataSource } from '../src/infrastructure/database/data-source.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -403,6 +406,33 @@ test('staff identity: real PostgreSQL security and transactional audit', async (
           [ipBuckets],
         );
         assert.equal((await login()).response.status, 429);
+      },
+    );
+
+    await t.test(
+      'concurrent and repeated logout records exactly one revocation audit',
+      async () => {
+        await source.query('DELETE FROM login_rate_limits WHERE bucket_hash=ANY($1::text[])', [
+          ipBuckets,
+        ]);
+        const session = await login();
+        assert.equal(session.response.status, 200);
+        const runtime = createRuntimeDataSource();
+        const auditIds = [randomUUID(), randomUUID()];
+        auditIds.forEach((id) => requestIds.add(id));
+        try {
+          await runtime.initialize();
+          const identity = new IdentityService(runtime, new PasswordService(), new AuditService());
+          const principal = await identity.authenticate(session.cookie.split('=')[1]!);
+          await Promise.all(auditIds.map((id) => identity.logout(principal, id)));
+          const events = await source.query(
+            'SELECT id FROM audit_events WHERE request_id=ANY($1::uuid[])',
+            [auditIds],
+          );
+          assert.equal(events.length, 1);
+        } finally {
+          if (runtime.isInitialized) await runtime.destroy();
+        }
       },
     );
 

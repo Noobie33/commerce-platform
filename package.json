@@ -8,8 +8,8 @@
   },
   "packageManager": "npm@11.13.0",
   "scripts": {
-    "build": "node src/scripts/build.mjs",
-    "check": "tsc -p tsconfig.json --noEmit",
+    "build": "npm run build:api && npm run build:admin",
+    "check": "tsc -p tsconfig.json --noEmit && npm run check --workspace=@commerce/admin",
     "start": "node dist/src/main.js",
     "test": "npm run build && node --test dist/test/*.test.js",
     "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
@@ -19,8 +19,11 @@
     "start:local": "node --env-file=.env dist/src/main.js",
     "db:migrate": "npm run build && node --env-file=.env dist/src/scripts/migrate.js",
     "staff:bootstrap-owner": "npm run build && node --env-file=.env dist/src/scripts/bootstrap-owner.js",
-    "format": "prettier --write \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"docs/**/*.md\" \"*.json\" \"*.md\"",
-    "format:check": "prettier --check \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"docs/**/*.md\" \"*.json\" \"*.md\""
+    "format": "prettier --write \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"apps/**/*.{ts,tsx,css,html,json}\" \"docs/**/*.md\" \"*.json\" \"*.md\" \".github/**/*.{yml,yaml}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"apps/**/*.{ts,tsx,css,html,json}\" \"docs/**/*.md\" \"*.json\" \"*.md\" \".github/**/*.{yml,yaml}\"",
+    "build:api": "node src/scripts/build.mjs",
+    "build:admin": "npm run build --workspace=@commerce/admin",
+    "secrets:check": "node src/scripts/check-secrets.mjs"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",
@@ -36,5 +39,8 @@
     "@types/pg": "8.23.1",
     "prettier": "3.9.10",
     "typescript": "6.0.3"
-  }
+  },
+  "workspaces": [
+    "apps/admin"
+  ]
 }

@@ -1,6 +1,6 @@
 # Staff identity API
 
-Implemented backend increment. There is no staff UI, public registration, role-management UI/API, MFA or account recovery yet. Local development remains the deployment scope.
+Implemented backend increment. The staff interface is available at /admin. Public registration, staff/role editing, MFA and account recovery are not implemented yet. Local development remains the deployment scope.
 
 ## Access model
 

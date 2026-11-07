@@ -1,3 +1,5 @@
+import { AdminModule } from './modules/admin/admin.module.js';
+import { ADMIN_ASSET_ROOT } from './modules/admin/admin.controller.js';
 import { SafeExceptionFilter } from './infrastructure/security/safe-exception.filter.js';
 import { OrganizationModule } from './modules/organization/organization.module.js';
 import 'reflect-metadata';
@@ -15,6 +17,7 @@ export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: D
   const databaseModule = DatabaseModule.forRoot(env, driver);
   @Module({
     imports: [
+      AdminModule,
       databaseModule,
       IdentityModule.forRoot(databaseModule, env),
       OrganizationModule.forRoot(databaseModule),
@@ -38,6 +41,12 @@ export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: D
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'same-origin');
     next();
+  });
+  app.useStaticAssets(ADMIN_ASSET_ROOT, {
+    prefix: '/admin/assets/',
+    index: false,
+    dotfiles: 'deny',
+    fallthrough: false,
   });
   app.useBodyParser('json', { limit: '16kb' });
   app.useGlobalFilters(new SafeExceptionFilter());

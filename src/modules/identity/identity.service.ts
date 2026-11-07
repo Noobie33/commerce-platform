@@ -118,7 +118,7 @@ export class IdentityService {
   async logout(principal: Principal, requestId: string): Promise<void> {
     await this.source.transaction(async (manager) => {
       const revoked: { id: string }[] = await manager.query(
-        'UPDATE staff_sessions SET revoked_at=now() WHERE id=$1 AND revoked_at IS NULL RETURNING id',
+        'WITH revoked AS (UPDATE staff_sessions SET revoked_at=now() WHERE id=$1 AND revoked_at IS NULL RETURNING id) SELECT id FROM revoked',
         [principal.sessionId],
       );
       if (revoked.length) await this.audit.append(manager, principal.id, 'staff.logout', requestId);

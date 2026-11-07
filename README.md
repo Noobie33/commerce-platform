@@ -4,6 +4,10 @@ Neutral backend foundation for a fashion/lifestyle ERP and future e-commerce.
 
 Active workspace: D:\Business Software\commerce-platform. See [architecture and initial audit](ENGINEERING-PLAN.md), [engineering standards](docs/ENGINEERING-STANDARDS.md), [database decisions](docs/DATABASE-DECISION.md) and [staff identity API](docs/IDENTITY-API.md).
 
+## Staff interface
+
+Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md).
+
 ## Current implementation
 
 - Managed PostgreSQL connection, schema-aware readiness and shutdown cleanup.
@@ -13,7 +17,7 @@ Active workspace: D:\Business Software\commerce-platform. See [architecture and 
 - Transactional audit events with append-only runtime access.
 - Compiled migrations, restricted runtime grants and a protected one-time owner bootstrap.
 
-There is no staff/admin UI, product catalog, inventory workflow, role-management screen/API, MFA or account recovery yet. These are not production-ready or complete ERP claims. The next usable slice is the staff/admin shell, then catalog/variants and inventory using the same access/audit foundation.
+The staff/admin shell is now implemented. Product catalog, inventory workflows, staff/role editing, MFA and recovery remain future slices. This is a verified local development increment, not a production-ready or complete ERP claim. The next business slice is catalog/variants and inventory using the same access/audit foundation.
 
 ## Local commands
 
@@ -21,6 +25,7 @@ Requires Node 24 LTS and npm. Exact dependencies are locked in package-lock.json
 
 ```powershell
 npm ci --ignore-scripts
+npm run secrets:check
 npm run format:check
 npm run check
 npm test
@@ -36,14 +41,16 @@ Local API: http://127.0.0.1:4000. Health endpoints: /api/v1/health/live and /api
 
 ## Owner access
 
-The development owner exists. Its username and one-time password are in .local-setup/owner-access.json, protected by explicit Windows ACLs for the current user and SYSTEM. Do not share that file or paste its contents in chat. The API enforces a password change before business access. No browser login screen exists yet.
+The development owner exists. Its username and one-time password are in .local-setup/owner-access.json, protected by explicit Windows ACLs for the current user and SYSTEM. Do not share that file or paste its contents in chat. The API enforces a password change before business access. The browser login screen is available at /admin.
 
 The saved pgAdmin connection was used for initial database/role provisioning. Direct administrator password authentication remains unresolved and is not needed for routine application/test access. Do not rerun setup SQL, automatic provisioning or owner bootstrap against the completed setup.
 
 ## Verification — 8 November 2026
 
-Strict type checking, clean build, formatting check, 14 database-free tests and 15 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 15 database-free/interface tests and 16 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 
 The original Documents copy is an earlier snapshot blocked by Windows Controlled Folder Access. Continue only in this D: workspace.
+
+Source publication excludes all private local credential/setup files. The GitHub CI workflow runs isolated PostgreSQL and interface/security checks; database backup/restore remains separate from code backup.

@@ -67,6 +67,19 @@ async function stop(exitCode = 0) {
         "SELECT metadata->>'entityId' AS id FROM audit_events WHERE actor_id=$1 AND action='purchasing.supplier_created'",
         [id],
       );
+      await manager.query(
+        'DELETE FROM purchase_receipt_reversals WHERE receipt_id IN(SELECT id FROM purchase_receipts WHERE actor_id=$1)',
+        [id],
+      );
+      await manager.query(
+        'DELETE FROM purchase_receipt_lines WHERE receipt_id IN(SELECT id FROM purchase_receipts WHERE actor_id=$1)',
+        [id],
+      );
+      await manager.query('DELETE FROM purchase_receipts WHERE actor_id=$1', [id]);
+      await manager.query(
+        'DELETE FROM purchase_receipt_state WHERE order_id IN(SELECT id FROM purchase_orders WHERE created_by=$1)',
+        [id],
+      );
       await manager.query('DELETE FROM purchasing_requests WHERE actor_id=$1', [id]);
       await manager.query(
         'DELETE FROM purchase_order_lines WHERE order_id IN(SELECT id FROM purchase_orders WHERE created_by=$1)',

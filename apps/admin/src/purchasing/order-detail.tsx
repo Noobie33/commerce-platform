@@ -1,3 +1,4 @@
+import { ReceiptPanel } from './receipt-panel';
 import { useRef, useState } from 'react';
 import { ApiError, StaffApi } from '../api';
 import { Dialog } from '../components/dialog';
@@ -18,6 +19,7 @@ export function OrderDetail({
   onEdit: () => void;
   onSaved: (o: PurchaseOrder) => void;
 }) {
+  const [receiptActive, setReceiptActive] = useState<boolean | null>(null);
   const [action, setAction] = useState<'issue' | 'cancel' | null>(null),
     [reason, setReason] = useState(''),
     [busy, setBusy] = useState(false),
@@ -134,6 +136,9 @@ export function OrderDetail({
               )}
             </details>
           )}
+          {order.status !== 'draft' && (
+            <ReceiptPanel api={api} orderId={order.id} onActive={setReceiptActive} />
+          )}
           {order.status === 'cancelled' && (
             <p className="inventory-guidance">Cancelled: {order.cancellationReason}</p>
           )}
@@ -145,7 +150,7 @@ export function OrderDetail({
               <p>
                 {action === 'issue'
                   ? 'Issuing freezes these supplier details, SKUs, quantities and costs. It does not send the order, receive stock or create a payable.'
-                  : 'Cancellation keeps the original order and its history. No stock or payable has been created by this order.'}
+                  : 'Cancellation keeps the original order and its history. Active receipts must be reversed first. Supplier bills and payments are separate.'}
               </p>
               {action === 'cancel' && (
                 <label>
@@ -184,7 +189,17 @@ export function OrderDetail({
             </button>
           )}
           {canManage && !action && order.status !== 'cancelled' && (
-            <button type="button" className="secondary-button" onClick={() => setAction('cancel')}>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={order.status === 'issued' && receiptActive !== false}
+              title={
+                order.status === 'issued' && receiptActive !== false
+                  ? 'Load receiving and reverse active receipts before cancellation'
+                  : undefined
+              }
+              onClick={() => setAction('cancel')}
+            >
               Cancel order
             </button>
           )}

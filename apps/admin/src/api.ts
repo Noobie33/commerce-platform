@@ -1,3 +1,4 @@
+import type { ReceivingPage, ReceiptResult } from './purchasing/receipt-types';
 import type {
   Supplier,
   SupplierInput,
@@ -43,6 +44,19 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              STALE_RECEIPT:
+                'Receiving changed since this form was opened. Refresh receiving before continuing.',
+              RECEIPT_OVER_QUANTITY:
+                'This receipt exceeds the remaining ordered quantity. Refresh receiving and check the counts.',
+              RECEIPT_REFERENCE_EXISTS:
+                'This delivery reference already belongs to an active receipt for this order.',
+              RECEIPT_ALREADY_REVERSED: 'This purchase receipt has already been reversed.',
+              PURCHASE_RECEIPTS_EXIST:
+                'Reverse all active purchase receipts before cancelling this order.',
+              PURCHASE_RECEIPT_MANAGED:
+                'Correct this stock movement from its purchase order receipt in Purchasing.',
+              RECEIPT_RECORD_NOT_FOUND:
+                'This receipt, order or stock item is no longer available. Refresh the order.',
               STALE_PURCHASING_RECORD:
                 'Someone saved a newer revision. Close and reopen the latest record.',
               SUPPLIER_CODE_IMMUTABLE: 'Supplier codes cannot be changed after creation.',
@@ -330,6 +344,41 @@ export class StaffApi {
   ) {
     return this.request<PurchaseOrder>(
       '/purchasing/orders/' + encodeURIComponent(id) + '/' + action,
+      body,
+      { key },
+    );
+  }
+  purchaseReceiving(id: string, page = 1) {
+    return this.request<ReceivingPage>(
+      '/purchasing/orders/' +
+        encodeURIComponent(id) +
+        '/receiving?' +
+        new URLSearchParams({ page: String(page) }),
+    );
+  }
+  receivePurchaseOrder(
+    id: string,
+    body: {
+      expectedRevision: number;
+      reason: string;
+      reference: string;
+      lines: { orderLineId: string; quantity: string }[];
+    },
+    key: string,
+  ) {
+    return this.request<ReceiptResult>(
+      '/purchasing/orders/' + encodeURIComponent(id) + '/receipts',
+      body,
+      { key },
+    );
+  }
+  reversePurchaseReceipt(
+    id: string,
+    body: { expectedRevision: number; reason: string; reference: string },
+    key: string,
+  ) {
+    return this.request<ReceiptResult>(
+      '/purchasing/receipts/' + encodeURIComponent(id) + '/reverse',
       body,
       { key },
     );

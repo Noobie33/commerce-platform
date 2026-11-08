@@ -198,3 +198,136 @@
     border-bottom: 1px solid var(--line);
   }
 }
+.purchase-receiving {
+  border-top: 1px solid var(--line);
+  padding-top: 26px;
+}
+.purchase-receiving-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.purchase-receiving-heading h3 {
+  font-size: 18px;
+  margin: 0 0 7px;
+}
+.purchase-receiving-heading p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.6;
+}
+.receipt-progress-table {
+  font-variant-numeric: tabular-nums;
+}
+.receipt-progress-table th,
+.receipt-progress-table td {
+  padding: 15px 12px;
+}
+.purchase-receiving-actions {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+.purchase-receiving > h4 {
+  font-size: 14px;
+  margin: 26px 0 14px;
+}
+.purchase-receipt-history {
+  display: grid;
+  gap: 14px;
+}
+.purchase-receipt-history article {
+  border: 1px solid var(--line);
+  padding: 18px;
+  border-radius: 10px;
+}
+.purchase-receipt-history header,
+.purchase-receipt-history footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.purchase-receipt-history time {
+  font-size: 11px;
+  color: var(--muted);
+}
+.purchase-receipt-history h4 {
+  font-size: 14px;
+  margin: 14px 0 8px;
+  overflow-wrap: anywhere;
+}
+.purchase-receipt-history ul {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.purchase-receipt-history li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.purchase-receipt-history li span {
+  overflow-wrap: anywhere;
+}
+.purchase-receipt-lines {
+  display: grid;
+  gap: 12px;
+}
+.purchase-receipt-line {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.purchase-receipt-line > div {
+  flex: 1;
+  min-width: 200px;
+}
+.purchase-receipt-line small,
+.purchase-reversal-lines small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 9px;
+}
+.purchase-receipt-line label {
+  max-width: 190px;
+  font-size: 12px;
+}
+.purchase-reversal-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+}
+@media (max-width: 760px) {
+  .receipt-progress-table {
+    min-width: 550px;
+  }
+  .purchase-receiving-heading {
+    flex-wrap: wrap;
+  }
+  .purchase-receipt-line label {
+    max-width: none;
+    width: 100%;
+  }
+  .purchase-receipt-history article {
+    padding: 14px;
+  }
+  .purchase-receiving-actions button {
+    flex: 1;
+  }
+}

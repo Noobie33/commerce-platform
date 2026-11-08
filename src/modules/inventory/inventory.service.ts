@@ -133,7 +133,7 @@ export class InventoryService {
         destinationId: string | null;
       })[] = await m.query(
         `
- SELECT p.id,p.kind,p.reason,p.reference,p.created_at AS "createdAt",u.display_name AS "actorName",p.reversal_of AS "reversalOf",r.id AS "reversedBy",p.location_id AS "locationId",p.destination_id AS "destinationId",
+ SELECT EXISTS(SELECT 1 FROM purchase_receipts pr WHERE pr.inventory_posting_id=p.id) AS "isPurchaseReceipt",p.id,p.kind,p.reason,p.reference,p.created_at AS "createdAt",u.display_name AS "actorName",p.reversal_of AS "reversalOf",r.id AS "reversedBy",p.location_id AS "locationId",p.destination_id AS "destinationId",
  (SELECT jsonb_agg(jsonb_build_object('variantId',e.variant_id,'sku',e.sku,'productName',e.product_name,'delta',e.delta::text,'quantityBefore',e.quantity_before::text,'quantityAfter',e.quantity_after::text) ORDER BY e.sku) FROM inventory_entries e WHERE e.posting_id=p.id AND e.location_id=$1) AS lines
  FROM inventory_postings p JOIN staff_users u ON u.id=p.actor_id LEFT JOIN inventory_postings r ON r.reversal_of=p.id
  WHERE ` +
@@ -144,6 +144,7 @@ export class InventoryService {
       const items = rows.map(({ locationId: source, destinationId, ...row }) => {
         const action = row.kind === 'transfer' ? 'inventory.transfer' : 'inventory.adjust';
         const canReverse =
+          !row.isPurchaseReceipt &&
           row.kind !== 'reversal' &&
           !row.reversedBy &&
           [source, ...(destinationId ? [destinationId] : [])].every(
@@ -173,6 +174,14 @@ export class InventoryService {
       )
     )
       throw new ForbiddenException({ code: 'INVENTORY_PERMISSION' });
+    if (
+      (
+        await this.source.query('SELECT id FROM purchase_receipts WHERE inventory_posting_id=$1', [
+          id,
+        ])
+      ).length
+    )
+      throw new ConflictException({ code: 'PURCHASE_RECEIPT_MANAGED' });
     if (row.kind === 'reversal') throw new ConflictException({ code: 'CANNOT_REVERSE_REVERSAL' });
     for (const location of affected) await this.active(location);
     if (
@@ -206,6 +215,7 @@ export class InventoryService {
           ? String(details.message)
           : '';
       const codes: Record<string, string> = {
+        PURCHASE_RECEIPT_MANAGED: 'PURCHASE_RECEIPT_MANAGED',
         INVENTORY_INSUFFICIENT: 'INSUFFICIENT_STOCK',
         INVENTORY_ALREADY_REVERSED: 'POSTING_ALREADY_REVERSED',
         INVENTORY_REVERSE_REVERSAL: 'CANNOT_REVERSE_REVERSAL',

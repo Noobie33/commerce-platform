@@ -7,20 +7,20 @@ This local increment implements the purchasing foundation and staff UI at `/admi
 - Supplier directory with searchable pages, immutable unique codes, contact/address/tax-reference fields, notes and active/inactive status.
 - Supplier edits use optimistic versions, atomic audit and idempotent retries. Inactive records remain available for history.
 - Purchase orders have a generated stable document number, supplier, active warehouse/store delivery location, optional delivery date/reference/notes and 1–25 distinct SKU lines.
-- Drafts can be edited. Issue freezes supplier contact details and SKU/name/attribute snapshots, quantities and purchase unit costs. Issued records can be cancelled with a reason, not rewritten. Cancellation retains the original lines and issue details.
+- Drafts can be edited. Issue freezes supplier contact details and SKU/name/attribute snapshots, quantities and purchase unit costs. Issued records can be cancelled with a reason after all active receipts have been reversed, not rewritten. Cancellation retains the original lines and issue details.
 - Server searches and pagination, exact goods subtotals, read-only roles, review-before-save/issue forms and preserved retry keys.
 
 ## Why these boundaries
 
 Purchase orders express planned buying. They do not mean goods arrived or a bill became payable. Saving, issuing or cancelling a PO therefore does **not** post inventory, create a supplier liability/journal, allocate payment or send a message to the supplier. The interface states these boundaries explicitly. Existing independent stock receipts remain available in Inventory.
 
-The next increment will connect partial goods receipts to issued PO lines with an atomic receipt/stock posting and an over-receipt/reversal policy. Supplier invoices, returns, payment allocation, tax/landed cost and valuation require separate financial rules and tests. The goods subtotal displayed here excludes tax, delivery and other charges; it is not an invoice or a payable balance. No placeholder due or payment figures are shown.
+[Partial goods receipts](PURCHASE-RECEIPTS.md) now connect issued PO lines to atomic stock postings, enforce remaining quantities and provide controlled whole-receipt reversals. Supplier invoices, returns, payment allocation, tax/landed cost and valuation require separate financial rules and tests. The goods subtotal displayed here excludes tax, delivery and other charges; it is not an invoice or a payable balance. No placeholder due or payment figures are shown.
 
 Purchasing prices are separate from catalog selling prices. BDT money crosses the API as decimal strings and is calculated using integer minor units/BigInt, never binary floating point. Unit cost is bounded by 999,999,999,999 minor units; a complete goods subtotal by 99,999,999,999,999. Whole-piece line quantities are 1–999,999,999. Other currencies, fabric units and conversions need explicit later policy.
 
 ## Access and integrity
 
-This slice uses explicit **global** `purchasing.read` and `purchasing.manage` permissions. Supplier identity/contact data and procurement costs form shared company master/commercial data. A location-scoped grant does not authorize these global routes. A future receiving role will receive a dedicated location-scoped workflow rather than gaining access to all supplier costs. The purchasing location picker returns active location IDs/names/codes only, without stock quantities.
+This slice uses explicit **global** `purchasing.read` and `purchasing.manage` permissions. Supplier identity/contact data and procurement costs form shared company master/commercial data. A location-scoped grant does not authorize these global routes. Receiving now adds dedicated location-scoped action permissions, but this initial order-detail workflow still requires global purchasing read and therefore exposes commercial order details. A cost-blind warehouse workflow remains future work. The purchasing location picker returns active location IDs/names/codes only, without stock quantities.
 
 Every write requires current staff authentication, same-origin JSON, CSRF and a UUID idempotency key. Permission checks happen before returning a cached response. A transactional retry record compares actor and canonical normalized payload hash; duplicate concurrent submissions return one result. Edits and issue/cancel lock the document and require its current version, preventing stale overwrites. Audit and data/retry response commit together; audit metadata omits supplier contact details and prices.
 
@@ -46,4 +46,4 @@ Strict field allowlists reject mass assignment; bounded literal searches do not 
 
 Real PostgreSQL/HTTP integration tests cover global/default/read-only/CSRF denial, concurrent retries, immutable codes, stale edits, exact monetary totals, invalid input, rollback of failed draft replacement, active-master checks, issue snapshots, unchanged inventory, SQL protections for issued data, cancellation, audit-failure rollback, literal search, pagination and migration apply/revert in a scratch schema. Browser checks use disposable users, suppliers, locations and products in the dedicated test database; no business suppliers/orders are seeded into development.
 
-Read-only reconciliation: `npm run purchasing:verify-local` checks goods subtotals against line sums, documents without lines and issued supplier snapshot IDs. It never repairs or deletes records. CI runs the same check in the isolated test database.
+Read-only reconciliation: `npm run purchasing:verify-local` checks goods subtotals, issued snapshots, receipt/stock links and quantities, receiving revisions, over-receipts, reversal links and active receipts on cancelled orders. It never repairs or deletes records. CI runs the same check in the isolated test database.

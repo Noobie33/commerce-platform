@@ -1,3 +1,5 @@
+import { PurchaseReceiptService } from './receipt.service.js';
+import { PurchaseReceiptController } from './receipt.controller.js';
 import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
@@ -12,8 +14,13 @@ export class PurchasingModule {
     return {
       module: PurchasingModule,
       imports: [databaseModule],
-      controllers: [PurchasingController],
+      controllers: [PurchasingController, PurchaseReceiptController],
       providers: [
+        {
+          provide: PurchaseReceiptService,
+          useFactory: (source: DataSource) => new PurchaseReceiptService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: PurchasingStore,
           useFactory: (source: DataSource) => new PurchasingStore(source),

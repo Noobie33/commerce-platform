@@ -46,3 +46,7 @@ Read-only reconciliation: `npm run inventory:verify-local` checks materialized b
 Migration 1794103000000 advances schema revision to 5, grants owner inventory permissions and adds the posting boundary. Application startup never runs migrations. Downgrade is refused once any stock posting exists, so a schema rollback cannot discard physical movement history.
 
 Real PostgreSQL/HTTP tests cover scopes/default denial/CSRF, concurrent retries, changed-key payloads, opening uniqueness, concurrent deductions, multi-line rollback, balanced transfer and reversal, inactive SKU handling, audit failure rollback, restricted SQL privileges, permission revocation before cached retry, scoped history and ledger reconciliation. Browser QA uses disposable products/users/locations in the dedicated test database; development business stock is not seeded.
+
+## Purchase-linked movements
+
+[PO receipts](PURCHASE-RECEIPTS.md) post through the same stock core in one database transaction. Their stock history identifies the purchasing source and disables generic reversal; corrections must use Purchasing so remaining order quantities and stock stay consistent. The public stock wrapper rejects these generic reversals even through direct SQL. The previous posting core is now owner-only; runtime credentials cannot execute it or write receipt tables. The receipt migration restores delegated stock execution privileges on an empty rollback and refuses rollback once receipt history exists.

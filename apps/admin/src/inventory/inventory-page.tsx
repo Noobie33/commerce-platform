@@ -425,6 +425,8 @@ export function InventoryPage({
                           </span>
                         ) : row.reversalOf ? (
                           <span className="small muted">Corrects {row.reversalOf.slice(0, 8)}</span>
+                        ) : row.isPurchaseReceipt ? (
+                          <span className="small muted">Correct through Purchasing</span>
                         ) : row.canReverse ? (
                           <button
                             className="text-button"

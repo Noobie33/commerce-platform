@@ -28,3 +28,8 @@ Object.assign(permissionNames, {
   'purchasing.read': 'View suppliers and purchasing',
   'purchasing.manage': 'Manage suppliers and purchase orders',
 });
+
+Object.assign(permissionNames, {
+  'purchasing.receive': 'Receive purchase orders',
+  'purchasing.reverse_receipt': 'Reverse purchase receipts',
+});

@@ -73,6 +73,7 @@ export interface HistoryRow {
   reversalOf: string | null;
   reversedBy: string | null;
   canReverse: boolean;
+  isPurchaseReceipt: boolean;
   lines: MovementLine[];
 }
 export interface InventoryQuery {

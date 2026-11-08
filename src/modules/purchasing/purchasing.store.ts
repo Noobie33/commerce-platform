@@ -1,3 +1,4 @@
+import { receiptError } from './receipt.errors.js';
 import { ConflictException, ServiceUnavailableException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import type { DataSource, EntityManager } from 'typeorm';
@@ -64,7 +65,7 @@ export class PurchasingStore {
         if (detail.code === '57014' || detail.code === '40P01')
           throw new ServiceUnavailableException({ code: 'PURCHASING_BUSY' });
       }
-      throw error;
+      receiptError(error);
     }
   }
 }

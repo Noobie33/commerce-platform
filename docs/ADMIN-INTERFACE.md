@@ -12,7 +12,7 @@ Open http://127.0.0.1:4000/admin while the local application is running. The roo
 - Working sign-out, session-expiry handling, loading, empty-result and failure states.
 - Responsive desktop/compact navigation with keyboard focus, Escape/Tab handling and skip link.
 
-The catalog screen supports real product/variant create, view, edit, search, category/status filters and pagination. See [catalog decisions](CATALOG.md). Inventory and purchasing/sales remain planned; no business totals or placeholder transactions are presented as real data. Staff/role editing and audit-history UI remain future slices.
+The catalog screen supports real product/variant create, view, edit, search, category/status filters and pagination. See [catalog decisions](CATALOG.md). Inventory and purchasing are implemented; sales remains planned; no business totals or placeholder transactions are presented as real data. Staff/role editing and audit-history UI remain future slices.
 
 ## Reference-driven visual refresh
 
@@ -59,4 +59,4 @@ The desktop table scrolls horizontally inside its panel on narrow screens; the s
 
 ## Suppliers and purchasing
 
-The Purchasing navigation includes searchable supplier records and draft/issued/cancelled purchase orders. Supplier/contact edits preserve issued-order snapshots. Order preparation supports active supplier lookup, SKU search, delivery location/date, exact BDT unit costs and review before save/issue. Cancellation requires a reason and retains history. These documents do not receive stock or create bills/payments. Browser QA verified creation/edit/issue/cancel, exact two-line totals, preserved supplier contacts after master edits, 1024px navigation, 390px forms and contained horizontal tables. See [purchasing decisions](PURCHASING.md).
+The Purchasing navigation includes searchable supplier records and draft/issued/cancelled purchase orders. Supplier/contact edits preserve issued-order snapshots. Order preparation supports active supplier lookup, SKU search, delivery location/date, exact BDT unit costs and review before save/issue. Cancellation requires a reason and retains history. Saving/issuing/cancelling these documents does not change stock or create bills/payments. The order detail now includes ordered/received/remaining quantities, partial/full receipt status, review-before-receive and whole-receipt reversal with preserved history. Active receipts block cancellation. See [receiving decisions](PURCHASE-RECEIPTS.md). Browser QA verified creation/edit/issue/cancel, exact two-line totals, preserved supplier contacts after master edits, 1024px navigation, 390px forms and contained horizontal tables. See [purchasing decisions](PURCHASING.md).

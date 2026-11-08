@@ -79,6 +79,19 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
       'GRANT SELECT,INSERT,UPDATE,DELETE ON purchase_order_lines TO "' + role + '"',
     );
     await manager.query('GRANT USAGE ON SEQUENCE purchasing_order_number TO "' + role + '"');
+    await manager.query(
+      'GRANT SELECT ON purchase_receipts,purchase_receipt_lines,purchase_receipt_reversals,purchase_receipt_state TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'REVOKE ALL ON FUNCTION public.inventory_post_core(uuid,uuid,uuid,jsonb) FROM "' + role + '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.purchase_receipt_post(uuid,uuid,uuid,jsonb) TO "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT ON locations TO "' + role + '"');
     await manager.query(
       'GRANT SELECT ON inventory_postings,inventory_entries,inventory_balances,inventory_requests TO "' +
@@ -88,6 +101,12 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
     await manager.query(
       'GRANT EXECUTE ON FUNCTION public.inventory_post(uuid,uuid,uuid,jsonb) TO "' + role + '"',
     );
+    const privateAccess = await manager.query(
+      "SELECT has_function_privilege($1,'public.inventory_post_core(uuid,uuid,uuid,jsonb)','EXECUTE') AS allowed",
+      [role],
+    );
+    if (privateAccess[0]?.allowed)
+      throw new Error('Runtime role must not execute the private stock posting function');
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

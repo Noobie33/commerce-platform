@@ -1,3 +1,4 @@
+import { animatedPngFixture } from './support/apng.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
@@ -56,6 +57,9 @@ test('image decoding rejects spoofed, corrupt, oversized, animated and high-pixe
     .png()
     .toBuffer();
   await assert.rejects(processor.process(huge, 'image/png'), { status: 422 });
+  const apng = animatedPngFixture();
+  assert.equal((await sharp(apng).metadata()).format, 'png');
+  await assert.rejects(processor.process(apng, 'image/png'), { status: 422 });
   const pixels = Buffer.from([
     255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255,
   ]);

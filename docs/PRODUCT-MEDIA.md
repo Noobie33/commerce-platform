@@ -55,7 +55,7 @@ After building, run npm run media:verify-local. It uses restricted runtime crede
 
 ## Verification and remaining scope
 
-23 database-free/interface checks and 33 reported PostgreSQL integration checks passed locally. Media coverage includes image format/metadata/orientation/pixel limits, a valid animated WebP, immutable storage and partial-write recovery, upload concurrency bounds, actual HTTP CSRF/permission denial, concurrent retries, protected downloads, stale edits, primary/remove history, audit rollback, the eight-photo limit, restricted grants and migration apply/revert.
+23 database-free/interface checks and 33 reported PostgreSQL integration checks passed locally. Media coverage includes image format/metadata/orientation/pixel limits, valid animated PNG/WebP containers, immutable storage and partial-write recovery, upload concurrency bounds, actual HTTP CSRF/permission denial, concurrent retries, protected downloads, stale edits, primary/remove history, audit rollback, the eight-photo limit, restricted grants and migration apply/revert.
 
 Browser QA used disposable test records and generated images only. JPEG/PNG uploads, previews, primary selection, gallery switching, catalog thumbnails and compact photo-management dimensions were observed. Temporary database records and storage are removed afterwards.
 

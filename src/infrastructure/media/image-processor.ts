@@ -11,6 +11,28 @@ export interface ProcessedImage {
   width: number;
   height: number;
 }
+function animatedContainer(input: Buffer, format: 'png' | 'webp'): boolean {
+  let offset = format === 'png' ? 8 : 12;
+  while (offset + (format === 'png' ? 12 : 8) <= input.length) {
+    const length = format === 'png' ? input.readUInt32BE(offset) : input.readUInt32LE(offset + 4);
+    const kind = input.toString(
+      'ascii',
+      offset + (format === 'png' ? 4 : 0),
+      offset + (format === 'png' ? 8 : 4),
+    );
+    if (
+      (format === 'png' && kind === 'acTL') ||
+      (format === 'webp' && ['ANIM', 'ANMF'].includes(kind))
+    )
+      return true;
+    const next =
+      offset + (format === 'png' ? 12 : 8) + length + (format === 'webp' ? length % 2 : 0);
+    if (next > input.length) throw Error('Invalid image container');
+    offset = next;
+    if (format === 'png' && kind === 'IEND') break;
+  }
+  return false;
+}
 export class ImageProcessor {
   async process(input: Buffer, contentType: string): Promise<ProcessedImage> {
     try {
@@ -33,6 +55,8 @@ export class ImageProcessor {
             ? 'webp'
             : '';
       if (!expected || expected !== detected) throw Error('format');
+      if ((detected === 'png' || detected === 'webp') && animatedContainer(input, detected))
+        throw Error('animation');
       const options = { limitInputPixels: MAX_IMAGE_PIXELS, failOn: 'warning' as const };
       const meta = await sharp(input, options).metadata();
       if (

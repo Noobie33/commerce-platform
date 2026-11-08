@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, StaffApi } from '../api';
 import { Dialog } from '../components/dialog';
-import type { Product, MediaResult } from './types';
-const MAX_BYTES = 5 * 1024 * 1024;
+import type { Product, MediaResult, MediaPolicy } from './types';
+
 export function MediaManager({
   api,
   initial,
@@ -16,6 +16,22 @@ export function MediaManager({
   onChanged: (result: MediaResult) => void;
   onReload: (product: Product) => void;
 }) {
+  const [policy, setPolicy] = useState<MediaPolicy | null>(null);
+  useEffect(() => {
+    let active = true;
+    void api
+      .mediaPolicy()
+      .then((value) => {
+        if (active) setPolicy(value);
+      })
+      .catch((error) => {
+        if (active)
+          setError(error instanceof Error ? error.message : 'Unable to load upload limits.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [api]);
   const [product, setProduct] = useState(initial),
     [file, setFile] = useState<File | null>(null),
     [preview, setPreview] = useState(''),
@@ -41,14 +57,11 @@ export function MediaManager({
       setPreview('');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (current && typeof reader.result === 'string') setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    if (current) setPreview(url);
     return () => {
       current = false;
-      if (reader.readyState === FileReader.LOADING) reader.abort();
+      URL.revokeObjectURL(url);
     };
   }, [file]);
   function changed(result: MediaResult) {
@@ -145,20 +158,34 @@ export function MediaManager({
         <div className="section-heading">
           <div>
             <h3>Show your product clearly</h3>
-            <p>JPEG, PNG or WebP · up to 5 MB and 16 megapixels per photo.</p>
+            <p>
+              JPEG, PNG or WebP
+              {policy
+                ? ' · up to ' +
+                  policy.maxUploadBytes / 1024 / 1024 +
+                  ' MB and ' +
+                  policy.maxPixels / 1_000_000 +
+                  ' megapixels per photo.'
+                : ' · loading upload limits…'}
+            </p>
           </div>
-          <span className="count-pill">{photos.length} / 8 photos</span>
+          <span className="count-pill">
+            {policy ? photos.length + ' / ' + policy.maxPhotos + ' photos' : 'Loading limits…'}
+          </span>
         </div>
         <div className="media-upload-zone">
           <div>
             <label htmlFor="product-photo-file">Select a product photo</label>
-            <p>The first photo becomes primary. Photos save separately from product details.</p>
+            <p>
+              Original files keep their uploaded quality. Display copies and thumbnails are
+              optimised. Photos save immediately.
+            </p>
             <input
               ref={input}
               id="product-photo-file"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              disabled={busy || stale || photos.length >= 8}
+              disabled={busy || stale || !policy || photos.length >= policy.maxPhotos}
               onChange={(event) => {
                 setError('');
                 setNotice('');
@@ -170,9 +197,10 @@ export function MediaManager({
                 if (
                   !['image/jpeg', 'image/png', 'image/webp'].includes(chosen.type) ||
                   chosen.size < 1 ||
-                  chosen.size > MAX_BYTES
+                  !policy ||
+                  chosen.size > policy.maxUploadBytes
                 ) {
-                  setError('Choose a JPEG, PNG or WebP file up to 5 MB.');
+                  setError('Choose a JPEG, PNG or WebP file within the displayed upload size.');
                   event.target.value = '';
                   setFile(null);
                   return;
@@ -189,7 +217,7 @@ export function MediaManager({
               <button
                 type="button"
                 className="primary-button"
-                disabled={busy || stale || photos.length >= 8}
+                disabled={busy || stale || !policy || photos.length >= policy.maxPhotos}
                 onClick={() => void upload()}
               >
                 {busy ? 'Uploading…' : 'Upload photo'}
@@ -234,9 +262,23 @@ export function MediaManager({
               <div>
                 <span>{photo.isPrimary ? 'Primary photo' : 'Additional photo'}</span>
                 <small>
-                  {photo.width} × {photo.height}
+                  Preview: {photo.width} × {photo.height}
+                </small>
+                <small>
+                  {photo.originalAvailable
+                    ? 'Original: ' + photo.originalWidth + ' × ' + photo.originalHeight
+                    : 'Original unavailable for this older upload'}
                 </small>
                 <div className="media-photo-actions">
+                  {photo.originalAvailable && photo.originalUrl && (
+                    <a
+                      className="secondary-button original-download-link"
+                      href={photo.originalUrl}
+                      download
+                    >
+                      Download original
+                    </a>
+                  )}
                   {!photo.isPrimary && (
                     <button
                       className="secondary-button"

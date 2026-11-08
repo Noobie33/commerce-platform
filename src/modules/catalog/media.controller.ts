@@ -59,7 +59,7 @@ export class ProductMediaController {
         saveKey,
         req.principal!.id,
         req.requestId,
-        await readImageBody(req, res),
+        await readImageBody(req, res, this.media.policy),
         req.headers['content-type']!.split(';')[0]!.trim().toLowerCase(),
       ),
     );
@@ -103,6 +103,27 @@ export class ProductMediaController {
       req.principal!.id,
       req.requestId,
     );
+  }
+  @Get('media-policy')
+  @RequirePermission('catalog.read')
+  policy() {
+    return { ...this.media.policy, keepOriginal: true };
+  }
+  @Get('photos/:photoId/original')
+  @RequirePermission('catalog.manage')
+  async original(
+    @Param('photoId') photoId: string,
+    @Res({ passthrough: true }) res: StaffResponse,
+  ) {
+    const id = uuid(photoId, 'photo'),
+      original = await this.media.original(id),
+      extension =
+        original.type === 'image/jpeg' ? 'jpg' : original.type === 'image/png' ? 'png' : 'webp';
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + id + '.' + extension + '"');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Content-Security-Policy', "sandbox; default-src 'none'");
+    return new StreamableFile(original.stream, { length: original.bytes });
   }
   @Get('photos/:photoId/:size')
   @RequirePermission('catalog.read')

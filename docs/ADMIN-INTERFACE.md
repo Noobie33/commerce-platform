@@ -16,7 +16,7 @@ The catalog screen supports real product/variant create, view, edit, search, cat
 
 ## Reference-driven visual refresh
 
-The catalog now has a white/light-gray and orange visual system, readable Segoe UI/system type, desktop top navigation, card/table views and an inline product details panel on wide screens. Compact screens use the same details in a modal dialog. Existing create/edit/category/search/pagination and staff screens are retained. See [interface direction and stack decisions](INTERFACE-DIRECTION.md). Product-photo upload, preview, primary selection and gallery are implemented; products without photos retain a clear empty state. See [product-media guide](PRODUCT-MEDIA.md).
+The catalog now has a white/light-gray and orange visual system, readable Segoe UI/system type, desktop top navigation, card/table views and an inline product details panel on wide screens. Compact screens use the same details in a modal dialog. Existing create/edit/category/search/pagination and staff screens are retained. See [interface direction and stack decisions](INTERFACE-DIRECTION.md). Product-photo upload, unchanged originals, protected original download, configurable live limits, preview, primary selection and gallery are implemented; products without photos retain a clear empty state. See [product-media guide](PRODUCT-MEDIA.md).
 
 ## Architecture and reasons
 

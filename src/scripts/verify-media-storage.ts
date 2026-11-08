@@ -9,11 +9,22 @@ const source = createRuntimeDataSource(),
   store = new LocalMediaStore(process.env);
 try {
   await source.initialize();
-  const rows: { id: string; hash: string; bytes: number; active: boolean }[] = await source.query(
-    'SELECT id,content_hash AS hash,byte_size AS bytes,is_active AS active FROM catalog_product_photos',
+  const rows: {
+    id: string;
+    hash: string;
+    bytes: number;
+    active: boolean;
+    originalHash: string | null;
+    originalBytes: number | null;
+  }[] = await source.query(
+    'SELECT id,content_hash AS hash,byte_size AS bytes,is_active AS active,original_hash AS "originalHash",original_bytes AS "originalBytes" FROM catalog_product_photos',
   );
   const expected = new Set(
-    rows.flatMap((row) => [row.id + '-image.webp', row.id + '-thumbnail.webp']),
+    rows.flatMap((row) => [
+      row.id + '-image.webp',
+      row.id + '-thumbnail.webp',
+      ...(row.originalHash ? [row.id + '-original.bin'] : []),
+    ]),
   );
   let entries: string[] = [];
   try {
@@ -27,6 +38,16 @@ try {
     try {
       const image = await store.read(row.id, 'image');
       const thumbnail = await store.read(row.id, 'thumbnail');
+      if (row.originalHash) {
+        const original = await store.read(row.id, 'original');
+        if (
+          original.length !== row.originalBytes ||
+          createHash('sha256').update(original).digest('hex') !== row.originalHash
+        ) {
+          invalid++;
+          continue;
+        }
+      }
       if (
         image.length !== row.bytes ||
         createHash('sha256').update(image).digest('hex') !== row.hash ||

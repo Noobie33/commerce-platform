@@ -57,6 +57,11 @@ export function ProductDetail({
             ))}
           </div>
         )}
+        {hero?.originalAvailable && onManagePhotos && hero.originalUrl && (
+          <a className="secondary-button original-download-link" href={hero.originalUrl} download>
+            Download original
+          </a>
+        )}
         {onManagePhotos && (
           <button
             type="button"

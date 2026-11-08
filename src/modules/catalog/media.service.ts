@@ -8,13 +8,16 @@ import type { MediaResult, ProductPhoto } from './media.types.js';
 type Sql = Pick<EntityManager, 'query'>;
 export class ProductMediaService {
   private uploads = 0;
+  get policy() {
+    return this.processor.policy;
+  }
   constructor(
     private readonly source: DataSource,
     private readonly processor: ImageProcessor,
     private readonly store: MediaStore,
   ) {}
   async receive<T>(work: () => Promise<T>): Promise<T> {
-    if (this.uploads >= 2)
+    if (this.uploads >= this.policy.uploadConcurrency)
       throw new ServiceUnavailableException({
         code: 'MEDIA_BUSY',
         message: 'Image processing is busy. Try again shortly.',
@@ -27,8 +30,8 @@ export class ProductMediaService {
     }
   }
   async photos(id: string, sql: Sql = this.source): Promise<ProductPhoto[]> {
-    const rows: Omit<ProductPhoto, 'url' | 'thumbnailUrl'>[] = await sql.query(
-      'SELECT id,width,height,is_primary AS "isPrimary" FROM catalog_product_photos WHERE product_id=$1 AND is_active ORDER BY is_primary DESC,created_at,id',
+    const rows: Omit<ProductPhoto, 'url' | 'thumbnailUrl' | 'originalUrl'>[] = await sql.query(
+      'SELECT id,width,height,is_primary AS "isPrimary", original_type IS NOT NULL AS "originalAvailable",original_width AS "originalWidth",original_height AS "originalHeight",original_bytes AS "originalBytes" FROM catalog_product_photos WHERE product_id=$1 AND is_active ORDER BY is_primary DESC,created_at,id',
       [id],
     );
     return rows.map(photoLinks);
@@ -129,13 +132,13 @@ export class ProductMediaService {
         if (cached) return cached;
         await this.productLock(sql, id, version);
         const before = await this.photos(id, sql);
-        if (before.length >= 8)
+        if (before.length >= this.policy.maxPhotos)
           throw new ConflictException({
             code: 'PHOTO_LIMIT',
-            message: 'A product supports up to eight photos.',
+            message: 'This product reached its configured photo limit.',
           });
         await sql.query(
-          'INSERT INTO catalog_product_photos(id,product_id,width,height,byte_size,content_hash,is_primary) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+          'INSERT INTO catalog_product_photos(id,product_id,width,height,byte_size,content_hash,is_primary,original_type,original_width,original_height,original_bytes,original_hash) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
           [
             photoId,
             id,
@@ -144,6 +147,11 @@ export class ProductMediaService {
             processed.image.length,
             createHash('sha256').update(processed.image).digest('hex'),
             before.length === 0,
+            processed.originalType,
+            processed.originalWidth,
+            processed.originalHeight,
+            processed.original.length,
+            createHash('sha256').update(processed.original).digest('hex'),
           ],
         );
         return this.finish(
@@ -225,6 +233,18 @@ export class ProductMediaService {
         before,
       );
     });
+  }
+  async original(photoId: string) {
+    const rows: { type: string; bytes: number }[] = await this.source.query(
+      'SELECT original_type AS type,original_bytes AS bytes FROM catalog_product_photos WHERE id=$1 AND is_active AND original_type IS NOT NULL',
+      [photoId],
+    );
+    if (!rows[0]) throw new NotFoundException({ code: 'ORIGINAL_NOT_AVAILABLE' });
+    try {
+      return { ...rows[0], stream: await this.store.openOriginal(photoId) };
+    } catch {
+      throw new ServiceUnavailableException('Original image is temporarily unavailable');
+    }
   }
   async read(photoId: string, size: 'image' | 'thumbnail'): Promise<Buffer> {
     const rows: { id: string }[] = await this.source.query(

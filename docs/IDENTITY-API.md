@@ -14,7 +14,7 @@ All routes are protected unless explicitly public. Authenticated-only routes mus
 
 Default local origin: http://127.0.0.1:4000. STAFF_ORIGIN must be an exact origin, with HTTPS required in production policy. No wildcard CORS or proxy trust is enabled.
 
-All writes require Origin equal to STAFF_ORIGIN, Content-Type application/json and X-Requested-With: commerce-staff. Cross-site Fetch Metadata is rejected. Authenticated writes additionally require X-CSRF-Token matching the random synchronizer token bound to the session. The browser receives that token in login/me JSON; the authentication token stays in an HttpOnly, host-only, Path=/, SameSite=Strict cookie. Production policy additionally uses Secure and the __Host- cookie prefix. There are no GET mutations or bearer-token fallback.
+Writes require Origin equal to STAFF_ORIGIN and X-Requested-With: commerce-staff. JSON is required except for the explicitly declared product-photo binary upload route, which validates its image content type and retains the same session/CSRF/action checks. Cross-site Fetch Metadata is rejected. Authenticated writes additionally require X-CSRF-Token matching the random synchronizer token bound to the session. The browser receives that token in login/me JSON; the authentication token stays in an HttpOnly, host-only, Path=/, SameSite=Strict cookie. Production policy additionally uses Secure and the __Host- cookie prefix. There are no GET mutations or bearer-token fallback.
 
 | Route                             | Access                                             | Behavior                                                                                                                                     |
 | --------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -27,7 +27,7 @@ All writes require Origin equal to STAFF_ORIGIN, Content-Type application/json a
 | GET /api/v1/health/live           | Public                                             | Process liveness only.                                                                                                                       |
 | GET /api/v1/health/ready          | Public                                             | Runtime database connection and expected application schema revision.                                                                        |
 
-Request bodies are limited to 16 KiB; unexpected fields are rejected. Malformed JSON/oversized body responses never echo input. Responses are no-store and include server-generated request IDs. Database exceptions return generic 500 responses.
+JSON request bodies are limited to 16 KiB; product-photo bytes use the separately bounded media policy. unexpected fields are rejected. Malformed JSON/oversized body responses never echo input. Responses are no-store and include server-generated request IDs. Database exceptions return generic 500 responses.
 
 ## Audit and abuse controls
 

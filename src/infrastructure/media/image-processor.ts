@@ -1,12 +1,18 @@
+import { readMediaPolicy } from './media-policy.js';
+import type { MediaPolicy } from './media-policy.js';
 import sharp from 'sharp';
 import { UnprocessableEntityException } from '@nestjs/common';
 sharp.cache({ memory: 32, files: 0, items: 32 });
 sharp.concurrency(2);
-export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-export const MAX_IMAGE_PIXELS = 16_000_000;
+export const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+export const MAX_IMAGE_PIXELS = 64_000_000;
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 export interface ProcessedImage {
   image: Buffer;
+  original: Buffer;
+  originalType: string;
+  originalWidth: number;
+  originalHeight: number;
   thumbnail: Buffer;
   width: number;
   height: number;
@@ -34,9 +40,10 @@ function animatedContainer(input: Buffer, format: 'png' | 'webp'): boolean {
   return false;
 }
 export class ImageProcessor {
+  constructor(readonly policy: MediaPolicy = readMediaPolicy()) {}
   async process(input: Buffer, contentType: string): Promise<ProcessedImage> {
     try {
-      if (!input.length || input.length > MAX_IMAGE_BYTES) throw Error('size');
+      if (!input.length || input.length > this.policy.maxUploadBytes) throw Error('size');
       const expected =
         contentType === 'image/jpeg'
           ? 'jpeg'
@@ -57,21 +64,26 @@ export class ImageProcessor {
       if (!expected || expected !== detected) throw Error('format');
       if ((detected === 'png' || detected === 'webp') && animatedContainer(input, detected))
         throw Error('animation');
-      const options = { limitInputPixels: MAX_IMAGE_PIXELS, failOn: 'warning' as const };
+      const options = { limitInputPixels: this.policy.maxPixels, failOn: 'warning' as const };
       const meta = await sharp(input, options).metadata();
       if (
         meta.format !== expected ||
         (meta.pages ?? 1) !== 1 ||
         !meta.width ||
         !meta.height ||
-        meta.width * meta.height > MAX_IMAGE_PIXELS
+        meta.width * meta.height > this.policy.maxPixels
       )
         throw Error('dimensions');
       const output = await sharp(input, options)
-        .timeout({ seconds: 10 })
+        .timeout({ seconds: this.policy.processingTimeoutSeconds })
         .rotate()
-        .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 85 })
+        .resize({
+          width: this.policy.previewMaxEdge,
+          height: this.policy.previewMaxEdge,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 90 })
         .toBuffer({ resolveWithObject: true });
       const thumbnail = await sharp(output.data, options)
         .resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true })
@@ -79,6 +91,10 @@ export class ImageProcessor {
         .toBuffer();
       return {
         image: output.data,
+        original: input,
+        originalType: contentType,
+        originalWidth: meta.width,
+        originalHeight: meta.height,
         thumbnail,
         width: output.info.width,
         height: output.info.height,
@@ -87,7 +103,7 @@ export class ImageProcessor {
       throw new UnprocessableEntityException({
         code: 'INVALID_PRODUCT_IMAGE',
         message:
-          'Choose a valid, non-animated JPEG, PNG or WebP image up to 5 MB and 16 megapixels.',
+          'Choose a valid, non-animated JPEG, PNG or WebP within the displayed size and pixel limits.',
       });
     }
   }

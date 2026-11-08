@@ -1,3 +1,4 @@
+import { readMediaPolicy } from '../src/infrastructure/media/media-policy.js';
 import { animatedPngFixture } from './support/apng.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -14,14 +15,16 @@ test('image decoding re-encodes allowed formats, bounds dimensions, rotates and 
   const processor = new ImageProcessor();
   for (const format of ['jpeg', 'png', 'webp'] as const) {
     const input = await sharp({
-      create: { width: 1800, height: 1200, channels: 3, background: '#bf6d2a' },
+      create: { width: 3000, height: 2000, channels: 3, background: '#bf6d2a' },
     })
       .toFormat(format)
       .withExif({ IFD0: { Artist: 'Private camera owner' } })
       .toBuffer();
     const output = await processor.process(input, 'image/' + (format === 'jpeg' ? 'jpeg' : format));
-    assert.equal(output.width, 1600);
-    assert.equal(output.height, 1067);
+    assert.equal(output.width, 2560);
+    assert.deepEqual(output.original, input);
+    assert.equal((await sharp(output.original).metadata()).exif !== undefined, true);
+    assert.equal(output.height, 1707);
     const metadata = await sharp(output.image).metadata(),
       thumb = await sharp(output.thumbnail).metadata();
     assert.equal(metadata.format, 'webp');
@@ -56,7 +59,10 @@ test('image decoding rejects spoofed, corrupt, oversized, animated and high-pixe
   })
     .png()
     .toBuffer();
-  await assert.rejects(processor.process(huge, 'image/png'), { status: 422 });
+  await assert.rejects(
+    new ImageProcessor({ ...readMediaPolicy(), maxPixels: 16_000_000 }).process(huge, 'image/png'),
+    { status: 422 },
+  );
   const apng = animatedPngFixture();
   assert.equal((await sharp(apng).metadata()).format, 'png');
   await assert.rejects(processor.process(apng, 'image/png'), { status: 422 });
@@ -76,6 +82,10 @@ test('local media objects are immutable, recover partial writes and reject path 
       id = randomUUID();
     const image = {
       image: Buffer.from('full'),
+      original: Buffer.from('source'),
+      originalWidth: 1,
+      originalHeight: 1,
+      originalType: 'image/png',
       thumbnail: Buffer.from('thumb'),
       width: 1,
       height: 1,
@@ -104,7 +114,7 @@ test('local media objects are immutable, recover partial writes and reject path 
 test('upload work is bounded before receiving bytes and releases its slots on failure', async () => {
   const service = new ProductMediaService(
     {} as DataSource,
-    new ImageProcessor(),
+    new ImageProcessor({ ...readMediaPolicy(), uploadConcurrency: 2 }),
     {} as LocalMediaStore,
   );
   const releases: (() => void)[] = [];
@@ -120,4 +130,22 @@ test('upload work is bounded before receiving bytes and releases its slots on fa
     }),
   );
   await service.receive(async () => undefined);
+});
+
+test('media policy supports validated configuration and preserves practical defaults', () => {
+  const policy = readMediaPolicy();
+  assert.equal(policy.maxPhotos, 24);
+  assert.equal(policy.maxUploadBytes, 20 * 1024 * 1024);
+  assert.equal(policy.uploadConcurrency, 1);
+  assert.equal(
+    readMediaPolicy({ MEDIA_MAX_PHOTOS: '40', MEDIA_MAX_UPLOAD_MB: '30' }).maxPhotos,
+    40,
+  );
+  for (const env of [
+    { MEDIA_MAX_PHOTOS: '0' },
+    { MEDIA_MAX_UPLOAD_MB: '-1' },
+    { MEDIA_MAX_PIXELS: '100000001' },
+    { MEDIA_UPLOAD_CONCURRENCY: '99' },
+  ])
+    assert.throws(() => readMediaPolicy(env));
 });

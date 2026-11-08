@@ -2,9 +2,13 @@
 
 ## Staff workflow
 
-Save a product first, open its details, then choose Add product photos / Manage photos. Select a JPEG, PNG or WebP, inspect the local preview and upload it. Up to eight active photos can belong to one product. The first becomes primary; another photo can be selected as primary later. The primary thumbnail appears on the catalog card; the detail gallery can preview every active photo.
+Save a product first, open its details, then choose Add product photos / Manage photos. Select a JPEG, PNG or WebP, inspect the local preview and upload it. The current default is 24 active photos per product, with a configurable policy. The first becomes primary; another photo can be selected as primary later. The primary thumbnail appears on the catalog card; the detail gallery can preview every active photo.
 
 Photo changes save immediately, independently of the product editor. The UI preserves retry keys after a network failure, shows stale-revision errors and allows loading the latest product. Removing a photo hides it from the product and protected image endpoint; it does not physically purge retained files or historical records.
+
+## Original-quality update
+
+Original files are now preserved unchanged and can be downloaded by permitted staff. See [original media and live limits](ORIGINAL-MEDIA.md) and [local storage/costs](LOCAL-STORAGE-AND-COSTS.md). The policy below reflects the current defaults.
 
 ## Required dependency and image policy
 
@@ -12,12 +16,12 @@ Sharp 0.35.5 was selected after checking the existing installation, registry ver
 
 - Accept JPEG, PNG and WebP only, verified by magic bytes and decoded format.
 - Reject animated, corrupt, empty, oversized and mismatched input.
-- Maximum input: 5 MiB compressed and 16 million pixels.
-- Normalise orientation and re-encode to WebP, with a maximum 1600-pixel edge.
+- Default maximum input: 20 MiB compressed and 64 million pixels; server policy is configurable.
+- Normalise orientation and re-encode to WebP, with a maximum 2560-pixel edge.
 - Produce a separate thumbnail with a maximum 480-pixel edge.
-- Strip input metadata through the default Sharp output pipeline; camera EXIF/XMP is not retained.
-- Bound uploads to two concurrent receive/process operations, with a 15-second receive deadline and a 10-second image-processing deadline.
-- Store generated UUID names only. Original filenames, source bytes and file paths are not stored in catalog/audit responses.
+- Strip metadata from display copies. The separately protected original retains its exact bytes, including metadata.
+- Bound uploads to one concurrent receive/process operation by default, with a 30-second receive deadline and a 20-second image-processing deadline.
+- Store generated UUID names only. Original filenames, raw source bytes and file paths are not included in catalog/audit responses. Original files are stored privately with integrity hashes.
 
 Technical references: [Sharp installation](https://sharp.pixelplumbing.com/install/), [input limits](https://sharp.pixelplumbing.com/api-constructor/), [output and metadata](https://sharp.pixelplumbing.com/api-output/).
 
@@ -55,7 +59,7 @@ After building, run npm run media:verify-local. It uses restricted runtime crede
 
 ## Verification and remaining scope
 
-23 database-free/interface checks and 33 reported PostgreSQL integration checks passed locally. Media coverage includes image format/metadata/orientation/pixel limits, valid animated PNG/WebP containers, immutable storage and partial-write recovery, upload concurrency bounds, actual HTTP CSRF/permission denial, concurrent retries, protected downloads, stale edits, primary/remove history, audit rollback, the eight-photo limit, restricted grants and migration apply/revert.
+24 database-free/interface checks and 34 reported PostgreSQL integration checks passed locally. Media coverage includes image format/metadata/orientation/pixel limits, valid animated PNG/WebP containers, immutable storage and partial-write recovery, upload concurrency bounds, actual HTTP CSRF/permission denial, concurrent retries, protected downloads, stale edits, primary/remove history, audit rollback, configured photo limits, restricted grants and migration apply/revert.
 
 Browser QA used disposable test records and generated images only. JPEG/PNG uploads, previews, primary selection, gallery switching, catalog thumbnails and compact photo-management dimensions were observed. Temporary database records and storage are removed afterwards.
 

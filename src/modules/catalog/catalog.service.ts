@@ -113,8 +113,8 @@ export class CatalogService {
       'SELECT id,sku,attributes,barcode,price_minor::text AS "priceMinor",is_active AS "isActive" FROM catalog_variants WHERE product_id=$1 ORDER BY sku',
       [id],
     );
-    const photoRows: Omit<ProductPhoto, 'url' | 'thumbnailUrl'>[] = await sql.query(
-      'SELECT id,width,height,is_primary AS "isPrimary" FROM catalog_product_photos WHERE product_id=$1 AND is_active ORDER BY is_primary DESC,created_at,id',
+    const photoRows: Omit<ProductPhoto, 'url' | 'thumbnailUrl' | 'originalUrl'>[] = await sql.query(
+      'SELECT id,width,height,is_primary AS "isPrimary",original_type IS NOT NULL AS "originalAvailable",original_width AS "originalWidth",original_height AS "originalHeight",original_bytes AS "originalBytes" FROM catalog_product_photos WHERE product_id=$1 AND is_active ORDER BY is_primary DESC,created_at,id',
       [id],
     );
     return {
@@ -146,7 +146,7 @@ export class CatalogService {
         SELECT p.id,p.style_code AS "styleCode",p.name,p.category_id AS "categoryId",c.name AS "categoryName",
           p.status,p.currency,p.version,p.updated_at AS "updatedAt",v.total AS "variantCount",
           v.active AS "activeVariantCount",v.minimum,
-          (SELECT jsonb_build_object('id',ph.id,'width',ph.width,'height',ph.height,'isPrimary',ph.is_primary) FROM catalog_product_photos ph WHERE ph.product_id=p.id AND ph.is_active AND ph.is_primary) AS "primaryPhoto"
+          (SELECT jsonb_build_object('id',ph.id,'width',ph.width,'height',ph.height,'isPrimary',ph.is_primary,'originalAvailable',ph.original_type IS NOT NULL,'originalWidth',ph.original_width,'originalHeight',ph.original_height,'originalBytes',ph.original_bytes) FROM catalog_product_photos ph WHERE ph.product_id=p.id AND ph.is_active AND ph.is_primary) AS "primaryPhoto"
         FROM catalog_products p LEFT JOIN catalog_categories c ON c.id=p.category_id
         LEFT JOIN LATERAL (
           SELECT count(*)::int AS total,count(*) FILTER (WHERE is_active)::int AS active,

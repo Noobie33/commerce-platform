@@ -5,6 +5,11 @@ export interface ProductPhoto {
   width: number;
   height: number;
   isPrimary: boolean;
+  originalAvailable: boolean;
+  originalWidth: number | null;
+  originalHeight: number | null;
+  originalBytes: number | null;
+  originalUrl: string | null;
 }
 export interface MediaResult {
   productId: string;
@@ -86,4 +91,14 @@ export interface ProductPayload {
     price: string;
     isActive: boolean;
   }[];
+}
+
+export interface MediaPolicy {
+  maxPhotos: number;
+  maxUploadBytes: number;
+  maxPixels: number;
+  previewMaxEdge: number;
+  thumbnailMaxEdge: number;
+  keepOriginal: boolean;
+  uploadConcurrency: number;
 }

@@ -1,4 +1,11 @@
-import type { MediaResult, Category, Product, ProductPage, ProductPayload } from './catalog/types';
+import type {
+  MediaPolicy,
+  MediaResult,
+  Category,
+  Product,
+  ProductPage,
+  ProductPayload,
+} from './catalog/types';
 import type { Profile, TeamMember } from './types';
 
 export class ApiError extends Error {
@@ -15,9 +22,9 @@ export class ApiError extends Error {
           (
             {
               INVALID_PRODUCT_IMAGE:
-                'Choose a valid, non-animated JPEG, PNG or WebP image up to 5 MB and 16 megapixels.',
+                'Choose a valid, non-animated JPEG, PNG or WebP image within the displayed upload limits.',
               PHOTO_LIMIT:
-                'This product already has eight photos. Remove one before uploading another.',
+                'This product reached its photo limit. Remove one before uploading another.',
               MEDIA_BUSY: 'Image processing is busy. Please try again shortly.',
               INVALID_MEDIA_VERSION: 'Reload the latest product before changing photos.',
               STALE_PRODUCT:
@@ -159,6 +166,9 @@ export class StaffApi {
       payload,
       { method: id ? 'PATCH' : 'POST', key },
     );
+  }
+  mediaPolicy() {
+    return this.request<MediaPolicy>('/catalog/media-policy');
   }
   uploadPhoto(id: string, version: number, file: File, key: string) {
     return this.request<MediaResult>(

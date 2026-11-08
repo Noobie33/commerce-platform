@@ -1,3 +1,4 @@
+import { OriginalMedia1794102000000 } from '../../database/migrations/1794102000000-original-media.js';
 import { ProductMedia1794101000000 } from '../../database/migrations/1794101000000-product-media.js';
 import { CatalogFoundation1794100000000 } from '../../database/migrations/1794100000000-catalog-foundation.js';
 import { IdentityFoundation1794096000000 } from '../../database/migrations/1794096000000-identity-foundation.js';
@@ -41,6 +42,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       IdentityFoundation1794096000000,
       CatalogFoundation1794100000000,
       ProductMedia1794101000000,
+      OriginalMedia1794102000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

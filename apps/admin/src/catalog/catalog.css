@@ -1525,3 +1525,11 @@ body.dialog-open {
     height: 160px;
   }
 }
+
+.original-download-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+}

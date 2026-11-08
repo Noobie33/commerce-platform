@@ -1,3 +1,4 @@
+import { OriginalMedia1794102000000 } from '../src/database/migrations/1794102000000-original-media.js';
 import { request as httpRequest } from 'node:http';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -120,7 +121,15 @@ test('product media: protected real HTTP upload, storage and transactional histo
         role,
       ]);
     });
-    app = await createApp({ ...process.env, MEDIA_STORAGE_DIR: root, STAFF_ORIGIN: origin });
+    app = await createApp({
+      ...process.env,
+      MEDIA_STORAGE_DIR: root,
+      STAFF_ORIGIN: origin,
+      MEDIA_MAX_PHOTOS: '8',
+      MEDIA_MAX_UPLOAD_MB: '5',
+      MEDIA_MAX_PIXELS: '16000000',
+      MEDIA_UPLOAD_CONCURRENCY: '2',
+    });
     await app.listen(0, '127.0.0.1');
     base = await app.getUrl();
     for (let i = 0; i < 3; i++) {
@@ -234,14 +243,31 @@ test('product media: protected real HTTP upload, storage and transactional histo
           )[0].count,
           1,
         );
-        assert.equal((await readdir(root)).length, 2);
+        assert.equal((await readdir(root)).length, 3);
         assert.equal((await fetch(base + firstUrl)).status, 401);
         const full = await fetch(base + firstUrl, { headers: auth(sessions[1]!) });
         assert.equal(full.status, 200);
         assert.equal(full.headers.get('content-type'), 'image/webp');
         assert.equal(full.headers.get('cache-control'), 'no-store');
         const decoded = await sharp(Buffer.from(await full.arrayBuffer())).metadata();
-        assert.equal(decoded.width, 1600);
+        assert.equal(decoded.width, 1800);
+        assert.equal(state.photos[0]!.originalAvailable, true);
+        assert.equal(state.photos[0]!.originalWidth, 1800);
+        assert.equal(
+          (await fetch(base + state.photos[0]!.originalUrl!, { headers: auth(sessions[1]!) }))
+            .status,
+          403,
+        );
+        const original = await fetch(base + state.photos[0]!.originalUrl!, {
+          headers: auth(sessions[0]!),
+        });
+        assert.equal(original.status, 200);
+        assert.equal(original.headers.get('content-type'), 'application/octet-stream');
+        assert.match(original.headers.get('content-disposition')!, /^attachment/);
+        assert.deepEqual(Buffer.from(await original.arrayBuffer()), png);
+        const policy = await (await json('/media-policy', sessions[0]!)).json();
+        assert.equal(policy.maxPhotos, 8);
+        assert.equal(policy.maxUploadBytes, 5 * 1024 * 1024);
         assert.equal(decoded.exif, undefined);
         const thumb = await fetch(base + state.photos[0]!.thumbnailUrl, {
           headers: auth(sessions[0]!),
@@ -258,7 +284,7 @@ test('product media: protected real HTTP upload, storage and transactional histo
       'stale photo changes roll back files and metadata; primary/removal preserve history',
       async () => {
         assert.equal((await upload(png, 1)).status, 409);
-        assert.equal((await readdir(root)).length, 2);
+        assert.equal((await readdir(root)).length, 3);
         const second = await upload(png, version);
         assert.equal(second.status, 201);
         state = await second.json();
@@ -304,7 +330,7 @@ test('product media: protected real HTTP upload, storage and transactional histo
           )[0].is_active,
           false,
         );
-        assert.equal((await readdir(root)).length, 4);
+        assert.equal((await readdir(root)).length, 6);
       },
     );
     await t.test(
@@ -412,6 +438,51 @@ test('product media: protected real HTTP upload, storage and transactional histo
             (await runner.query('SELECT version FROM app_schema_version'))[0].version,
             2,
           );
+        } finally {
+          if (runner.isTransactionActive) await runner.rollbackTransaction();
+          await runner.release();
+        }
+      },
+    );
+    await t.test(
+      'original migration keeps legacy uploads explicit and refuses destructive downgrade',
+      async () => {
+        const runner = source.createQueryRunner(),
+          schema = 'original_probe_' + randomBytes(4).toString('hex');
+        try {
+          await runner.startTransaction();
+          await runner.query('CREATE SCHEMA "' + schema + '"');
+          await runner.query('SET LOCAL search_path TO "' + schema + '",pg_catalog');
+          await new IdentityFoundation1794096000000().up(runner);
+          await new CatalogFoundation1794100000000().up(runner);
+          await new ProductMedia1794101000000().up(runner);
+          const product = (
+            await runner.query(
+              "INSERT INTO catalog_products(style_code,name,status,currency) VALUES ('LEGACY','Legacy','draft','BDT') RETURNING id",
+            )
+          )[0].id;
+          await runner.query(
+            'INSERT INTO catalog_product_photos(id,product_id,width,height,byte_size,content_hash,is_primary) VALUES ($1,$2,20,10,2,$3,true)',
+            [randomUUID(), product, '0'.repeat(64)],
+          );
+          const migration = new OriginalMedia1794102000000();
+          await migration.up(runner);
+          assert.equal(
+            (await runner.query('SELECT original_type FROM catalog_product_photos'))[0]
+              .original_type,
+            null,
+          );
+          await migration.down(runner);
+          assert.equal(
+            (await runner.query('SELECT version FROM app_schema_version'))[0].version,
+            3,
+          );
+          await migration.up(runner);
+          await runner.query(
+            "UPDATE catalog_product_photos SET original_type='image/png',original_width=20,original_height=10,original_bytes=2,original_hash=$1",
+            ['0'.repeat(64)],
+          );
+          await assert.rejects(migration.down(runner), /Cannot revert/);
         } finally {
           if (runner.isTransactionActive) await runner.rollbackTransaction();
           await runner.release();

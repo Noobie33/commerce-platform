@@ -1,3 +1,4 @@
+import { readMediaPolicy } from '../../infrastructure/media/media-policy.js';
 import { ProductMediaController } from './media.controller.js';
 import { ProductMediaService } from './media.service.js';
 import { ImageProcessor } from '../../infrastructure/media/image-processor.js';
@@ -24,7 +25,11 @@ export class CatalogModule {
         {
           provide: ProductMediaService,
           useFactory: (source: DataSource) =>
-            new ProductMediaService(source, new ImageProcessor(), new LocalMediaStore(env)),
+            new ProductMediaService(
+              source,
+              new ImageProcessor(readMediaPolicy(env)),
+              new LocalMediaStore(env),
+            ),
           inject: [DATABASE_SOURCE],
         },
         {

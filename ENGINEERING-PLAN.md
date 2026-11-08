@@ -94,6 +94,10 @@ Each phase produces a usable demonstration. Estimates follow the first complete 
 
 First business slice after phase 1: create T-shirt variants, receive stock, transfer stock, sell with partial payment, view stock/customer due, then return/reverse. Build staff screens and server behavior together per slice.
 
+## Storefront requirement update
+
+The owner has selected Aarong/Taaga as the main visual/functionality reference and Tabaya for product video with photos. [Reference audit and implementation contract](docs/STOREFRONT-REFERENCE.md) maps this to structured product specifications, facets, collections, size guides, mixed media, publication and connected customer/sales workflows. These requirements extend the storefront phases; current purchasing receipt work continues as the operational dependency. Account/checkout/rewards parity requires further acceptance work rather than assuming it from public navigation.
+
 ## Execution and limits
 
 Small reviewable changes; preserve existing data/source; pin dependencies; review migrations; no seeds against existing business databases. Tests cover changed behavior through type/build, HTTP and isolated PostgreSQL integration. Inventory/finance require concurrency, rollback and duplicate-request tests. Vulnerability scans require triage and do not prove complete security.

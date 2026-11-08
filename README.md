@@ -19,6 +19,10 @@ Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use 
 
 The staff workspace, catalog/variants and protected product-photo workflow are implemented. See [product photos and storage decisions](docs/PRODUCT-MEDIA.md). See [catalog workflow and decisions](docs/CATALOG.md). Purchase receipts/invoices/payments, sales, staff/role editing, MFA and recovery remain future slices. This is a verified local development increment, not a complete or production-ready ERP. [Multi-location inventory](docs/INVENTORY-DESIGN.md) now provides physical receipts, transfers, adjustments, movement history and reversals using the same access/audit foundation. [Suppliers and purchase orders](docs/PURCHASING.md) now support audited supplier records and versioned draft/issue/cancel orders. Receiving against a PO, supplier invoices and payments remain the next increments. Original image quality and configurable limits are described in [original media](docs/ORIGINAL-MEDIA.md); [storage and costs](docs/LOCAL-STORAGE-AND-COSTS.md) explains the current local setup.
 
+## Storefront direction
+
+The owner selected Aarong/Taaga for storefront layout, product presentation and feature coverage, with Tabaya-inspired product video alongside images. See the [source-backed feature matrix and architecture impact](docs/STOREFRONT-REFERENCE.md). Rich specifications/filters, collections/size guides, mixed media and publication rules must be supplied by the ERP. These are recorded requirements; the current app remains the staff workspace, with no public checkout or video upload yet.
+
 ## Local commands
 
 Requires Node 24 LTS and npm. Exact dependencies are locked in package-lock.json.

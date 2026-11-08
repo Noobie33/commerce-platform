@@ -6,6 +6,12 @@ The owner supplied a screenshot and screen recording on 8 November 2026 to commu
 
 The reference describes inventory, ratings, sales statistics, brand/gender filters, offers and orders. Those are inputs to the product roadmap, not proof that those workflows already exist. The redesign preserves every implemented catalog action and the existing staff/security boundary.
 
+## Storefront direction update — 8 November 2026
+
+The owner subsequently selected [Aarong/Taaga](https://www.aarong.com/bgd/brands/taaga) as the primary public-storefront layout/functionality reference and [Tabaya](https://tabaya.com/) for product video alongside photos. This latest direction governs storefront design and future visual alignment of the staff software. Carry its typography, spacing, restrained presentation and clear filtering into management screens while preserving operational tables and permission-aware actions. The existing orange/white staff theme is the current implementation baseline, not a fixed requirement for the future public palette. Staff software must manage the richer catalog/content/media and commerce workflows behind the storefront.
+
+See the [recorded feature matrix, system changes and acceptance gates](STOREFRONT-REFERENCE.md). The public-site observations do not expose Aarong's private ERP. Detailed account/payment/reward behaviour remains discovery work; requested image/video functionality is a requirement, not an existing upload capability.
+
 ## Frontend stack
 
 | Part              | Existing project version                 | Reason                                                                        |
@@ -40,9 +46,9 @@ Browser QA uses only a disposable account and fixtures in commerce_platform_test
 
 ## Next increments
 
-1. Multi-location inventory: immutable stock movements, receipts, transfers, adjustments, availability and low-stock policy.
-2. Additional catalog attributes and B2B pricing: business-approved gender/brand/material/care taxonomy, price lists and filters.
-3. Purchasing/sales/customer/payment workflows, then a public store using real catalog and inventory data.
+1. Implemented: multi-location physical stock receipts, transfers, adjustments and reversals. Reserved/sellable availability and low-stock policy remain pending.
+2. Planned: reference-aligned structured product specifications, normalized filter vocabularies, collections, size guides, ordered image/video media and publication controls.
+3. Supplier records and purchase order draft/issue/cancel are implemented. Next: partial goods receipts, supplier invoices/payments and customer/sales workflows, then the reference-aligned public store using genuine published catalog and sellable inventory.
 
 Media extensions (ordering, variant image association and remote storage) follow the documented media roadmap.
 

@@ -6,7 +6,7 @@ Active workspace: D:\Business Software\commerce-platform. See [architecture and 
 
 ## Staff interface
 
-Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md).
+Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md) and [visual direction / frontend decisions](docs/INTERFACE-DIRECTION.md).
 
 ## Current implementation
 

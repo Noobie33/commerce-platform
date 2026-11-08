@@ -1,12 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import { categoryName, money } from './helpers';
 import { CategoryDialog } from './category-dialog';
 import { ProductEditor } from './product-editor';
 import { ProductDetail } from './product-detail';
+import { ProductGrid } from './product-grid';
 import type { Category, Product, ProductPage, ProductStatus } from './types';
 export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: boolean }) {
+  const [view, setView] = useState<'grid' | 'table'>('grid');
+  const [wide, setWide] = useState(() => window.matchMedia('(min-width: 1180px)').matches);
+  const lastTrigger = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1180px)');
+    const changed = () => setWide(media.matches);
+    media.addEventListener('change', changed);
+    return () => media.removeEventListener('change', changed);
+  }, []);
+  function closeDetails() {
+    setDetail(null);
+    if (lastTrigger.current?.isConnected) lastTrigger.current.focus({ preventScroll: true });
+  }
   const [categories, setCategories] = useState<Category[]>([]),
     [data, setData] = useState<ProductPage | null>(null),
     [search, setSearch] = useState(''),
@@ -51,6 +65,7 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
     };
   }, [api, query, status, categoryId, page, revision]);
   async function open(id: string) {
+    lastTrigger.current = document.activeElement as HTMLElement | null;
     setOpening(true);
     setError('');
     try {
@@ -60,6 +75,11 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
     } finally {
       setOpening(false);
     }
+  }
+  function startCreate() {
+    lastTrigger.current = document.activeElement as HTMLElement | null;
+    setNotice('');
+    setEditor({ initial: null });
   }
   function saved(product: Product) {
     const creating = !editor?.initial;
@@ -79,36 +99,22 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
     <section className="catalog-page">
       <div className="page-heading catalog-heading">
         <div>
-          <span className="eyebrow">YOUR COLLECTION, CONNECTED</span>
+          <span className="eyebrow">WORKSPACE / CATALOG</span>
           <h1 id="page-title" tabIndex={-1}>
-            Product catalog<span className="heading-dot">.</span>
+            Product catalog
           </h1>
-          <p>One home for every style, size and colour.</p>
+          <p>Manage your styles, variants and pricing in one place.</p>
         </div>
         {canManage && (
           <button
             className="primary-button"
             onClick={() => {
-              setNotice('');
-              setEditor({ initial: null });
+              startCreate();
             }}
           >
             + Create product
           </button>
         )}
-      </div>
-      <div className="catalog-intro">
-        <div className="catalog-intro-symbol">
-          <Icon name="catalog" />
-        </div>
-        <div>
-          <strong>Build a considered collection.</strong>
-          <p>
-            Keep product details consistent across your future stores, stockrooms and sales
-            channels.
-          </p>
-        </div>
-        <span className="catalog-currency">BDT · RETAIL PRICING</span>
       </div>
       {notice && (
         <p className="catalog-notice" role="status">
@@ -123,194 +129,104 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
           </button>
         </p>
       )}
-      <div className="panel catalog-panel">
-        <div className="catalog-toolbar">
-          <label className="catalog-search">
-            <Icon name="search" />
-            <span className="sr-only">Search products</span>
-            <input
-              type="search"
-              maxLength={100}
-              placeholder="Search name, style, SKU or barcode"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </label>
-          <label>
-            <span className="sr-only">Product status</span>
-            <select
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value as typeof status);
-                setPage(1);
-              }}
-            >
-              <option value="all">All statuses</option>
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
-            </select>
-          </label>
-          <label>
-            <span className="sr-only">Category filter</span>
-            <select
-              value={categoryId}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">All categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {categoryName(c.id, categories)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {canManage && (
-            <button className="text-button" onClick={() => setCategoryOpen(true)}>
-              + Category
-            </button>
-          )}
-        </div>
-        <div className="catalog-results-heading">
-          <strong>Collection</strong>
-          <span aria-live="polite">
-            {loading
-              ? 'Loading…'
-              : data
-                ? data.total + (data.total === 1 ? ' product' : ' products')
-                : ''}
-          </span>
-          <button
-            className="icon-button"
-            aria-label="Refresh catalog"
-            disabled={loading}
-            onClick={() => setRevision((v) => v + 1)}
-          >
-            <Icon name="refresh" />
-          </button>
-        </div>
-        {error ? (
-          <div className="catalog-empty" role="alert">
-            <h3>We couldn’t load your collection.</h3>
-            <p>{error}</p>
-            <button className="secondary-button" onClick={() => setRevision((v) => v + 1)}>
-              Try again
-            </button>
+      <div className={'catalog-workbench' + (detail && wide ? ' with-product-details' : '')}>
+        <div className="panel catalog-panel">
+          <div className="catalog-toolbar">
+            <label className="catalog-search">
+              <Icon name="search" />
+              <span className="sr-only">Search products</span>
+              <input
+                type="search"
+                maxLength={100}
+                placeholder="Search name, style, SKU or barcode"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+            <label>
+              <span className="sr-only">Category filter</span>
+              <select
+                value={categoryId}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">All categories</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {categoryName(c.id, categories)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {canManage && (
+              <button className="text-button" onClick={() => setCategoryOpen(true)}>
+                + Category
+              </button>
+            )}
           </div>
-        ) : loading ? (
-          <div className="catalog-empty" role="status">
-            <span className="loading-ring" />
-            <p>Bringing your collection together…</p>
-          </div>
-        ) : data?.items.length ? (
-          <>
-            <div className="table-scroll">
-              <table className="catalog-table product-list">
-                <caption className="sr-only">Product collection</caption>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Variants</th>
-                    <th>From price</th>
-                    <th>Status</th>
-                    <th>
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((product) => (
-                    <tr key={product.id}>
-                      <td>
-                        <button
-                          className="product-link"
-                          onClick={() => void open(product.id)}
-                          disabled={opening}
-                        >
-                          <span className="product-monogram" aria-hidden="true">
-                            {product.name.slice(0, 2).toUpperCase()}
-                          </span>
-                          <span>
-                            <strong>{product.name}</strong>
-                            <small className="mono-text">{product.styleCode}</small>
-                          </span>
-                        </button>
-                      </td>
-                      <td>{categoryName(product.categoryId, categories)}</td>
-                      <td>
-                        <strong>{product.variantCount} SKUs</strong>
-                        <small>{product.activeVariantCount} active</small>
-                      </td>
-                      <td className="price-cell">{money(product.fromPrice)}</td>
-                      <td>
-                        <span className={'catalog-status status-' + product.status}>
-                          {product.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="icon-button"
-                          aria-label={'View ' + product.name}
-                          disabled={opening}
-                          onClick={() => void open(product.id)}
-                        >
-                          <Icon name="arrow" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <footer className="catalog-pagination">
-              <span>
-                {(page - 1) * data.pageSize + 1}–{Math.min(page * data.pageSize, data.total)} of{' '}
-                {data.total} products
-              </span>
-              <div>
+          <div className="catalog-collection-controls">
+            <div className="catalog-status-tabs" role="group" aria-label="Product status">
+              {(['all', 'active', 'draft', 'archived'] as const).map((value) => (
                 <button
-                  className="secondary-button"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
+                  type="button"
+                  key={value}
+                  aria-pressed={status === value}
+                  onClick={() => {
+                    setStatus(value);
+                    setPage(1);
+                  }}
                 >
-                  Previous
+                  {value === 'all'
+                    ? 'All products'
+                    : value.charAt(0).toUpperCase() + value.slice(1)}
                 </button>
-                <span>Page {page}</span>
+              ))}
+            </div>
+            <div className="catalog-view-controls">
+              <span className="catalog-order">Newest first</span>
+              <div role="group" aria-label="Catalog view">
                 <button
-                  className="secondary-button"
-                  disabled={page * data.pageSize >= data.total}
-                  onClick={() => setPage((p) => p + 1)}
+                  type="button"
+                  aria-label="Grid view"
+                  aria-pressed={view === 'grid'}
+                  onClick={() => setView('grid')}
                 >
-                  Next
+                  <Icon name="grid" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Table view"
+                  aria-pressed={view === 'table'}
+                  onClick={() => setView('table')}
+                >
+                  <Icon name="list" />
                 </button>
               </div>
-            </footer>
-          </>
-        ) : (
-          <div className="catalog-empty">
-            <div className="empty-symbol">
-              <Icon name="catalog" />
-            </div>
-            <span className="eyebrow">
-              {query || status !== 'all' || categoryId ? 'REFINE YOUR SEARCH' : 'A FRESH START'}
-            </span>
-            <h3>
-              {query || status !== 'all' || categoryId
-                ? 'No matching products'
-                : 'Your collection starts here'}
-            </h3>
-            <p>
-              {query || status !== 'all' || categoryId
-                ? 'Try another name, SKU or filter.'
-                : 'Add your first product, then bring its sizes, colours and prices together.'}
-            </p>
-            {query || status !== 'all' || categoryId ? (
               <button
-                className="secondary-button"
+                className="icon-button"
+                aria-label="Refresh catalog"
+                disabled={loading}
+                onClick={() => setRevision((v) => v + 1)}
+              >
+                <Icon name="refresh" />
+              </button>
+            </div>
+          </div>
+          <div className="catalog-result-count" aria-live="polite">
+            {loading
+              ? 'Loading products…'
+              : data
+                ? data.total +
+                  (data.total === 1 ? ' product' : ' products') +
+                  (status !== 'all' || query || categoryId
+                    ? ' matching your filters'
+                    : ' in your catalog')
+                : ''}
+            {(query || status !== 'all' || categoryId) && (
+              <button
+                className="text-button"
                 onClick={() => {
                   setSearch('');
                   setQuery('');
@@ -321,14 +237,172 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
               >
                 Clear filters
               </button>
-            ) : (
-              canManage && (
-                <button className="primary-button" onClick={() => setEditor({ initial: null })}>
-                  Create your first product <Icon name="arrow" />
-                </button>
-              )
             )}
           </div>
+          {error ? (
+            <div className="catalog-empty" role="alert">
+              <h3>We couldn’t load your collection.</h3>
+              <p>{error}</p>
+              <button className="secondary-button" onClick={() => setRevision((v) => v + 1)}>
+                Try again
+              </button>
+            </div>
+          ) : loading ? (
+            <div className="catalog-empty" role="status">
+              <span className="loading-ring" />
+              <p>Bringing your collection together…</p>
+            </div>
+          ) : data?.items.length ? (
+            <>
+              {view === 'grid' ? (
+                <ProductGrid
+                  products={data.items}
+                  categories={categories}
+                  selectedId={detail?.id}
+                  opening={opening}
+                  onOpen={(id) => void open(id)}
+                />
+              ) : (
+                <div className="table-scroll">
+                  <table className="catalog-table product-list">
+                    <caption className="sr-only">Product collection</caption>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Variants</th>
+                        <th>From price</th>
+                        <th>Status</th>
+                        <th>
+                          <span className="sr-only">Actions</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.items.map((product) => (
+                        <tr key={product.id}>
+                          <td>
+                            <button
+                              className="product-link"
+                              onClick={() => void open(product.id)}
+                              disabled={opening}
+                            >
+                              <span className="product-monogram" aria-hidden="true">
+                                {product.name.slice(0, 2).toUpperCase()}
+                              </span>
+                              <span>
+                                <strong>{product.name}</strong>
+                                <small className="mono-text">{product.styleCode}</small>
+                              </span>
+                            </button>
+                          </td>
+                          <td>{categoryName(product.categoryId, categories)}</td>
+                          <td>
+                            <strong>{product.variantCount} SKUs</strong>
+                            <small>{product.activeVariantCount} active</small>
+                          </td>
+                          <td className="price-cell">{money(product.fromPrice)}</td>
+                          <td>
+                            <span className={'catalog-status status-' + product.status}>
+                              {product.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="icon-button"
+                              aria-label={'View ' + product.name}
+                              disabled={opening}
+                              onClick={() => void open(product.id)}
+                            >
+                              <Icon name="arrow" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <footer className="catalog-pagination">
+                <span>
+                  {(page - 1) * data.pageSize + 1}–{Math.min(page * data.pageSize, data.total)} of{' '}
+                  {data.total} {data.total === 1 ? 'product' : 'products'}
+                </span>
+                <div>
+                  <button
+                    className="secondary-button"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    Previous
+                  </button>
+                  <span>Page {page}</span>
+                  <button
+                    className="secondary-button"
+                    disabled={page * data.pageSize >= data.total}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </footer>
+            </>
+          ) : (
+            <div className="catalog-empty">
+              <div className="empty-symbol">
+                <Icon name="catalog" />
+              </div>
+              <span className="eyebrow">
+                {query || status !== 'all' || categoryId ? 'REFINE YOUR SEARCH' : 'A FRESH START'}
+              </span>
+              <h3>
+                {query || status !== 'all' || categoryId
+                  ? 'No matching products'
+                  : 'Your collection starts here'}
+              </h3>
+              <p>
+                {query || status !== 'all' || categoryId
+                  ? 'Try another name, SKU or filter.'
+                  : 'Add your first product, then bring its sizes, colours and prices together.'}
+              </p>
+              {query || status !== 'all' || categoryId ? (
+                <button
+                  className="secondary-button"
+                  onClick={() => {
+                    setSearch('');
+                    setQuery('');
+                    setStatus('all');
+                    setCategory('');
+                    setPage(1);
+                  }}
+                >
+                  Clear filters
+                </button>
+              ) : (
+                canManage && (
+                  <button className="primary-button" onClick={startCreate}>
+                    Create your first product <Icon name="arrow" />
+                  </button>
+                )
+              )}
+            </div>
+          )}
+        </div>
+        {detail && (
+          <ProductDetail
+            product={detail}
+            categories={categories}
+            inline={wide}
+            onClose={closeDetails}
+            {...(canManage
+              ? {
+                  onEdit: (p: Product) => {
+                    setDetail(null);
+                    setEditor({ initial: p });
+                  },
+                }
+              : {})}
+          />
         )}
       </div>
       <p className="catalog-bottom-note">
@@ -360,21 +434,6 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
             setNotice('');
             setRevision((v) => v + 1);
           }}
-        />
-      )}
-      {detail && (
-        <ProductDetail
-          product={detail}
-          categories={categories}
-          onClose={() => setDetail(null)}
-          {...(canManage
-            ? {
-                onEdit: (p: Product) => {
-                  setDetail(null);
-                  setEditor({ initial: p });
-                },
-              }
-            : {})}
         />
       )}
     </section>

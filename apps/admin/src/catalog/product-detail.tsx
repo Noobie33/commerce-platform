@@ -1,77 +1,172 @@
+import { useEffect, useId, useRef } from 'react';
 import { Dialog } from '../components/dialog';
+import { Icon } from '../icons';
 import { categoryName, money } from './helpers';
+import { ProductVisual } from './product-visual';
 import type { Category, Product } from './types';
 export function ProductDetail({
   product,
   categories,
   onClose,
   onEdit,
+  inline = false,
 }: {
   product: Product;
   categories: Category[];
   onClose: () => void;
   onEdit?: (p: Product) => void;
+  inline?: boolean;
 }) {
-  return (
-    <Dialog title={product.name} subtitle={product.styleCode} onClose={onClose} wide>
-      <div className="dialog-body">
-        <div className="product-detail-meta">
-          <span className={'catalog-status status-' + product.status}>{product.status}</span>
-          <span>{categoryName(product.categoryId, categories)}</span>
-          <span>Revision {product.version}</span>
-        </div>
-        {product.description && <p className="product-description">{product.description}</p>}
-        <div className="section-heading">
+  const titleId = useId(),
+    heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (inline) heading.current?.focus({ preventScroll: true });
+  }, [product.id, inline]);
+  const content = (
+    <>
+      <div className="product-detail-body">
+        <div className="detail-product-heading">
           <div>
-            <h3>Variants & pricing</h3>
-            <p>Individual SKUs for each sellable option.</p>
+            <h3>{product.name}</h3>
+            <span className="mono-text">{product.styleCode}</span>
           </div>
-          <span className="count-pill">{product.variants.length} SKUs</span>
+          <span className={'catalog-status status-' + product.status}>{product.status}</span>
         </div>
-        <div className="table-scroll">
-          <table className="catalog-table">
-            <caption className="sr-only">Variants for {product.name}</caption>
-            <thead>
-              <tr>
-                <th>SKU / options</th>
-                <th>Barcode</th>
-                <th>Retail price</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
+        <ProductVisual name={product.name} large />
+        <div className="detail-facts">
+          <div>
+            <span>From price</span>
+            <strong>
+              {money(
+                product.variants
+                  .filter((v) => v.isActive)
+                  .map((v) => v.price)
+                  .sort((a, b) => {
+                    const x = BigInt(a.replace('.', '')),
+                      y = BigInt(b.replace('.', ''));
+                    return x < y ? -1 : x > y ? 1 : 0;
+                  })[0] ?? null,
+              )}
+            </strong>
+          </div>
+          <div>
+            <span>Variants</span>
+            <strong>
+              {product.variants.length} {product.variants.length === 1 ? 'SKU' : 'SKUs'}
+            </strong>
+          </div>
+          <div>
+            <span>Revision</span>
+            <strong>{product.version}</strong>
+          </div>
+        </div>
+        <details className="detail-section" open>
+          <summary>
+            <Icon name="catalog" />
+            Product details
+            <Icon name="chevron" />
+          </summary>
+          <div className="detail-section-content">
+            <dl>
+              <div>
+                <dt>Category</dt>
+                <dd>{categoryName(product.categoryId, categories)}</dd>
+              </div>
+              <div>
+                <dt>Currency</dt>
+                <dd>BDT</dd>
+              </div>
+              <div>
+                <dt>Last updated</dt>
+                <dd>
+                  {new Intl.DateTimeFormat('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    timeZone: 'Asia/Dhaka',
+                  }).format(new Date(product.updatedAt))}
+                </dd>
+              </div>
+            </dl>
+            {product.description ? (
+              <p className="product-description">{product.description}</p>
+            ) : (
+              <p className="catalog-note">No description added.</p>
+            )}
+          </div>
+        </details>
+        <details className="detail-section" open>
+          <summary>
+            <Icon name="shirt" />
+            Variants & pricing
+            <Icon name="chevron" />
+          </summary>
+          <div className="detail-section-content">
+            <ul className="detail-variant-list">
               {product.variants.map((v) => (
-                <tr key={v.id}>
-                  <td>
+                <li key={v.id}>
+                  <div>
                     <strong className="mono-text">{v.sku}</strong>
-                    <small>
+                    <span>
                       {Object.entries(v.attributes)
                         .map(([key, value]) => key + ': ' + value)
                         .join(' · ') || 'Standard'}
-                    </small>
-                  </td>
-                  <td className="mono-text">{v.barcode || '—'}</td>
-                  <td>{money(v.price)}</td>
-                  <td>{v.isActive ? 'Active' : 'Inactive'}</td>
-                </tr>
+                    </span>
+                    {v.barcode && <span className="mono-text">Barcode: {v.barcode}</span>}
+                  </div>
+                  <div>
+                    <strong>{money(v.price)}</strong>
+                    <span className={v.isActive ? 'variant-live' : 'variant-inactive'}>
+                      {v.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="catalog-note">
-          Prices in BDT. Inventory quantities will appear when inventory is connected.
-        </p>
+            </ul>
+          </div>
+        </details>
       </div>
-      <footer className="dialog-footer">
-        <button type="button" className="secondary-button" onClick={onClose}>
-          Close
-        </button>
-        {onEdit && (
+      <footer className="detail-panel-footer">
+        {onEdit ? (
           <button type="button" className="primary-button" onClick={() => onEdit(product)}>
-            Edit product
+            Edit product <Icon name="edit" />
           </button>
+        ) : (
+          <span className="catalog-note">Read-only access</span>
         )}
+        <span className="catalog-note">Changes recorded in audit history.</span>
       </footer>
+    </>
+  );
+  return inline ? (
+    <aside
+      className="product-detail-panel"
+      aria-labelledby={titleId}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.stopPropagation();
+          onClose();
+        }
+      }}
+    >
+      <header className="detail-panel-header">
+        <h2 id={titleId} ref={heading} tabIndex={-1}>
+          Product details
+        </h2>
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="Close product details"
+          onClick={onClose}
+        >
+          <Icon name="close" />
+        </button>
+      </header>
+      {content}
+    </aside>
+  ) : (
+    <Dialog title="Product details" onClose={onClose}>
+      {content}
     </Dialog>
   );
 }

@@ -2,6 +2,8 @@
 
 ## Available workflow
 
+The collection supports a card grid and a table view. Product details open beside the grid on wide screens and in a dialog on compact screens. See [visual direction](INTERFACE-DIRECTION.md).
+
 Open /admin#catalog after signing in. Users with global catalog.read can search/filter/paginate and view products; global catalog.manage adds create/edit/category actions. Location-only grants do not authorize global master-data changes.
 
 Create a style, optionally select/create a category, and enter variants individually or generate size/colour combinations. Every SKU has its own price, optional barcode and active flag. The editor handles up to 50 variants and the API enforces a 16 KiB request limit. This is an initial interactive editor, not a bulk import tool.

@@ -202,7 +202,13 @@ export function Workspace({
             <small>Staff workspace</small>
           </span>
         </div>
-        <button className="sign-out-button" onClick={() => void logout()} disabled={busy}>
+        <button
+          className="sign-out-button"
+          aria-label="Sign out"
+          title="Sign out"
+          onClick={() => void logout()}
+          disabled={busy}
+        >
           <Icon name="logout" />
           {busy ? 'Signing out…' : 'Sign out'}
         </button>

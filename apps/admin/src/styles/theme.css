@@ -1,0 +1,390 @@
+/* Shared visual system: neutral surfaces, readable system type and a single action accent. */
+:root {
+  font-family: 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  color: #24262b;
+  background: #f5f5f6;
+  font-size: 14px;
+  --ink: #24262b;
+  --muted: #68707c;
+  --line: #e6e7eb;
+  --navy: #28292d;
+  --copper: #d95600;
+  --green: #28744c;
+  --accent: #ff790a;
+  --accent-hover: #f36c00;
+  --accent-ink: #9c3d00;
+  --accent-soft: #fff0e4;
+}
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #bf4d00;
+  outline-offset: 4px;
+}
+input:focus {
+  border-color: #df8b49;
+  box-shadow: 0 0 0 3px #fff0e3;
+}
+h1,
+h2,
+h3 {
+  color: var(--ink);
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  color: #6f747c;
+}
+.brand {
+  font-size: 25px;
+  letter-spacing: -1px;
+  color: #24262b;
+}
+.brand-period {
+  color: var(--accent);
+}
+.brand-mark {
+  background: var(--accent);
+  border: 0;
+  border-radius: 8px;
+  transform: none;
+}
+.brand-mark span {
+  border-color: #fff;
+  border-right-color: transparent;
+}
+.brand-light {
+  color: #fff;
+}
+.brand-light .brand-mark {
+  border: 0;
+}
+.sidebar nav button {
+  font-size: 14px;
+  color: #62676f;
+}
+.sidebar nav button:hover {
+  color: #24262b;
+  background: #f1f1f3;
+}
+.sidebar nav .nav-active {
+  background: #28292d;
+  color: #fff;
+}
+.sidebar nav .nav-active:hover {
+  background: #28292d;
+  color: #fff;
+}
+.sidebar .brand small {
+  display: none;
+}
+.sidebar-account strong {
+  font-size: 13px;
+}
+.sign-out-button {
+  font-size: 13px;
+  color: #62676f;
+}
+.avatar {
+  border-radius: 9px;
+  background: #fff0e4;
+  color: #8a410c;
+}
+.private-label {
+  font-size: 12px;
+  color: #6b7078;
+}
+.main-content {
+  max-width: 1680px;
+}
+.page-heading h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+.page-heading p {
+  font-size: 14px;
+  color: #68707c;
+}
+.primary-button,
+.button-primary {
+  background: var(--accent);
+  color: #2c190c;
+  border-color: var(--accent);
+  font-size: 14px;
+  font-weight: 650;
+}
+.primary-button:hover:not(:disabled),
+.button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.secondary-button {
+  font-size: 13px;
+  color: #454950;
+  border-color: #dedfe4;
+}
+.button-cream {
+  background: #fff0e3;
+  color: #442711;
+}
+.button-cream:hover {
+  background: #ffe1c9;
+}
+.text-button {
+  font-size: 13px;
+}
+.panel {
+  border-color: var(--line);
+  border-radius: 10px;
+}
+.catalog-status {
+  font-size: 12px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+.status-draft {
+  background: #fff1df;
+  color: #8a5410;
+}
+.status-active {
+  background: #e8f5ed;
+  color: #246342;
+}
+.status-archived {
+  background: #ebedf1;
+  color: #58616d;
+}
+.welcome-panel {
+  background: #2b2b2e;
+}
+.welcome-panel h2 {
+  color: #fff;
+}
+.welcome-panel em,
+.auth-story em {
+  font-family: inherit;
+  font-style: normal;
+}
+.welcome-panel .panel-kicker {
+  color: #ffba81;
+}
+.welcome-panel p {
+  color: #e0e0e4;
+}
+.summary-card {
+  border-color: var(--line);
+}
+.summary-card p,
+.roadmap-grid p {
+  font-size: 13px;
+}
+.auth-story {
+  background: #29292c;
+}
+.auth-story h1 {
+  color: #fff;
+}
+.dialog-header h2 {
+  font-size: 22px;
+}
+.dialog-header p {
+  font-size: 13px;
+}
+.workspace-dialog label {
+  font-size: 13px;
+  color: #42474f;
+}
+.workspace-dialog input:not([type='checkbox']),
+.workspace-dialog textarea,
+.workspace-dialog select {
+  font-size: 14px;
+  border-color: #dedfe4;
+  color: #282b31;
+}
+.workspace-dialog label small,
+.catalog-note {
+  font-size: 12px;
+  color: #69727e;
+}
+.workspace-dialog .check-label input {
+  accent-color: #d85d00;
+}
+.catalog-bottom-note {
+  font-size: 12px;
+  color: #6d747d;
+}
+.workspace-footer {
+  font-size: 12px;
+  color: #777c84;
+  max-width: 1680px;
+  width: 100%;
+  margin: auto auto 0;
+}
+@media (min-width: 981px) {
+  .workspace-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace-main {
+    grid-column: auto;
+    flex: 1;
+    min-height: calc(100dvh - 85px);
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    padding: 19px 32px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar > .brand {
+    margin: 0 24px 0 0;
+    padding: 0;
+    font-size: 25px;
+    flex-shrink: 0;
+  }
+  .sidebar .brand-mark {
+    width: 29px;
+    height: 31px;
+  }
+  .sidebar nav {
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    margin: 0 auto;
+  }
+  .sidebar nav button {
+    padding: 10px 15px;
+    min-height: 42px;
+    gap: 9px;
+    border: 1px solid #e5e6ea;
+    background: #fff;
+    border-radius: 7px;
+    white-space: nowrap;
+  }
+  .sidebar nav .nav-active {
+    border-color: #28292d;
+    background: #28292d;
+  }
+  .sidebar nav button svg {
+    width: 17px;
+    height: 17px;
+  }
+  .sidebar-account {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    gap: 10px;
+    min-width: 0;
+  }
+  .sidebar-account small {
+    font-size: 11px;
+  }
+  .sidebar-note,
+  .nav-section-label {
+    display: none;
+  }
+  .sign-out-button {
+    width: 36px;
+    height: 38px;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+    flex-shrink: 0;
+  }
+  .sign-out-button svg {
+    width: 18px;
+    height: 18px;
+  }
+  .topbar {
+    display: none;
+  }
+  .main-content {
+    padding: 34px 32px 36px;
+  }
+  .workspace-footer {
+    padding: 0 32px 22px;
+  }
+}
+@media (max-width: 1180px) and (min-width: 981px) {
+  .sidebar {
+    gap: 14px;
+    padding-inline: 24px;
+  }
+  .sidebar-account > span:last-child {
+    display: none;
+  }
+  .sidebar > .brand {
+    margin-right: 4px;
+  }
+  .sidebar nav button {
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 980px) {
+  .sidebar-note {
+    display: none;
+  }
+  .sidebar-account {
+    margin-top: auto;
+  }
+  .sidebar > .brand {
+    margin-bottom: 10px;
+  }
+  .sidebar nav {
+    gap: 10px;
+  }
+  .topbar {
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-left {
+    font-size: 13px;
+  }
+  .sidebar .brand {
+    font-size: 26px;
+  }
+  .sidebar .brand small {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .main-content {
+    padding: 24px 16px 30px;
+  }
+  .page-heading h1 {
+    font-size: 28px;
+  }
+  .workspace-footer {
+    padding-inline: 16px;
+  }
+  .workspace-dialog.dialog-wide {
+    width: 100%;
+  }
+  .dialog-header p {
+    font-size: 13px;
+  }
+  .workspace-dialog label {
+    font-size: 13px;
+  }
+}

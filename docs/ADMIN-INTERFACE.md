@@ -14,6 +14,10 @@ Open http://127.0.0.1:4000/admin while the local application is running. The roo
 
 The catalog screen supports real product/variant create, view, edit, search, category/status filters and pagination. See [catalog decisions](CATALOG.md). Inventory and purchasing/sales remain planned; no business totals or placeholder transactions are presented as real data. Staff/role editing and audit-history UI remain future slices.
 
+## Reference-driven visual refresh
+
+The catalog now has a white/light-gray and orange visual system, readable Segoe UI/system type, desktop top navigation, card/table views and an inline product details panel on wide screens. Compact screens use the same details in a modal dialog. Existing create/edit/category/search/pagination and staff screens are retained. See [interface direction and stack decisions](INTERFACE-DIRECTION.md). Product photos currently have an explicit empty state; media storage/uploads remain a separate workflow.
+
 ## Architecture and reasons
 
 The maintained React 19.3.1/Vite 8.3.6 admin workspace lives under apps/admin. Exact versions were checked against existing Node 24.16.0 before installation. This is a private staff SPA; it does not need a second server runtime or SEO rendering. A future public storefront can choose its own rendering approach.

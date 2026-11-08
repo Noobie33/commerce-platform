@@ -1,3 +1,7 @@
+import { CatalogService } from '../../dist/src/modules/catalog/catalog.service.js';
+import { productInput } from '../../dist/src/modules/catalog/catalog.validation.js';
+import { AuditService } from '../../dist/src/modules/audit/audit.service.js';
+import { tokenHash } from '../../dist/src/modules/identity/identity.service.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { createApp } from '../../dist/src/app.js';
 import {
@@ -55,7 +59,10 @@ async function stop() {
       await manager.query('DELETE FROM staff_sessions WHERE staff_id=$1', [id]);
       await manager.query('DELETE FROM staff_role_assignments WHERE staff_id=$1', [id]);
       await manager.query('DELETE FROM staff_users WHERE id=$1', [id]);
-      // Only this disposable account's rate bucket is removed; shared IP limits remain.
+      await manager.query('DELETE FROM login_rate_limits WHERE bucket_hash=$1', [
+        tokenHash('user:' + username),
+      ]);
+      // Shared IP rate limits remain untouched.
     });
   } finally {
     await source.destroy();
@@ -63,6 +70,63 @@ async function stop() {
   }
 }
 try {
+  if (process.argv.includes('--catalog')) {
+    const catalog = new CatalogService(source, new AuditService());
+    const category = await catalog.createCategory(
+      {
+        name: 'Preview essentials ' + username.slice(-8),
+        nameKey: 'preview-essentials-' + username,
+        parentId: null,
+      },
+      id,
+      randomUUID(),
+    );
+    const names = [
+      'Essential cotton tee',
+      'Relaxed linen shirt',
+      'Everyday hoodie',
+      'Straight-leg trousers',
+      'Textured overshirt',
+      'Everyday canvas tote',
+    ];
+    for (const [index, name] of names.entries()) {
+      const styleCode = 'QA-' + username.slice(-8).toUpperCase() + '-' + (index + 1);
+      await catalog.save(
+        productInput(
+          {
+            styleCode,
+            name,
+            description:
+              'Disposable preview product. Fabric and care details can be added to the product description.',
+            categoryId: category.id,
+            status: index === 3 ? 'draft' : index === 5 ? 'archived' : 'active',
+            currency: 'BDT',
+            variants: [
+              {
+                sku: styleCode + '-M',
+                attributes: { size: 'M', colour: 'Black' },
+                barcode: null,
+                price: String(1250 + index * 150) + '.00',
+                isActive: true,
+              },
+              {
+                sku: styleCode + '-L',
+                attributes: { size: 'L', colour: 'Ivory' },
+                barcode: null,
+                price: String(1250 + index * 150) + '.00',
+                isActive: true,
+              },
+            ],
+          },
+          false,
+        ),
+        null,
+        id,
+        randomUUID(),
+        randomUUID(),
+      );
+    }
+  }
   await app.listen(4001, '127.0.0.1');
   console.info('Disposable UI QA ready: http://localhost:4001/admin; username=' + username);
   console.info(
@@ -78,6 +142,12 @@ try {
     if (command === 'stop') await stop();
   });
   process.stdin.resume();
+  process.once('SIGINT', () => {
+    void stop();
+  });
+  process.once('SIGTERM', () => {
+    void stop();
+  });
 } catch {
   await stop();
 }

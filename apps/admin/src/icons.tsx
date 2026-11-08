@@ -1,5 +1,10 @@
 import type { ReactNode, SVGProps } from 'react';
 export type IconName =
+  | 'shirt'
+  | 'grid'
+  | 'list'
+  | 'chevron'
+  | 'edit'
   | 'catalog'
   | 'overview'
   | 'team'
@@ -14,6 +19,27 @@ export type IconName =
   | 'menu'
   | 'close';
 const shapes: Record<IconName, ReactNode> = {
+  shirt: <path d="m8 3-6 4 3 5 3-2v11h8V10l3 2 3-5-6-4c-1 3-7 3-8 0Z" />,
+  grid: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </>
+  ),
+  list: (
+    <>
+      <path d="M9 6h12M9 12h12M9 18h12" />
+      <path d="M3 6h1M3 12h1M3 18h1" />
+    </>
+  ),
+  chevron: <path d="m6 9 6 6 6-6" />,
+  edit: (
+    <>
+      <path d="m16 3 5 5-12 12-6 1 1-6L16 3ZM13 6l5 5" />
+    </>
+  ),
   catalog: (
     <>
       <path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10M7 5l10 5" />

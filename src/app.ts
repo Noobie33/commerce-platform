@@ -1,3 +1,4 @@
+import { InventoryModule } from './modules/inventory/inventory.module.js';
 import { CatalogModule } from './modules/catalog/catalog.module.js';
 import { AdminModule } from './modules/admin/admin.module.js';
 import { ADMIN_ASSET_ROOT } from './modules/admin/admin.controller.js';
@@ -19,6 +20,7 @@ export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: D
   @Module({
     imports: [
       CatalogModule.forRoot(databaseModule, env),
+      InventoryModule.forRoot(databaseModule),
       AdminModule,
       databaseModule,
       IdentityModule.forRoot(databaseModule, env),

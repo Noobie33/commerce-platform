@@ -50,3 +50,9 @@ The Git repository contains source, lockfile, documentation and CI, not .env fil
 The CI workflow uses pinned official action revisions, Node 24 and a disposable PostgreSQL 18.6 service. It runs type/style checks, local tests and real database/security integration tests with ephemeral generated credentials. It never uses the development owner's credentials.
 
 GitHub is a code history/backup destination. Database backups and restore testing are separate work; no database contents are published with the source.
+
+## Stock and locations
+
+The Inventory navigation supports active warehouses/stores, a per-location physical-stock summary, searchable/paginated SKU balances and movement history. Opening stock, receipts, transfers and signed adjustments use SKU search, a reason/reference and a review before posting. A separate reversal preview verifies permission at all affected locations before showing their names and quantities. Ordinary scoped history remains limited to its selected location.
+
+The desktop table scrolls horizontally inside its panel on narrow screens; the surrounding page and entry dialogs fit a 390px viewport. Quantity displays use exact integer formatting. Browser QA verified disposable location creation, opening/receipt, decrease adjustment, balanced transfer, reversal, insufficient-stock warning and desktop/mobile layouts. No example stock or locations are inserted into the development business database. See [inventory decisions](INVENTORY-DESIGN.md).

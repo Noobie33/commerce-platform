@@ -60,7 +60,7 @@ Initial API uses src/. Future layout can become apps/api, apps/admin, apps/store
 | Audit           | Actor/action/entity/reason/request ID plus redacted changes and restricted access.                                                           |
 | Integrations    | Payment/courier/storage adapters, transactional outbox, deduplicated callbacks and notifications.                                            |
 
-Use explicit PostgreSQL migrations and constraints; no production automatic schema synchronization. Prefer a maintained TypeORM release after checking Nest 12 peer compatibility in the DB increment: it matches the faculty ecosystem and permits explicit SQL/locking. No ORM is installed yet.
+Use explicit PostgreSQL migrations and constraints; no production automatic schema synchronization. Prefer a maintained TypeORM release after checking Nest 12 peer compatibility in the DB increment: it matches the faculty ecosystem and permits explicit SQL/locking. The implemented foundation uses pinned TypeORM with explicit SQL migrations and no automatic schema synchronization.
 
 Business invariants and reasons:
 
@@ -98,6 +98,6 @@ First business slice after phase 1: create T-shirt variants, receive stock, tran
 
 Small reviewable changes; preserve existing data/source; pin dependencies; review migrations; no seeds against existing business databases. Tests cover changed behavior through type/build, HTTP and isolated PostgreSQL integration. Inventory/finance require concurrency, rollback and duplicate-request tests. Vulnerability scans require triage and do not prove complete security.
 
-Current increment exposes process liveness and configuration validation only. No authentication, DB connection/readiness, business endpoints, UI or production deployment yet. Existing PostgreSQL uses/backup needs must be established before repurposing it. Node's installed patch is older than current upstream 24.x; patch planning remains open.
+Current local increments implement database readiness, staff identity and scoped permissions, catalog/variants, private original-image storage and multi-location quantity inventory with a React/Vite staff interface. See the README and module decision documents for verified behavior and remaining limits. The initial transfer workflow posts both locations together; dispatch/in-transit/receipt approval is a later workflow before shipment-based transfers are enabled. Purchasing/suppliers is next. Production deployment, backup restore rehearsal, MFA, financial subledgers and the storefront remain outstanding.
 
 Sources checked: [Node support](https://nodejs.org/en/about/previous-releases), [Nest releases](https://github.com/nestjs/nest/releases), [Nest migration](https://docs.nestjs.com/migration-guide), [PostgreSQL support](https://www.postgresql.org/support/versioning/), official npm metadata.

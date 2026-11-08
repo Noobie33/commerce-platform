@@ -1,5 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 export type IconName =
+  | 'plus'
   | 'shirt'
   | 'grid'
   | 'list'
@@ -19,6 +20,7 @@ export type IconName =
   | 'menu'
   | 'close';
 const shapes: Record<IconName, ReactNode> = {
+  plus: <path d="M12 5v14M5 12h14" />,
   shirt: <path d="m8 3-6 4 3 5 3-2v11h8V10l3 2 3-5-6-4c-1 3-7 3-8 0Z" />,
   grid: (
     <>

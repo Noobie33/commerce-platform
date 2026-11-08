@@ -6,7 +6,7 @@ Active workspace: D:\Business Software\commerce-platform. See [architecture and 
 
 ## Staff interface
 
-Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md) and [visual direction / frontend decisions](docs/INTERFACE-DIRECTION.md).
+Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, multi-location inventory, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md) and [visual direction / frontend decisions](docs/INTERFACE-DIRECTION.md).
 
 ## Current implementation
 
@@ -17,7 +17,7 @@ Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use 
 - Transactional audit events with append-only runtime access.
 - Compiled migrations, restricted runtime grants and a protected one-time owner bootstrap.
 
-The staff workspace, catalog/variants and protected product-photo workflow are implemented. See [product photos and storage decisions](docs/PRODUCT-MEDIA.md). See [catalog workflow and decisions](docs/CATALOG.md). Inventory workflows, purchasing/sales, staff/role editing, MFA and recovery remain future slices. This is a verified local development increment, not a complete or production-ready ERP. The next business slice is [multi-location inventory](docs/INVENTORY-DESIGN.md) using the same access/audit foundation. Original image quality and configurable limits are described in [original media](docs/ORIGINAL-MEDIA.md); [storage and costs](docs/LOCAL-STORAGE-AND-COSTS.md) explains the current local setup.
+The staff workspace, catalog/variants and protected product-photo workflow are implemented. See [product photos and storage decisions](docs/PRODUCT-MEDIA.md). See [catalog workflow and decisions](docs/CATALOG.md). Purchasing/sales, staff/role editing, MFA and recovery remain future slices. This is a verified local development increment, not a complete or production-ready ERP. [Multi-location inventory](docs/INVENTORY-DESIGN.md) now provides physical receipts, transfers, adjustments, movement history and reversals using the same access/audit foundation. The next business slice is purchasing/suppliers. Original image quality and configurable limits are described in [original media](docs/ORIGINAL-MEDIA.md); [storage and costs](docs/LOCAL-STORAGE-AND-COSTS.md) explains the current local setup.
 
 ## Local commands
 
@@ -32,6 +32,7 @@ npm test
 npm run test:database
 npm run db:verify-local
 npm run media:verify-local
+npm run inventory:verify-local
 npm run build
 npm run start:local
 ```
@@ -48,7 +49,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification — 8 November 2026
 
-Strict type checking, clean build, formatting check, 24 database-free/interface tests and 34 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 24 database-free/interface tests and 47 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

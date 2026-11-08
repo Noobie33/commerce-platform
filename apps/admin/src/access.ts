@@ -12,3 +12,13 @@ export const permissionNames: Record<string, string> = {
   'catalog.read': 'View catalog',
   'catalog.manage': 'Manage catalog',
 };
+
+export const canSeeInventory = (user: Profile) =>
+  user.grants.some((g) => g.code === 'inventory.read');
+Object.assign(permissionNames, {
+  'locations.manage': 'Manage locations',
+  'inventory.read': 'View inventory',
+  'inventory.receive': 'Receive stock',
+  'inventory.adjust': 'Adjust stock',
+  'inventory.transfer': 'Transfer stock',
+});

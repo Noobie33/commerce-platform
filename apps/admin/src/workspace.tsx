@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { StaffApi } from './api';
 import { Brand, Icon } from './icons';
 import type { Profile, WorkspacePage as Page } from './types';
-import { canSeeTeam, canSeeCatalog, hasGlobal } from './access';
+import { canSeeTeam, canSeeCatalog, canSeeInventory, hasGlobal } from './access';
 import { Overview } from './pages/overview';
 import { Team } from './pages/team';
 import { ProfilePage } from './pages/profile';
+import { InventoryPage } from './inventory/inventory-page';
 import { CatalogPage } from './catalog/catalog-page';
 export function Workspace({
   api,
@@ -20,14 +21,18 @@ export function Workspace({
 }) {
   const parsePage = (): Page => {
     const value = window.location.hash.slice(1);
-    return ['overview', 'catalog', 'team', 'profile'].includes(value)
+    return ['overview', 'catalog', 'inventory', 'team', 'profile'].includes(value)
       ? (value as Page)
       : 'overview';
   };
   const [page, setPage] = useState<Page>(parsePage);
   useEffect(() => {
     const changed = () => {
-      if (['overview', 'catalog', 'team', 'profile'].includes(window.location.hash.slice(1)))
+      if (
+        ['overview', 'catalog', 'inventory', 'team', 'profile'].includes(
+          window.location.hash.slice(1),
+        )
+      )
         setPage(parsePage());
     };
     window.addEventListener('hashchange', changed);
@@ -54,7 +59,11 @@ export function Workspace({
     };
   }, [api]);
   useEffect(() => {
-    if ((page === 'team' && !canSeeTeam(user)) || (page === 'catalog' && !canSeeCatalog(user))) {
+    if (
+      (page === 'inventory' && !canSeeInventory(user)) ||
+      (page === 'team' && !canSeeTeam(user)) ||
+      (page === 'catalog' && !canSeeCatalog(user))
+    ) {
       setPage('overview');
       window.history.replaceState(null, '', '#overview');
     }
@@ -157,6 +166,15 @@ export function Workspace({
             <Icon name="overview" />
             Overview
           </button>
+          {canSeeInventory(user) && (
+            <button
+              aria-current={page === 'inventory' ? 'page' : undefined}
+              className={page === 'inventory' ? 'nav-active' : ''}
+              onClick={() => navigate('inventory')}
+            >
+              <Icon name="catalog" /> Inventory
+            </button>
+          )}
           {canSeeCatalog(user) && (
             <button
               aria-current={page === 'catalog' ? 'page' : undefined}
@@ -231,9 +249,11 @@ export function Workspace({
                 ? 'My profile'
                 : page === 'team'
                   ? 'Team'
-                  : page === 'catalog'
-                    ? 'Catalog'
-                    : 'Overview'}
+                  : page === 'inventory'
+                    ? 'Inventory'
+                    : page === 'catalog'
+                      ? 'Catalog'
+                      : 'Overview'}
             </strong>
           </div>
           <button
@@ -269,6 +289,9 @@ export function Workspace({
           )}
           {page === 'catalog' && canSeeCatalog(user) && (
             <CatalogPage api={api} canManage={hasGlobal(user, 'catalog.manage')} />
+          )}
+          {page === 'inventory' && canSeeInventory(user) && (
+            <InventoryPage api={api} canManageLocations={hasGlobal(user, 'locations.manage')} />
           )}
           {page === 'team' && <Team api={api} user={user} />}
           {page === 'profile' && (

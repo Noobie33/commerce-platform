@@ -1,5 +1,5 @@
 import { Icon } from '../icons';
-import { canSeeTeam, canSeeCatalog } from '../access';
+import { canSeeTeam, canSeeCatalog, canSeeInventory } from '../access';
 import type { Profile, WorkspacePage as Page } from '../types';
 export function Overview({
   user,
@@ -170,7 +170,13 @@ export function Overview({
             <span className="roadmap-number">02</span>
             <h3>Stock & locations</h3>
             <p>Receipts, transfers and a clear stock picture.</p>
-            <span className="badge badge-outline">Planned</span>
+            {canSeeInventory(user) ? (
+              <button className="text-button" onClick={() => navigate('inventory')}>
+                Open inventory <Icon name="arrow" />
+              </button>
+            ) : (
+              <span className="badge badge-outline">Ask for access</span>
+            )}
           </div>
           <div>
             <span className="roadmap-number">03</span>

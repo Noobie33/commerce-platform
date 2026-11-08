@@ -33,6 +33,7 @@ await source.transaction(async (manager) => {
     [id],
   );
 });
+const qaLocations = [];
 const mediaRoot = await mkdtemp(join(tmpdir(), 'commerce-qa-media-'));
 const app = await createApp({
   ...process.env,
@@ -40,9 +41,10 @@ const app = await createApp({
   MEDIA_STORAGE_DIR: mediaRoot,
 });
 let stopping = false;
-async function stop() {
+async function stop(exitCode = 0) {
   if (stopping) return;
   stopping = true;
+  let cleaned = false;
   try {
     await app.close();
     await source.transaction(async (manager) => {
@@ -55,6 +57,21 @@ async function stop() {
         "SELECT metadata->>'entityId' AS id FROM audit_events WHERE actor_id=$1 AND action='catalog.category_created'",
         [id],
       );
+      const createdLocations = await manager.query(
+        "SELECT metadata->>'locationId' AS id FROM audit_events WHERE actor_id=$1 AND action='inventory.location_created'",
+        [id],
+      );
+      for (const row of createdLocations)
+        if (!qaLocations.includes(row.id)) qaLocations.push(row.id);
+      await manager.query('DELETE FROM inventory_requests WHERE actor_id=$1', [id]);
+      await manager.query('DELETE FROM inventory_entries WHERE location_id=ANY($1::uuid[])', [
+        qaLocations,
+      ]);
+      await manager.query('DELETE FROM inventory_balances WHERE location_id=ANY($1::uuid[])', [
+        qaLocations,
+      ]);
+      await manager.query('DELETE FROM inventory_postings WHERE actor_id=$1', [id]);
+      await manager.query('DELETE FROM locations WHERE id=ANY($1::uuid[])', [qaLocations]);
       await manager.query('DELETE FROM catalog_media_requests WHERE product_id=ANY($1::uuid[])', [
         productIds,
       ]);
@@ -78,6 +95,7 @@ async function stop() {
       ]);
       // Shared IP rate limits remain untouched.
     });
+    cleaned = true;
   } finally {
     await source.destroy();
     if (
@@ -86,7 +104,7 @@ async function stop() {
     )
       throw Error('Unsafe QA cleanup');
     await rm(mediaRoot, { recursive: true, force: true });
-    process.exit(0);
+    process.exit(cleaned ? exitCode : 1);
   }
 }
 try {
@@ -147,6 +165,19 @@ try {
       );
     }
   }
+  if (process.argv.includes('--inventory')) {
+    for (const [index, name] of ['QA central warehouse', 'QA retail store'].entries()) {
+      const rows = await source.query(
+        'INSERT INTO locations(code,name,kind) VALUES($1,$2,$3) RETURNING id',
+        [
+          'QA-' + username.slice(-8).toUpperCase() + '-' + index,
+          name,
+          index ? 'store' : 'warehouse',
+        ],
+      );
+      qaLocations.push(rows[0].id);
+    }
+  }
   await app.listen(4001, '127.0.0.1');
   console.info('Disposable UI QA ready: http://localhost:4001/admin; username=' + username);
   console.info(
@@ -168,6 +199,10 @@ try {
   process.once('SIGTERM', () => {
     void stop();
   });
-} catch {
-  await stop();
+} catch (error) {
+  console.error(
+    'Disposable QA setup failed:',
+    error instanceof Error ? error.message : 'Unknown failure',
+  );
+  await stop(1);
 }

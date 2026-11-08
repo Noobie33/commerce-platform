@@ -1,4 +1,13 @@
 import type {
+  ReversalPreview,
+  InventoryLocation,
+  StockRow,
+  StockPage,
+  StockInput,
+  StockPosting,
+  HistoryRow,
+} from './inventory/types';
+import type {
   MediaPolicy,
   MediaResult,
   Category,
@@ -15,12 +24,27 @@ export class ApiError extends Error {
     validationMessage?: string,
   ) {
     super(
-      (code === 'INVALID_CATALOG_INPUT' && validationMessage && validationMessage.length < 240
+      (['INVALID_CATALOG_INPUT', 'INVALID_INVENTORY_INPUT'].includes(code ?? '') &&
+      validationMessage &&
+      validationMessage.length < 240
         ? validationMessage
         : '') ||
         (code &&
           (
             {
+              INSUFFICIENT_STOCK:
+                'Not enough stock. Refresh inventory and check the physical quantity.',
+              POSTING_ALREADY_REVERSED:
+                'This posting has already been reversed. Refresh movement history.',
+              CANNOT_REVERSE_REVERSAL:
+                'A reversal cannot be reversed. Use a new stock action with a clear reason.',
+              OPENING_STOCK_EXISTS:
+                'This SKU already has movement history at this location. Use a receipt or adjustment.',
+              INACTIVE_STOCK_VARIANT:
+                'New stock cannot be received against an inactive or archived variant.',
+              STOCK_QUANTITY_LIMIT: 'This quantity exceeds the supported stock balance.',
+              LOCATION_CODE_EXISTS:
+                'This location code already exists. Refresh locations or choose another code.',
               INVALID_PRODUCT_IMAGE:
                 'Choose a valid, non-animated JPEG, PNG or WebP image within the displayed upload limits.',
               PHOTO_LIMIT:
@@ -192,6 +216,51 @@ export class StaffApi {
         '/' +
         operation,
       { expectedVersion },
+      { key },
+    );
+  }
+  inventoryLocations() {
+    return this.request<InventoryLocation[]>('/inventory/locations');
+  }
+  createInventoryLocation(body: { code: string; name: string; kind: 'warehouse' | 'store' }) {
+    return this.request<InventoryLocation>('/inventory/locations', body);
+  }
+  inventoryVariants(id: string, search: string) {
+    return this.request<StockRow[]>(
+      '/inventory/locations/' +
+        encodeURIComponent(id) +
+        '/variants?' +
+        new URLSearchParams({ search }),
+    );
+  }
+  stock(id: string, query: { search: string; stock: string; page: number }) {
+    return this.request<StockPage>(
+      '/inventory/locations/' +
+        encodeURIComponent(id) +
+        '/stock?' +
+        new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  stockHistory(id: string, query: { search: string; page: number }) {
+    return this.request<{ items: HistoryRow[]; total: number; page: number; pageSize: number }>(
+      '/inventory/locations/' +
+        encodeURIComponent(id) +
+        '/history?' +
+        new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  postStock(body: StockInput, key: string) {
+    return this.request<StockPosting>('/inventory/postings', body, { key });
+  }
+  stockReversalPreview(id: string) {
+    return this.request<ReversalPreview[]>(
+      '/inventory/postings/' + encodeURIComponent(id) + '/reversal-preview',
+    );
+  }
+  reverseStock(id: string, body: { reason: string; reference: string }, key: string) {
+    return this.request<StockPosting>(
+      '/inventory/postings/' + encodeURIComponent(id) + '/reverse',
+      body,
       { key },
     );
   }

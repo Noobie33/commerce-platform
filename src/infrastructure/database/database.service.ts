@@ -1,3 +1,4 @@
+import { APPLICATION_SCHEMA_VERSION } from '../../database/schema-version.js';
 import { Injectable } from '@nestjs/common';
 import type {
   BeforeApplicationShutdown,
@@ -40,7 +41,12 @@ export class DatabaseService
       const rows = await this.driver.query(
         'SELECT version FROM app_schema_version WHERE singleton',
       );
-      return !this.draining && Array.isArray(rows) && rows.length === 1 && rows[0]?.version === 1;
+      return (
+        !this.draining &&
+        Array.isArray(rows) &&
+        rows.length === 1 &&
+        rows[0]?.version === APPLICATION_SCHEMA_VERSION
+      );
     } catch {
       return false;
     }

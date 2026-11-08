@@ -1,22 +1,42 @@
+import type { Category, Product, ProductPage, ProductPayload } from './catalog/types';
 import type { Profile, TeamMember } from './types';
 
 export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly code?: string,
+    validationMessage?: string,
   ) {
     super(
-      status === 429
-        ? 'Too many attempts. Please wait before trying again.'
-        : status === 401
-          ? 'Your sign-in details could not be verified.'
-          : status === 403
-            ? 'This action is not available for your account.'
-            : status === 503
-              ? 'The workspace is temporarily unavailable. Please try again.'
-              : status === 400
-                ? 'Please check the information you entered.'
-                : 'Something went wrong. Please try again.',
+      (code === 'INVALID_CATALOG_INPUT' && validationMessage && validationMessage.length < 240
+        ? validationMessage
+        : '') ||
+        (code &&
+          (
+            {
+              STALE_PRODUCT:
+                'Someone saved a newer revision. Open the latest product before editing again.',
+              SKU_EXISTS: 'This SKU is already in use. Choose a unique SKU.',
+              STYLE_CODE_EXISTS: 'This style code is already in use.',
+              BARCODE_EXISTS: 'This barcode is already in use.',
+              VARIANT_OPTIONS_EXIST: 'Active variants must have different options.',
+              CATEGORY_EXISTS: 'This category already exists under the selected parent.',
+              IDEMPOTENCY_MISMATCH: 'This save request has changed. Close and reopen the editor.',
+            } as Record<string, string>
+          )[code]) ||
+        (status === 429
+          ? 'Too many attempts. Please wait before trying again.'
+          : status === 401
+            ? 'Your sign-in details could not be verified.'
+            : status === 403
+              ? 'This action is not available for your account.'
+              : status === 503
+                ? 'The workspace is temporarily unavailable. Please try again.'
+                : status === 400
+                  ? 'Please check the information you entered.'
+                  : status === 413
+                    ? 'This product is too large. Use fewer variants or shorter descriptions.'
+                    : 'Something went wrong. Please try again.'),
     );
   }
 }
@@ -27,12 +47,16 @@ export class StaffApi {
   onSessionExpired: (() => void) | undefined;
   onPasswordChangeRequired: (() => void) | undefined;
 
-  private async request<T>(path: string, body?: unknown): Promise<T> {
+  private async request<T>(
+    path: string,
+    body?: unknown,
+    options?: { method?: 'POST' | 'PATCH'; key?: string },
+  ): Promise<T> {
     const writing = body !== undefined;
     let response: Response;
     try {
       response = await fetch('/api/v1' + path, {
-        method: writing ? 'POST' : 'GET',
+        method: writing ? (options?.method ?? 'POST') : 'GET',
         credentials: 'same-origin',
         cache: 'no-store',
         headers: writing
@@ -40,6 +64,7 @@ export class StaffApi {
               'Content-Type': 'application/json',
               'X-Requested-With': 'commerce-staff',
               'X-CSRF-Token': this.csrf,
+              ...(options?.key ? { 'X-Idempotency-Key': options.key } : {}),
             }
           : { Accept: 'application/json' },
         ...(writing ? { body: JSON.stringify(body) } : {}),
@@ -62,7 +87,13 @@ export class StaffApi {
         this.onSessionExpired?.();
       }
       if (code === 'PASSWORD_CHANGE_REQUIRED') this.onPasswordChangeRequired?.();
-      throw new ApiError(response.status, code);
+      throw new ApiError(
+        response.status,
+        code,
+        data && typeof data === 'object' && 'message' in data && typeof data.message === 'string'
+          ? data.message
+          : undefined,
+      );
     }
     return data as T;
   }
@@ -95,6 +126,32 @@ export class StaffApi {
   }
   team() {
     return this.request<TeamMember[]>('/staff');
+  }
+  categories() {
+    return this.request<Category[]>('/catalog/categories');
+  }
+  createCategory(name: string, parentId: string | null) {
+    return this.request<Category>('/catalog/categories', { name, parentId });
+  }
+  products(query: { search: string; status: string; categoryId: string; page: number }) {
+    const params = new URLSearchParams({
+      search: query.search,
+      status: query.status,
+      page: String(query.page),
+      pageSize: '20',
+      ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+    });
+    return this.request<ProductPage>('/catalog/products?' + params);
+  }
+  product(id: string) {
+    return this.request<Product>('/catalog/products/' + encodeURIComponent(id));
+  }
+  saveProduct(id: string | null, payload: ProductPayload, key: string) {
+    return this.request<Product>(
+      '/catalog/products' + (id ? '/' + encodeURIComponent(id) : ''),
+      payload,
+      { method: id ? 'PATCH' : 'POST', key },
+    );
   }
   async ready() {
     try {

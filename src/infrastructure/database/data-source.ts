@@ -1,3 +1,4 @@
+import { CatalogFoundation1794100000000 } from '../../database/migrations/1794100000000-catalog-foundation.js';
 import { IdentityFoundation1794096000000 } from '../../database/migrations/1794096000000-identity-foundation.js';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
@@ -35,7 +36,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
     migrationsRun: false,
     logging: false,
     entities: [],
-    migrations: [IdentityFoundation1794096000000],
+    migrations: [IdentityFoundation1794096000000, CatalogFoundation1794100000000],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',
     connectTimeoutMS: 5000,

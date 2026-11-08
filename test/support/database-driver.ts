@@ -1,3 +1,4 @@
+import { APPLICATION_SCHEMA_VERSION } from '../../src/database/schema-version.js';
 import type { DatabaseDriver } from '../../src/infrastructure/database/database.service.js';
 
 export class TestDatabaseDriver implements DatabaseDriver {
@@ -17,6 +18,6 @@ export class TestDatabaseDriver implements DatabaseDriver {
   }
   async query(_sql: string) {
     if (!this.available) throw new Error('private connection details');
-    return [{ version: 1 }];
+    return [{ version: APPLICATION_SCHEMA_VERSION }];
   }
 }

@@ -38,6 +38,30 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
     await manager.query(
       'GRANT SELECT, INSERT, UPDATE ON staff_sessions, login_rate_limits TO "' + role + '"',
     );
+    await manager.query(
+      'GRANT SELECT, INSERT ON catalog_categories, catalog_products, catalog_variants TO ' +
+        String.fromCharCode(34) +
+        role +
+        String.fromCharCode(34),
+    );
+    await manager.query(
+      'GRANT UPDATE (name,description,category_id,status,version,updated_at) ON catalog_products TO ' +
+        String.fromCharCode(34) +
+        role +
+        String.fromCharCode(34),
+    );
+    await manager.query(
+      'GRANT UPDATE (barcode,price_minor,is_active) ON catalog_variants TO ' +
+        String.fromCharCode(34) +
+        role +
+        String.fromCharCode(34),
+    );
+    await manager.query(
+      'GRANT SELECT, INSERT ON catalog_requests TO ' +
+        String.fromCharCode(34) +
+        role +
+        String.fromCharCode(34),
+    );
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

@@ -1,5 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 export type IconName =
+  | 'catalog'
   | 'overview'
   | 'team'
   | 'profile'
@@ -13,6 +14,11 @@ export type IconName =
   | 'menu'
   | 'close';
 const shapes: Record<IconName, ReactNode> = {
+  catalog: (
+    <>
+      <path d="m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10M7 5l10 5" />
+    </>
+  ),
   overview: (
     <>
       <rect x="3" y="3" width="7" height="7" rx="1.5" />

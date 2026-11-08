@@ -1,3 +1,4 @@
+import { CatalogModule } from './modules/catalog/catalog.module.js';
 import { AdminModule } from './modules/admin/admin.module.js';
 import { ADMIN_ASSET_ROOT } from './modules/admin/admin.controller.js';
 import { SafeExceptionFilter } from './infrastructure/security/safe-exception.filter.js';
@@ -17,6 +18,7 @@ export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: D
   const databaseModule = DatabaseModule.forRoot(env, driver);
   @Module({
     imports: [
+      CatalogModule.forRoot(databaseModule),
       AdminModule,
       databaseModule,
       IdentityModule.forRoot(databaseModule, env),

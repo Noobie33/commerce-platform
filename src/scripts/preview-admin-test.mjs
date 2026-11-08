@@ -18,7 +18,7 @@ const password = 'Disposable UI preview password 2026!';
 const hash = await new PasswordService().hash(password);
 await source.transaction(async (manager) => {
   await manager.query(
-    'INSERT INTO staff_users(id,username,display_name,password_hash,must_change_password) VALUES ($1,$2,$3,$4,true)',
+    'INSERT INTO staff_users(id,username,display_name,password_hash,must_change_password) VALUES ($1,$2,$3,$4,false)',
     [id, username, 'Preview Staff', hash],
   );
   await manager.query(
@@ -34,6 +34,23 @@ async function stop() {
   try {
     await app.close();
     await source.transaction(async (manager) => {
+      const products = await manager.query(
+        'SELECT resource_id FROM catalog_requests WHERE actor_id=$1',
+        [id],
+      );
+      const productIds = products.map((row) => row.resource_id);
+      const createdCategories = await manager.query(
+        "SELECT metadata->>'entityId' AS id FROM audit_events WHERE actor_id=$1 AND action='catalog.category_created'",
+        [id],
+      );
+      await manager.query('DELETE FROM catalog_requests WHERE actor_id=$1', [id]);
+      await manager.query('DELETE FROM catalog_variants WHERE product_id=ANY($1::uuid[])', [
+        productIds,
+      ]);
+      await manager.query('DELETE FROM catalog_products WHERE id=ANY($1::uuid[])', [productIds]);
+      await manager.query('DELETE FROM catalog_categories WHERE id=ANY($1::uuid[])', [
+        createdCategories.map((row) => row.id),
+      ]);
       await manager.query('DELETE FROM audit_events WHERE actor_id=$1', [id]);
       await manager.query('DELETE FROM staff_sessions WHERE staff_id=$1', [id]);
       await manager.query('DELETE FROM staff_role_assignments WHERE staff_id=$1', [id]);

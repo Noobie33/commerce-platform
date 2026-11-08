@@ -13,7 +13,7 @@
     "start": "node dist/src/main.js",
     "test": "npm run build && node --test dist/test/*.test.js",
     "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
-    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js",
+    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js",
     "db:provision-local": "node --env-file=.env.setup src/scripts/provision-local.mjs",
     "db:verify-local": "node src/scripts/verify-local-databases.mjs",
     "start:local": "node --env-file=.env dist/src/main.js",

@@ -1,12 +1,12 @@
 # Commerce Platform
 
-Neutral backend foundation for a fashion/lifestyle ERP and future e-commerce.
+Neutral ERP foundation and staff interface for a fashion/lifestyle ERP and future e-commerce.
 
 Active workspace: D:\Business Software\commerce-platform. See [architecture and initial audit](ENGINEERING-PLAN.md), [engineering standards](docs/ENGINEERING-STANDARDS.md), [database decisions](docs/DATABASE-DECISION.md) and [staff identity API](docs/IDENTITY-API.md).
 
 ## Staff interface
 
-Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md).
+Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md).
 
 ## Current implementation
 
@@ -17,7 +17,7 @@ Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use 
 - Transactional audit events with append-only runtime access.
 - Compiled migrations, restricted runtime grants and a protected one-time owner bootstrap.
 
-The staff/admin shell is now implemented. Product catalog, inventory workflows, staff/role editing, MFA and recovery remain future slices. This is a verified local development increment, not a production-ready or complete ERP claim. The next business slice is catalog/variants and inventory using the same access/audit foundation.
+The staff workspace and first catalog/variant slice are implemented. See [catalog workflow and decisions](docs/CATALOG.md). Inventory workflows, purchasing/sales, staff/role editing, MFA and recovery remain future slices. This is a verified local development increment, not a complete or production-ready ERP. The next business slice is multi-location inventory using the same access/audit foundation.
 
 ## Local commands
 
@@ -47,7 +47,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification — 8 November 2026
 
-Strict type checking, clean build, formatting check, 15 database-free/interface tests and 16 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 19 database-free/interface tests and 25 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

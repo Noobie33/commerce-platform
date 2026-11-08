@@ -12,7 +12,7 @@ Open http://127.0.0.1:4000/admin while the local application is running. The roo
 - Working sign-out, session-expiry handling, loading, empty-result and failure states.
 - Responsive desktop/compact navigation with keyboard focus, Escape/Tab handling and skip link.
 
-Product/catalog, inventory and purchasing/sales entries are labelled Planned; no business totals or placeholder transactions are presented as real data. Staff/role editing and audit-history UI remain future slices.
+The catalog screen supports real product/variant create, view, edit, search, category/status filters and pagination. See [catalog decisions](CATALOG.md). Inventory and purchasing/sales remain planned; no business totals or placeholder transactions are presented as real data. Staff/role editing and audit-history UI remain future slices.
 
 ## Architecture and reasons
 
@@ -35,7 +35,9 @@ Open the URL above. Username for the bootstrapped development owner is owner; th
 
 Browser QA used only a disposable test-database account, leaving the real owner untouched. Sign-in, forced-change screen, overview, staff search/no-results, profile/access, compact navigation/focus and sign-out were observed. Desktop/compact page widths were checked and browser error/warning logs were empty. Actual password-change mutation is covered by PostgreSQL HTTP tests; the browser QA did not change the user's password.
 
-Temporary QA server/account were removed after testing. The normal local application is left available for the user. Source changes require another build; this local setup does not silently auto-deploy to the internet.
+Catalog browser QA also created a category and a product with six generated size/colour variants, verified exact decimal prices, duplicate-barcode feedback, edit/archive, search/no-results and compact modal/navigation behaviour. A browser validation issue and compact-page overflow were corrected and rechecked. The final compact layout had no horizontal page overflow; background scrolling is locked during modal use and hidden navigation is inert. Browser warning/error logs were empty on the final build.
+
+Temporary QA server/account and catalog fixtures were removed after testing. The normal local application is left available for the user. Source changes require another build; this local setup does not silently auto-deploy to the internet.
 
 ## GitHub and backups
 

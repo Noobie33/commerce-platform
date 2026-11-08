@@ -16,3 +16,5 @@ export interface TeamMember {
   displayName: string;
   isActive: boolean;
 }
+
+export type WorkspacePage = 'overview' | 'catalog' | 'team' | 'profile';

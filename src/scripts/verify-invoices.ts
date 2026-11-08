@@ -28,7 +28,7 @@ try {
     )[0].n;
     const counts = (
       await m.query(
-        `SELECT count(*)::int AS invoices,count(*) FILTER(WHERE reversed_at IS NULL)::int AS active,coalesce(sum(total_minor) FILTER(WHERE reversed_at IS NULL),0)::text AS unsettledMinor FROM supplier_invoices`,
+        `SELECT count(*)::int AS invoices,count(*) FILTER(WHERE i.reversed_at IS NULL)::int AS active,coalesce(sum(b.remaining_minor) FILTER(WHERE i.reversed_at IS NULL),0)::text AS unsettledMinor FROM supplier_invoices i JOIN supplier_invoice_balances b ON b.invoice_id=i.id`,
       )
     )[0];
     return {

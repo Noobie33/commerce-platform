@@ -1,3 +1,9 @@
+import type {
+  PaymentSupplier,
+  SupplierPaymentPage,
+  PaymentList,
+  PaymentResult,
+} from './purchasing/payment-types';
 import type { InvoicePage, InvoiceResult, InvoiceList } from './purchasing/invoice-types';
 import type { ReceivingPage, ReceiptResult } from './purchasing/receipt-types';
 import type {
@@ -45,6 +51,18 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              PAYMENT_STALE:
+                'Supplier payments changed. Close this form and refresh before continuing.',
+              PAYMENT_REVERSED: 'This payment has already been reversed. Refresh payment history.',
+              PAYMENT_INVOICE_UNAVAILABLE:
+                'An invoice is unavailable, reversed or belongs to another supplier. Refresh the invoices.',
+              PAYMENT_EXCEEDS_DUE:
+                'An allocated amount exceeds the invoice balance. Refresh and check the remaining amounts.',
+              PAYMENT_REFERENCE_EXISTS:
+                'This payment or voucher reference already belongs to an active recorded payment.',
+              PAYMENT_NOT_FOUND: 'This supplier or payment could not be found.',
+              INVOICE_HAS_PAYMENTS:
+                'Reverse the payments allocated to this invoice before reversing the invoice.',
               RECEIPT_INVOICED:
                 'Reverse the active supplier invoices linked to this receipt before reversing its stock.',
               INVOICE_STALE:
@@ -439,6 +457,55 @@ export class StaffApi {
   ) {
     return this.request<InvoiceResult>(
       '/payables/invoices/' + encodeURIComponent(id) + '/reverse',
+      body,
+      { key },
+    );
+  }
+  paymentSuppliers(search: string) {
+    return this.request<PaymentSupplier[]>(
+      '/payables/payment-suppliers?' + new URLSearchParams({ search }),
+    );
+  }
+  supplierPaymentPage(id: string, page = 1, invoicePage = 1) {
+    return this.request<SupplierPaymentPage>(
+      '/payables/suppliers/' +
+        encodeURIComponent(id) +
+        '/payments?' +
+        new URLSearchParams({ page: String(page), invoicePage: String(invoicePage) }),
+    );
+  }
+  supplierPayments(query: { page: number; search: string; status: string }) {
+    return this.request<PaymentList>(
+      '/payables/payments?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  recordSupplierPayment(
+    id: string,
+    body: {
+      expectedRevision: number;
+      paidOn: string;
+      method: 'cash' | 'bank' | 'mobile';
+      source: string;
+      reference: string;
+      amount: string;
+      reason: string;
+      allocations: { invoiceId: string; amount: string }[];
+    },
+    key: string,
+  ) {
+    return this.request<PaymentResult>(
+      '/payables/suppliers/' + encodeURIComponent(id) + '/payments',
+      body,
+      { key },
+    );
+  }
+  reverseSupplierPayment(
+    id: string,
+    body: { expectedRevision: number; reason: string },
+    key: string,
+  ) {
+    return this.request<PaymentResult>(
+      '/payables/payments/' + encodeURIComponent(id) + '/reverse',
       body,
       { key },
     );

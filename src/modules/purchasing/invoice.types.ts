@@ -37,6 +37,9 @@ export interface InvoiceLine {
 }
 export interface SupplierInvoice {
   id: string;
+  supplierId: string;
+  paid: string;
+  remaining: string;
   orderId: string;
   orderNumber: string;
   supplierName: string;
@@ -64,6 +67,7 @@ export interface SupplierInvoice {
 }
 export interface InvoicePage {
   orderId: string;
+  supplierId: string;
   orderNumber: string;
   supplierName: string;
   invoiceRevision: number;

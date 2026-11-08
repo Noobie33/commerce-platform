@@ -14,7 +14,8 @@ export class SupplierInvoiceController {
     const r = object(value, ['page', 'search', 'status']),
       pages = invoicePages({ page: r.page });
     const status = String(r.status ?? 'all');
-    if (!['all', 'active', 'reversed'].includes(status)) invalid('Invalid invoice status');
+    if (!['all', 'active', 'reversed', 'unpaid', 'partial', 'paid', 'overdue'].includes(status))
+      invalid('Invalid invoice status');
     return this.invoices.list(
       { page: pages.page, search: text(r.search ?? '', 'search', 100, true), status },
       req.principal!,

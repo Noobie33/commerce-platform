@@ -1,1 +1,1 @@
-export const APPLICATION_SCHEMA_VERSION = 8;
+export const APPLICATION_SCHEMA_VERSION = 9;

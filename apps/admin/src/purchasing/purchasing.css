@@ -510,3 +510,126 @@
     width: 100%;
   }
 }
+.payment-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+.payment-summary > div {
+  padding: 16px;
+  background: #f7f8fa;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.payment-summary span,
+.payment-summary strong {
+  display: block;
+}
+.payment-summary span {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.payment-summary strong {
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+.payment-workspace > h3 {
+  margin-top: 28px;
+}
+.payment-history-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.payment-history-card .receipt-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.payment-history-card h4 {
+  margin: 0;
+}
+.payment-history-card p,
+.payment-history-card li {
+  overflow-wrap: anywhere;
+}
+.payment-supplier-picker {
+  padding: 24px;
+  margin: 24px 0;
+}
+.payment-supplier-picker h2 {
+  font-size: 18px;
+  margin: 0 0 18px;
+}
+.payment-supplier-picker label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 480px;
+}
+.payment-supplier-picker input {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+}
+.payment-supplier-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+.payment-supplier-results button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  white-space: normal;
+}
+.payment-supplier-results small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.payment-workspace table small {
+  display: block;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.purchase-form-grid select {
+  min-height: 44px;
+  width: 100%;
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+@media (max-width: 600px) {
+  .payment-summary {
+    grid-template-columns: 1fr;
+  }
+  .payment-summary > div {
+    padding: 14px;
+  }
+  .payment-supplier-picker {
+    padding: 20px;
+  }
+  .payment-supplier-results {
+    flex-direction: column;
+  }
+  .payment-summary strong {
+    font-size: 20px;
+  }
+}

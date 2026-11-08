@@ -56,8 +56,8 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
         </button>
       </div>
       <p className="inventory-guidance">
-        Record invoices from an issued purchase order after receiving goods. Payments and opening
-        balances are not included yet.
+        Record invoices after receiving goods. Recorded payments reduce the remaining amounts;
+        opening balances are not included yet.
       </p>
       <section className="panel inventory-content">
         <div className="inventory-toolbar invoice-directory-toolbar">
@@ -81,7 +81,11 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
               }}
             >
               <option value="all">All invoices</option>
-              <option value="active">Recorded · Unsettled</option>
+              <option value="active">Active invoices</option>
+              <option value="unpaid">Unpaid</option>
+              <option value="partial">Partially paid</option>
+              <option value="paid">Paid</option>
+              <option value="overdue">Overdue</option>
               <option value="reversed">Reversed</option>
             </select>
           </label>
@@ -104,13 +108,13 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
           data && (
             <>
               <p className="invoice-summary">
-                <strong>{money(data.unsettled)}</strong> active recorded invoices matching these
-                filters
+                <strong>{money(data.unsettled)}</strong> outstanding on recorded invoices matching
+                these filters
               </p>
               {data.total === 0 ? (
                 <p>
-                  No matching invoices. Receive goods on a purchase order, then record its supplier
-                  invoice.
+                  No matching invoices. Try another search or status. New invoices are recorded from
+                  received purchase orders.
                 </p>
               ) : (
                 <div className="table-scroll">
@@ -122,6 +126,7 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
                         <th>Supplier</th>
                         <th>Due</th>
                         <th>Total</th>
+                        <th>Paid / Remaining</th>
                         <th>Status</th>
                         <th>Actions</th>
                       </tr>
@@ -136,7 +141,18 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
                           <td>{i.supplierName}</td>
                           <td>{i.dueOn}</td>
                           <td>{money(i.total)}</td>
-                          <td>{i.reversedAt ? 'Reversed' : 'Recorded · Unsettled'}</td>
+                          <td>
+                            {money(i.paid)} / {money(i.remaining)}
+                          </td>
+                          <td>
+                            {i.reversedAt
+                              ? 'Reversed'
+                              : i.remaining === '0.00'
+                                ? 'Paid'
+                                : i.paid === '0.00'
+                                  ? 'Unpaid'
+                                  : 'Partially paid'}
+                          </td>
                           <td>
                             <button
                               className="secondary-button"

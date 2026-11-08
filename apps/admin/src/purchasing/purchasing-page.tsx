@@ -1,3 +1,4 @@
+import { PaymentListView } from './payment-list';
 import { InvoiceListView } from './invoice-list';
 import { useEffect, useState } from 'react';
 import { StaffApi } from '../api';
@@ -17,7 +18,7 @@ export function PurchasingPage({
   canManage: boolean;
   canViewInvoices: boolean;
 }) {
-  const [tab, setTab] = useState<'orders' | 'suppliers' | 'invoices'>('orders'),
+  const [tab, setTab] = useState<'orders' | 'suppliers' | 'invoices' | 'payments'>('orders'),
     [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
@@ -105,6 +106,7 @@ export function PurchasingPage({
       setOpening(false);
     }
   }
+  if (tab === 'payments') return <PaymentListView api={api} onBack={() => setTab('orders')} />;
   if (tab === 'invoices') return <InvoiceListView api={api} onBack={() => setTab('orders')} />;
   return (
     <div className="purchasing-page">
@@ -116,6 +118,11 @@ export function PurchasingPage({
           </h1>
           <p>Organise suppliers. Plan purchases. Keep every order traceable.</p>
         </div>
+        {canViewInvoices && (
+          <button className="secondary-button" onClick={() => setTab('payments')}>
+            Supplier payments
+          </button>
+        )}
         {canViewInvoices && (
           <button className="secondary-button" onClick={() => setTab('invoices')}>
             Supplier invoices

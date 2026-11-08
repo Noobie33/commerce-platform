@@ -51,3 +51,4 @@ jobs:
       - run: node --env-file=.env.test dist/src/scripts/verify-inventory.js
       - run: node --env-file=.env.test dist/src/scripts/verify-purchasing.js
       - run: node --env-file=.env.test dist/src/scripts/verify-invoices.js
+      - run: node --env-file=.env.test dist/src/scripts/verify-payments.js

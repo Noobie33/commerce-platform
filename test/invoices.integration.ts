@@ -516,7 +516,7 @@ test('supplier invoices: matched quantities, exact amounts, immutable records an
         assert.equal(body.unsettled, (await state()).unsettled);
         assert.equal((await (await payable('/invoices?search=%25')).json()).total, 0);
         assert.equal((await payable('/invoices?page=0')).status, 400);
-        assert.equal((await payable('/invoices?status=paid')).status, 400);
+        assert.equal((await payable('/invoices?status=unknown')).status, 400);
       },
     );
     await t.test(

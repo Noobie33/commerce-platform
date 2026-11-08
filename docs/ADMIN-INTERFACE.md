@@ -63,4 +63,8 @@ The Purchasing navigation includes searchable supplier records and draft/issued/
 
 ## Supplier invoice matching
 
-Purchasing now includes Supplier invoices. Open an issued order after receiving goods to record partial supplier invoice quantities, actual prices, invoice/due dates and explicit tax/delivery/discount amounts. Review before confirming; stock stays unchanged. Active recorded invoice totals exclude reversed invoices. Whole-invoice reversal preserves history and releases matching quantities; active invoices block receipt reversal. Payments and accounting journals remain later workflows. See [invoice scope and integrity](SUPPLIER-INVOICES.md).
+Purchasing now includes Supplier invoices. Open an issued order after receiving goods to record partial supplier invoice quantities, actual prices, invoice/due dates and explicit tax/delivery/discount amounts. Review before confirming; stock stays unchanged. Active recorded invoice totals exclude reversed invoices. Whole-invoice reversal preserves history and releases matching quantities; active invoices block receipt reversal. Recorded payments now reduce invoice balances; accounting journals remain a later workflow. See [invoice scope and integrity](SUPPLIER-INVOICES.md).
+
+## Supplier payment records
+
+Purchasing / Supplier payments supports supplier lookup, outstanding invoices, partial or consolidated payments across up to 25 invoices, exact allocation review and complete payment reversal history. Method/source/date/reference describe a payment already made; no money is sent. Invoice rows now show paid/remaining amounts and unpaid/partially paid/paid status, with corresponding filters and overdue search. Active payments block invoice reversal. Order invoice panels also open the supplier payment workspace. See [payment rules and limits](SUPPLIER-PAYMENTS.md).

@@ -1,3 +1,4 @@
+import { PaymentWorkspace } from './payment-workspace';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { StaffApi } from '../api';
@@ -13,6 +14,7 @@ export function InvoicePanel({
   orderId: string;
   onChanged?: () => void;
 }) {
+  const [paymentSupplier, setPaymentSupplier] = useState<string | null>(null);
   const [data, setData] = useState<InvoicePage | null>(null),
     [page, setPage] = useState(1),
     [linePage, setLinePage] = useState(1),
@@ -50,11 +52,11 @@ export function InvoicePanel({
           <h3>Supplier invoices</h3>
           <p>Match the supplier’s document to received goods.</p>
         </div>
-        {data && !loading && <strong>{money(data.unsettled)} recorded unsettled</strong>}
+        {data && !loading && <strong>{money(data.unsettled)} outstanding</strong>}
       </div>
       <p className="inventory-guidance">
-        Payments, credit notes, opening balances and accounting journals are not included yet. This
-        total covers active invoices recorded here.
+        Recorded payments are included. Credit notes, opening balances and accounting journals are
+        not included yet. This total covers remaining amounts on active invoices recorded here.
       </p>
       {notice && (
         <p className="notice" role="status">
@@ -115,8 +117,17 @@ export function InvoicePanel({
                     <strong>{money(i.total)}</strong>
                   </div>
                   <p>
-                    {i.reversedAt ? 'Reversed' : 'Recorded · Unsettled'} · Invoice {i.invoiceOn} ·
-                    Due {i.dueOn}
+                    {i.reversedAt
+                      ? 'Reversed'
+                      : i.remaining === '0.00'
+                        ? 'Paid'
+                        : i.paid === '0.00'
+                          ? 'Unpaid'
+                          : 'Partially paid'}{' '}
+                    · Invoice {i.invoiceOn} · Due {i.dueOn}
+                  </p>
+                  <p>
+                    Paid {money(i.paid)} · Remaining {money(i.remaining)}
                   </p>
                   <p>
                     {i.actorName} · {i.reason}
@@ -141,7 +152,8 @@ export function InvoicePanel({
                       Reversed {new Date(i.reversedAt).toLocaleString()} · {i.reversalReason}
                     </p>
                   ) : (
-                    data.canReverse && (
+                    data.canReverse &&
+                    i.paid === '0.00' && (
                       <button
                         type="button"
                         className="secondary-button"
@@ -188,6 +200,31 @@ export function InvoicePanel({
       >
         Refresh invoices
       </button>
+      {data && !loading && (
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setPaymentSupplier(data.supplierId)}
+        >
+          Supplier payments
+        </button>
+      )}
+      {data?.items.some((i) => !i.reversedAt && i.paid !== '0.00') && (
+        <p>Reverse allocated payments before reversing a paid or partially paid invoice.</p>
+      )}
+      {paymentSupplier &&
+        createPortal(
+          <PaymentWorkspace
+            api={api}
+            supplierId={paymentSupplier}
+            onClose={() => {
+              setPaymentSupplier(null);
+              onChanged?.();
+            }}
+            onChanged={() => setRevision((n) => n + 1)}
+          />,
+          document.body,
+        )}
       {action &&
         data &&
         createPortal(

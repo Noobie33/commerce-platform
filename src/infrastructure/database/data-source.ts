@@ -1,3 +1,4 @@
+import { SupplierPayments1794107000000 } from '../../database/migrations/1794107000000-supplier-payments.js';
 import { SupplierInvoices1794106000000 } from '../../database/migrations/1794106000000-supplier-invoices.js';
 import { PurchaseReceipts1794105000000 } from '../../database/migrations/1794105000000-purchase-receipts.js';
 import { PurchasingFoundation1794104000000 } from '../../database/migrations/1794104000000-purchasing-foundation.js';
@@ -51,6 +52,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       PurchasingFoundation1794104000000,
       PurchaseReceipts1794105000000,
       SupplierInvoices1794106000000,
+      SupplierPayments1794107000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

@@ -19,6 +19,7 @@ export function invoiceError(error: unknown): never {
     if (message === 'INVOICE_NOT_FOUND') throw new NotFoundException({ code: message });
     if (
       [
+        'INVOICE_HAS_PAYMENTS',
         'INVOICE_STALE',
         'INVOICE_REVERSED',
         'INVOICE_ORDER_STATE',

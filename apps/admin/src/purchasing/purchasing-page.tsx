@@ -1,3 +1,4 @@
+import { PayablesReports } from './reports-page';
 import { PaymentListView } from './payment-list';
 import { InvoiceListView } from './invoice-list';
 import { useEffect, useState } from 'react';
@@ -18,7 +19,9 @@ export function PurchasingPage({
   canManage: boolean;
   canViewInvoices: boolean;
 }) {
-  const [tab, setTab] = useState<'orders' | 'suppliers' | 'invoices' | 'payments'>('orders'),
+  const [tab, setTab] = useState<'orders' | 'suppliers' | 'invoices' | 'payments' | 'reports'>(
+      'orders',
+    ),
     [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
@@ -106,6 +109,7 @@ export function PurchasingPage({
       setOpening(false);
     }
   }
+  if (tab === 'reports') return <PayablesReports api={api} onBack={() => setTab('orders')} />;
   if (tab === 'payments') return <PaymentListView api={api} onBack={() => setTab('orders')} />;
   if (tab === 'invoices') return <InvoiceListView api={api} onBack={() => setTab('orders')} />;
   return (
@@ -118,29 +122,36 @@ export function PurchasingPage({
           </h1>
           <p>Organise suppliers. Plan purchases. Keep every order traceable.</p>
         </div>
-        {canViewInvoices && (
-          <button className="secondary-button" onClick={() => setTab('payments')}>
-            Supplier payments
-          </button>
-        )}
-        {canViewInvoices && (
-          <button className="secondary-button" onClick={() => setTab('invoices')}>
-            Supplier invoices
-          </button>
-        )}
-        {canManage && (
-          <button
-            className="primary-button"
-            disabled={opening || loading}
-            onClick={() => {
-              setNotice('');
-              if (tab === 'orders') setEditor({ initial: null });
-              else setSupplierDialog({ initial: null });
-            }}
-          >
-            {tab === 'orders' ? 'New purchase order' : 'New supplier'} <Icon name="plus" />
-          </button>
-        )}
+        <div className="purchase-heading-actions">
+          {canViewInvoices && (
+            <button className="secondary-button" onClick={() => setTab('reports')}>
+              Statements & aging
+            </button>
+          )}
+          {canViewInvoices && (
+            <button className="secondary-button" onClick={() => setTab('payments')}>
+              Supplier payments
+            </button>
+          )}
+          {canViewInvoices && (
+            <button className="secondary-button" onClick={() => setTab('invoices')}>
+              Supplier invoices
+            </button>
+          )}
+          {canManage && (
+            <button
+              className="primary-button"
+              disabled={opening || loading}
+              onClick={() => {
+                setNotice('');
+                if (tab === 'orders') setEditor({ initial: null });
+                else setSupplierDialog({ initial: null });
+              }}
+            >
+              {tab === 'orders' ? 'New purchase order' : 'New supplier'} <Icon name="plus" />
+            </button>
+          )}
+        </div>
       </div>
       {notice && (
         <p className="notice" role="status">

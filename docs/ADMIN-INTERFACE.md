@@ -68,3 +68,7 @@ Purchasing now includes Supplier invoices. Open an issued order after receiving 
 ## Supplier payment records
 
 Purchasing / Supplier payments supports supplier lookup, outstanding invoices, partial or consolidated payments across up to 25 invoices, exact allocation review and complete payment reversal history. Method/source/date/reference describe a payment already made; no money is sent. Invoice rows now show paid/remaining amounts and unpaid/partially paid/paid status, with corresponding filters and overdue search. Active payments block invoice reversal. Order invoice panels also open the supplier payment workspace. See [payment rules and limits](SUPPLIER-PAYMENTS.md).
+
+## Recorded supplier reports
+
+Purchasing / Statements & aging adds a Bangladesh-date cutoff, supplier search, full filtered aging totals and paginated supplier rows. Open a supplier statement for a date period, brought-forward/increase/reduction/closing amounts, historical outstanding invoices and recorded activity with actors/reasons. Supplier payments also opens the statement. CSV downloads all period events up to 5,000, preserves Bengali and protects spreadsheet cells against formulas. These read-only reports use recorded timestamps, not document dates, and do not import opening balances or create accounting journals. See [report basis and verification](PAYABLES-REPORTS.md).

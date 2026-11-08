@@ -1,3 +1,4 @@
+import { SupplierStatementDialog } from './statement-dialog';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { StaffApi } from '../api';
@@ -16,6 +17,7 @@ export function PaymentWorkspace({
   onClose: () => void;
   onChanged?: () => void;
 }) {
+  const [statement, setStatement] = useState(false);
   const [data, setData] = useState<SupplierPaymentPage | null>(null),
     [page, setPage] = useState(1),
     [invoicePage, setInvoicePage] = useState(1),
@@ -232,12 +234,29 @@ export function PaymentWorkspace({
         <button
           type="button"
           className="secondary-button"
+          disabled={loading || !data}
+          onClick={() => setStatement(true)}
+        >
+          Statement & aging
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
           disabled={loading}
           onClick={() => setRevision((n) => n + 1)}
         >
           Refresh payments
         </button>
       </footer>
+      {statement &&
+        createPortal(
+          <SupplierStatementDialog
+            api={api}
+            supplierId={supplierId}
+            onClose={() => setStatement(false)}
+          />,
+          document.body,
+        )}
       {action &&
         data &&
         createPortal(

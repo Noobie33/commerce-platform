@@ -633,3 +633,159 @@
     font-size: 20px;
   }
 }
+.purchase-heading-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+.report-summary > div,
+.aging-cards > div {
+  padding: 16px;
+  background: #f7f8fa;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 0;
+}
+.report-summary span,
+.aging-cards span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.report-summary strong {
+  display: block;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+.aging-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.aging-cards strong {
+  font-size: 16px;
+  display: block;
+  overflow-wrap: anywhere;
+}
+.aging-overview {
+  padding: 8px 24px 16px;
+}
+.aging-overview > strong {
+  font-size: 30px;
+}
+.aging-overview > p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.aging-table {
+  min-width: 1140px;
+}
+.statement-table {
+  min-width: 850px;
+}
+.report-context {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.report-statement > h3 {
+  font-size: 17px;
+  margin-top: 30px;
+}
+.report-statement > p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.report-statement table small,
+.aging-table small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.report-statement details p {
+  max-width: 320px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.report-statement table td {
+  vertical-align: top;
+}
+.report-filters {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.report-filters label {
+  flex: 1;
+  min-width: 150px;
+}
+.report-filters button {
+  min-height: 44px;
+}
+.report-statement .inventory-pagination {
+  flex-wrap: wrap;
+}
+.report-statement .inventory-pagination button {
+  min-height: 40px;
+}
+@media (max-width: 1100px) {
+  .report-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aging-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .purchase-heading-actions {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 600px) {
+  .aging-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aging-overview {
+    padding: 8px 20px 16px;
+  }
+  .report-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .report-summary strong {
+    font-size: 18px;
+  }
+  .report-summary > div {
+    padding: 14px;
+  }
+  .report-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .report-filters label {
+    min-width: 0;
+    flex: auto;
+  }
+  .purchase-heading-actions {
+    width: 100%;
+  }
+  .purchase-heading-actions button {
+    flex: 1 1 45%;
+    white-space: normal;
+  }
+  .statement-footer,
+  .workspace-dialog:has(.payment-workspace) > .dialog-footer {
+    flex-wrap: wrap;
+  }
+}

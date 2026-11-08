@@ -1,3 +1,5 @@
+import { PayablesReportService } from './report.service.js';
+import { PayablesReportController } from './report.controller.js';
 import { SupplierPaymentService } from './payment.service.js';
 import { SupplierPaymentController } from './payment.controller.js';
 import { SupplierInvoiceService } from './invoice.service.js';
@@ -23,8 +25,14 @@ export class PurchasingModule {
         PurchaseReceiptController,
         SupplierInvoiceController,
         SupplierPaymentController,
+        PayablesReportController,
       ],
       providers: [
+        {
+          provide: PayablesReportService,
+          useFactory: (source: DataSource) => new PayablesReportService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: SupplierPaymentService,
           useFactory: (source: DataSource) => new SupplierPaymentService(source),

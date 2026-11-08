@@ -1,3 +1,4 @@
+import type { AgingReport, SupplierStatement } from './purchasing/report-types';
 import type {
   PaymentSupplier,
   SupplierPaymentPage,
@@ -51,6 +52,10 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              REPORT_EXPORT_TOO_LARGE:
+                'This period has more than 5,000 entries. Choose a shorter period to download a CSV.',
+              REPORT_RECONCILIATION:
+                'The report could not reconcile its source records. Please contact the workspace owner.',
               PAYMENT_STALE:
                 'Supplier payments changed. Close this form and refresh before continuing.',
               PAYMENT_REVERSED: 'This payment has already been reversed. Refresh payment history.',
@@ -509,6 +514,56 @@ export class StaffApi {
       body,
       { key },
     );
+  }
+  payableAging(query: { asOf?: string; search: string; page: number }) {
+    return this.request<AgingReport>(
+      '/payables/reports/aging?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  supplierStatement(
+    id: string,
+    query: { from?: string; to?: string; page: number; invoicePage: number },
+  ) {
+    return this.request<SupplierStatement>(
+      '/payables/suppliers/' +
+        encodeURIComponent(id) +
+        '/statement?' +
+        new URLSearchParams({
+          ...query,
+          page: String(query.page),
+          invoicePage: String(query.invoicePage),
+        }),
+    );
+  }
+  async supplierStatementCsv(id: string, query: { from: string; to: string }): Promise<Blob> {
+    let response: Response;
+    try {
+      response = await fetch(
+        '/api/v1/payables/suppliers/' +
+          encodeURIComponent(id) +
+          '/statement.csv?' +
+          new URLSearchParams(query),
+        { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'text/csv' } },
+      );
+    } catch {
+      throw new Error('Unable to reach your workspace. Please try again.');
+    }
+    if (!response.ok) {
+      const data: unknown = await response.json().catch(() => null);
+      const code =
+        data && typeof data === 'object' && 'code' in data && typeof data.code === 'string'
+          ? data.code
+          : undefined;
+      if (response.status === 401 && this.authenticated) {
+        this.forget();
+        this.onSessionExpired?.();
+      }
+      if (code === 'PASSWORD_CHANGE_REQUIRED') this.onPasswordChangeRequired?.();
+      throw new ApiError(response.status, code);
+    }
+    if (!response.headers.get('content-type')?.startsWith('text/csv'))
+      throw new Error('The workspace returned an unexpected export.');
+    return response.blob();
   }
   async ready() {
     try {

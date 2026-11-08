@@ -8,6 +8,7 @@ export function decimal(n: bigint) {
   return n / 100n + '.' + (n % 100n).toString().padStart(2, '0');
 }
 export function money(value: string) {
-  const [a, b = '00'] = value.split('.');
-  return '৳' + BigInt(a!).toLocaleString('en-BD') + '.' + b.padEnd(2, '0');
+  const negative = value.startsWith('-');
+  const [a, b = '00'] = (negative ? value.slice(1) : value).split('.');
+  return (negative ? '-' : '') + '৳' + BigInt(a!).toLocaleString('en-BD') + '.' + b.padEnd(2, '0');
 }

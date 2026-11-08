@@ -96,7 +96,7 @@ First business slice after phase 1: create T-shirt variants, receive stock, tran
 
 ## Storefront requirement update
 
-The owner has selected Aarong/Taaga as the main visual/functionality reference and Tabaya for product video with photos. [Reference audit and implementation contract](docs/STOREFRONT-REFERENCE.md) maps this to structured product specifications, facets, collections, size guides, mixed media, publication and connected customer/sales workflows. These requirements extend the storefront phases; current purchasing receipt work continues as the operational dependency. Account/checkout/rewards parity requires further acceptance work rather than assuming it from public navigation.
+The owner has selected Aarong/Taaga as the main visual/functionality reference and Tabaya for product video with photos. [Reference audit and implementation contract](docs/STOREFRONT-REFERENCE.md) maps this to structured product specifications, facets, collections, size guides, mixed media, publication and connected customer/sales workflows. The current release is Bangladesh-only and single-brand: omit country/region and sub-brand switchers, while keeping department/category navigation and internal inventory locations. These requirements extend the storefront phases; current purchasing receipt work continues as the operational dependency. Account/checkout/rewards parity requires further acceptance work rather than assuming it from public navigation.
 
 ## Execution and limits
 

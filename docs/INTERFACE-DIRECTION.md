@@ -10,6 +10,8 @@ The reference describes inventory, ratings, sales statistics, brand/gender filte
 
 The owner subsequently selected [Aarong/Taaga](https://www.aarong.com/bgd/brands/taaga) as the primary public-storefront layout/functionality reference and [Tabaya](https://tabaya.com/) for product video alongside photos. This latest direction governs storefront design and future visual alignment of the staff software. Carry its typography, spacing, restrained presentation and clear filtering into management screens while preserving operational tables and permission-aware actions. The existing orange/white staff theme is the current implementation baseline, not a fixed requirement for the future public palette. Staff software must manage the richer catalog/content/media and commerce workflows behind the storefront.
 
+The owner confirmed a Bangladesh-only, single-brand storefront: omit country/region selection and Taaga/Taaga Man-style sub-brand switching. Men/women/kids/lifestyle remain departments under the same brand. Apply the same simplification in relevant staff content settings; internal inventory locations and domestic delivery addresses remain intact.
+
 See the [recorded feature matrix, system changes and acceptance gates](STOREFRONT-REFERENCE.md). The public-site observations do not expose Aarong's private ERP. Detailed account/payment/reward behaviour remains discovery work; requested image/video functionality is a requirement, not an existing upload capability.
 
 ## Frontend stack

@@ -21,7 +21,7 @@ The staff workspace, catalog/variants and protected product-photo workflow are i
 
 ## Storefront direction
 
-The owner selected Aarong/Taaga for storefront layout, product presentation and feature coverage, with Tabaya-inspired product video alongside images. See the [source-backed feature matrix and architecture impact](docs/STOREFRONT-REFERENCE.md). Rich specifications/filters, collections/size guides, mixed media and publication rules must be supplied by the ERP. These are recorded requirements; the current app remains the staff workspace, with no public checkout or video upload yet.
+The owner selected Aarong/Taaga for storefront layout, product presentation and feature coverage, with Tabaya-inspired product video alongside images. See the [source-backed feature matrix and architecture impact](docs/STOREFRONT-REFERENCE.md). The current storefront scope is Bangladesh only (BDT), with one brand across all departments: no country selector or sub-brand/brand switcher. Rich specifications/filters, collections/size guides, mixed media and publication rules must be supplied by the ERP. These are recorded requirements; the current app remains the staff workspace, with no public checkout or video upload yet.
 
 ## Local commands
 

@@ -5,6 +5,7 @@ import { permits } from '../authorization/policy.js';
 import { IdentityService } from './identity.service.js';
 import {
   AUTHENTICATED,
+  IMAGE_UPLOAD,
   PASSWORD_CHANGE_ALLOWED,
   PERMISSION,
   PUBLIC,
@@ -23,12 +24,17 @@ export class StaffGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<StaffRequest>();
     const targets = [context.getHandler(), context.getClass()];
     const writing = !['GET', 'HEAD', 'OPTIONS'].includes(req.method ?? '');
+    const type = req.headers['content-type']?.split(';')[0]?.trim().toLowerCase();
+    const imageUpload = this.reflector.getAllAndOverride<boolean>(IMAGE_UPLOAD, targets);
+    const validContentType = imageUpload
+      ? ['image/jpeg', 'image/png', 'image/webp'].includes(type ?? '')
+      : type === 'application/json';
     // Public login is also origin-checked. No wildcard CORS is enabled.
     if (
       writing &&
       (req.headers.origin !== this.config.origin ||
         req.headers['x-requested-with'] !== 'commerce-staff' ||
-        req.headers['content-type']?.split(';')[0]?.trim().toLowerCase() !== 'application/json' ||
+        !validContentType ||
         req.headers['sec-fetch-site'] === 'cross-site')
     ) {
       throw new ForbiddenException('Request verification failed');

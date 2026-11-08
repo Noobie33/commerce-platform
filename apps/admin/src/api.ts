@@ -1,4 +1,4 @@
-import type { Category, Product, ProductPage, ProductPayload } from './catalog/types';
+import type { MediaResult, Category, Product, ProductPage, ProductPayload } from './catalog/types';
 import type { Profile, TeamMember } from './types';
 
 export class ApiError extends Error {
@@ -14,6 +14,12 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              INVALID_PRODUCT_IMAGE:
+                'Choose a valid, non-animated JPEG, PNG or WebP image up to 5 MB and 16 megapixels.',
+              PHOTO_LIMIT:
+                'This product already has eight photos. Remove one before uploading another.',
+              MEDIA_BUSY: 'Image processing is busy. Please try again shortly.',
+              INVALID_MEDIA_VERSION: 'Reload the latest product before changing photos.',
               STALE_PRODUCT:
                 'Someone saved a newer revision. Open the latest product before editing again.',
               SKU_EXISTS: 'This SKU is already in use. Choose a unique SKU.',
@@ -50,7 +56,7 @@ export class StaffApi {
   private async request<T>(
     path: string,
     body?: unknown,
-    options?: { method?: 'POST' | 'PATCH'; key?: string },
+    options?: { method?: 'POST' | 'PATCH'; key?: string; image?: File; version?: number },
   ): Promise<T> {
     const writing = body !== undefined;
     let response: Response;
@@ -61,13 +67,14 @@ export class StaffApi {
         cache: 'no-store',
         headers: writing
           ? {
-              'Content-Type': 'application/json',
+              'Content-Type': options?.image?.type ?? 'application/json',
+              ...(options?.image ? { 'X-Product-Version': String(options.version) } : {}),
               'X-Requested-With': 'commerce-staff',
               'X-CSRF-Token': this.csrf,
               ...(options?.key ? { 'X-Idempotency-Key': options.key } : {}),
             }
           : { Accept: 'application/json' },
-        ...(writing ? { body: JSON.stringify(body) } : {}),
+        ...(writing ? { body: options?.image ?? JSON.stringify(body) } : {}),
       });
     } catch {
       throw new Error('Unable to reach your workspace. Check the connection and try again.');
@@ -151,6 +158,31 @@ export class StaffApi {
       '/catalog/products' + (id ? '/' + encodeURIComponent(id) : ''),
       payload,
       { method: id ? 'PATCH' : 'POST', key },
+    );
+  }
+  uploadPhoto(id: string, version: number, file: File, key: string) {
+    return this.request<MediaResult>(
+      '/catalog/products/' + encodeURIComponent(id) + '/photos',
+      {},
+      { image: file, version, key },
+    );
+  }
+  changePhoto(
+    id: string,
+    photoId: string,
+    operation: 'primary' | 'remove',
+    expectedVersion: number,
+    key: string,
+  ) {
+    return this.request<MediaResult>(
+      '/catalog/products/' +
+        encodeURIComponent(id) +
+        '/photos/' +
+        encodeURIComponent(photoId) +
+        '/' +
+        operation,
+      { expectedVersion },
+      { key },
     );
   }
   async ready() {

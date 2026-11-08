@@ -1,3 +1,16 @@
+export interface ProductPhoto {
+  id: string;
+  url: string;
+  thumbnailUrl: string;
+  width: number;
+  height: number;
+  isPrimary: boolean;
+}
+export interface MediaResult {
+  productId: string;
+  version: number;
+  photos: ProductPhoto[];
+}
 export interface Category {
   id: string;
   name: string;
@@ -25,6 +38,7 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   variants: CatalogVariant[];
+  photos: ProductPhoto[];
 }
 export interface ProductSummary {
   id: string;
@@ -35,6 +49,7 @@ export interface ProductSummary {
   status: ProductStatus;
   currency: 'BDT';
   version: number;
+  primaryPhoto: ProductPhoto | null;
   variantCount: number;
   activeVariantCount: number;
   fromPrice: string | null;

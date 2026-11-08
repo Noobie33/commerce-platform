@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '../components/dialog';
 import { Icon } from '../icons';
 import { categoryName, money } from './helpers';
@@ -9,14 +9,23 @@ export function ProductDetail({
   categories,
   onClose,
   onEdit,
+  onManagePhotos,
   inline = false,
 }: {
   product: Product;
   categories: Category[];
   onClose: () => void;
   onEdit?: (p: Product) => void;
+  onManagePhotos?: (p: Product) => void;
   inline?: boolean;
 }) {
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const photos = product.photos ?? [];
+  const hero =
+    photos.find((photo) => photo.id === selectedPhoto) ??
+    photos.find((photo) => photo.isPrimary) ??
+    photos[0] ??
+    null;
   const titleId = useId(),
     heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -32,7 +41,32 @@ export function ProductDetail({
           </div>
           <span className={'catalog-status status-' + product.status}>{product.status}</span>
         </div>
-        <ProductVisual name={product.name} large />
+        <ProductVisual name={product.name} photo={hero} large />
+        {photos.length > 1 && (
+          <div className="detail-photo-strip" role="group" aria-label="Product photos">
+            {photos.map((photo, index) => (
+              <button
+                type="button"
+                key={photo.id}
+                aria-label={'View photo ' + (index + 1)}
+                aria-pressed={hero?.id === photo.id}
+                onClick={() => setSelectedPhoto(photo.id)}
+              >
+                <img src={photo.thumbnailUrl} alt="" />
+              </button>
+            ))}
+          </div>
+        )}
+        {onManagePhotos && (
+          <button
+            type="button"
+            className="secondary-button manage-photos-button"
+            onClick={() => onManagePhotos(product)}
+          >
+            {photos.length ? 'Manage photos' : 'Add product photos'}
+          </button>
+        )}
+
         <div className="detail-facts">
           <div>
             <span>From price</span>

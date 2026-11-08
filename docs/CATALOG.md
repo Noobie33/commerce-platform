@@ -10,6 +10,8 @@ Create a style, optionally select/create a category, and enter variants individu
 
 Draft, active and archived are explicit product states. An active product needs an active variant. Archived records and inactive variants remain in history. Saved style codes, SKUs and option attributes are permanent; deactivate a variant and add a replacement when an option changes. Saved variants cannot be removed from an edit.
 
+Product photos are now managed through a separate protected workflow. See [photo upload/storage decisions](PRODUCT-MEDIA.md).
+
 ## Technical decisions and reasons
 
 - A product represents a style; a variant represents a sellable SKU. Inventory, purchasing and sales will reference variant IDs rather than duplicating size/colour text.
@@ -43,4 +45,4 @@ Authenticated writes require the existing exact Origin, JSON, X-Requested-With a
 
 Database tests exercise actual HTTP permissions/CSRF, Unicode categories, exact prices, concurrent retries, key/body/actor mismatch, stale edits, SKU/barcode conflicts, identifier immutability, variant replacement, literal search, pagination, audit rollback and migration apply/revert.
 
-Inventory quantities, purchase cost, tax/discount policy, B2B price lists, product photos/media storage, bulk import, stock movement, purchasing and sales are separate upcoming slices. A retail price in this catalog does not mean inventory or a posted financial transaction exists. Production rollout still requires the documented hardening, recovery and operational work.
+Inventory quantities, purchase cost, tax/discount policy, B2B price lists, bulk import, stock movement, purchasing and sales are separate upcoming slices. A retail price in this catalog does not mean inventory or a posted financial transaction exists. Production rollout still requires the documented hardening, recovery and operational work.

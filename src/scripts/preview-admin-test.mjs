@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve, sep, basename } from 'node:path';
 import { CatalogService } from '../../dist/src/modules/catalog/catalog.service.js';
 import { productInput } from '../../dist/src/modules/catalog/catalog.validation.js';
 import { AuditService } from '../../dist/src/modules/audit/audit.service.js';
@@ -30,7 +33,12 @@ await source.transaction(async (manager) => {
     [id],
   );
 });
-const app = await createApp({ ...process.env, STAFF_ORIGIN: 'http://localhost:4001' });
+const mediaRoot = await mkdtemp(join(tmpdir(), 'commerce-qa-media-'));
+const app = await createApp({
+  ...process.env,
+  STAFF_ORIGIN: 'http://localhost:4001',
+  MEDIA_STORAGE_DIR: mediaRoot,
+});
 let stopping = false;
 async function stop() {
   if (stopping) return;
@@ -47,6 +55,12 @@ async function stop() {
         "SELECT metadata->>'entityId' AS id FROM audit_events WHERE actor_id=$1 AND action='catalog.category_created'",
         [id],
       );
+      await manager.query('DELETE FROM catalog_media_requests WHERE product_id=ANY($1::uuid[])', [
+        productIds,
+      ]);
+      await manager.query('DELETE FROM catalog_product_photos WHERE product_id=ANY($1::uuid[])', [
+        productIds,
+      ]);
       await manager.query('DELETE FROM catalog_requests WHERE actor_id=$1', [id]);
       await manager.query('DELETE FROM catalog_variants WHERE product_id=ANY($1::uuid[])', [
         productIds,
@@ -66,6 +80,12 @@ async function stop() {
     });
   } finally {
     await source.destroy();
+    if (
+      !resolve(mediaRoot).startsWith(resolve(tmpdir()) + sep) ||
+      !basename(mediaRoot).startsWith('commerce-qa-media-')
+    )
+      throw Error('Unsafe QA cleanup');
+    await rm(mediaRoot, { recursive: true, force: true });
     process.exit(0);
   }
 }

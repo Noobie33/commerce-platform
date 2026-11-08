@@ -18,7 +18,7 @@ export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: D
   const databaseModule = DatabaseModule.forRoot(env, driver);
   @Module({
     imports: [
-      CatalogModule.forRoot(databaseModule),
+      CatalogModule.forRoot(databaseModule, env),
       AdminModule,
       databaseModule,
       IdentityModule.forRoot(databaseModule, env),

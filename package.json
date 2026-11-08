@@ -13,7 +13,7 @@
     "start": "node dist/src/main.js",
     "test": "npm run build && node --test dist/test/*.test.js",
     "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
-    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js",
+    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js dist/test/media.integration.js",
     "db:provision-local": "node --env-file=.env.setup src/scripts/provision-local.mjs",
     "db:verify-local": "node src/scripts/verify-local-databases.mjs",
     "start:local": "node --env-file=.env dist/src/main.js",
@@ -23,7 +23,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"apps/**/*.{ts,tsx,css,html,json}\" \"docs/**/*.md\" \"*.json\" \"*.md\" \".github/**/*.{yml,yaml}\"",
     "build:api": "node src/scripts/build.mjs",
     "build:admin": "npm run build --workspace=@commerce/admin",
-    "secrets:check": "node src/scripts/check-secrets.mjs"
+    "secrets:check": "node src/scripts/check-secrets.mjs",
+    "media:verify-local": "node --env-file=.env dist/src/scripts/verify-media-storage.js"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",
@@ -32,6 +33,7 @@
     "pg": "8.23.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
+    "sharp": "0.35.5",
     "typeorm": "1.1.2"
   },
   "devDependencies": {

@@ -47,3 +47,4 @@ jobs:
       - run: npm test
       - run: npm run test:database
       - run: npm run db:verify-local
+      - run: node --env-file=.env.test dist/src/scripts/verify-media-storage.js

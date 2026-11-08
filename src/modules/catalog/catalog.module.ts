@@ -1,3 +1,7 @@
+import { ProductMediaController } from './media.controller.js';
+import { ProductMediaService } from './media.service.js';
+import { ImageProcessor } from '../../infrastructure/media/image-processor.js';
+import { LocalMediaStore } from '../../infrastructure/media/local-media.store.js';
 import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
@@ -8,12 +12,21 @@ import { CatalogService } from './catalog.service.js';
 
 @Module({})
 export class CatalogModule {
-  static forRoot(databaseModule: DynamicModule): DynamicModule {
+  static forRoot(
+    databaseModule: DynamicModule,
+    env: NodeJS.ProcessEnv = process.env,
+  ): DynamicModule {
     return {
       module: CatalogModule,
       imports: [databaseModule],
-      controllers: [CatalogController],
+      controllers: [CatalogController, ProductMediaController],
       providers: [
+        {
+          provide: ProductMediaService,
+          useFactory: (source: DataSource) =>
+            new ProductMediaService(source, new ImageProcessor(), new LocalMediaStore(env)),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: CatalogService,
           useFactory: (source: DataSource) => new CatalogService(source, new AuditService()),

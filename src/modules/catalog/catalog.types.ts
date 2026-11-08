@@ -1,3 +1,4 @@
+import type { ProductPhoto } from './media.types.js';
 export type ProductStatus = 'draft' | 'active' | 'archived';
 export interface Category {
   id: string;
@@ -25,6 +26,7 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   variants: Variant[];
+  photos: ProductPhoto[];
 }
 export interface ProductSummary {
   id: string;
@@ -35,6 +37,7 @@ export interface ProductSummary {
   status: ProductStatus;
   currency: 'BDT';
   version: number;
+  primaryPhoto: ProductPhoto | null;
   variantCount: number;
   activeVariantCount: number;
   fromPrice: string | null;

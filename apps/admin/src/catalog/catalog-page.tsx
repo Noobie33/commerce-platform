@@ -6,8 +6,10 @@ import { CategoryDialog } from './category-dialog';
 import { ProductEditor } from './product-editor';
 import { ProductDetail } from './product-detail';
 import { ProductGrid } from './product-grid';
+import { MediaManager } from './media-manager';
 import type { Category, Product, ProductPage, ProductStatus } from './types';
 export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: boolean }) {
+  const [mediaProduct, setMediaProduct] = useState<Product | null>(null);
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 1180px)').matches);
   const lastTrigger = useRef<HTMLElement | null>(null);
@@ -20,6 +22,7 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
   function closeDetails() {
     setDetail(null);
     if (lastTrigger.current?.isConnected) lastTrigger.current.focus({ preventScroll: true });
+    else document.getElementById('page-title')?.focus({ preventScroll: true });
   }
   const [categories, setCategories] = useState<Category[]>([]),
     [data, setData] = useState<ProductPage | null>(null),
@@ -396,6 +399,10 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
             onClose={closeDetails}
             {...(canManage
               ? {
+                  onManagePhotos: (p: Product) => {
+                    setDetail(null);
+                    setMediaProduct(p);
+                  },
                   onEdit: (p: Product) => {
                     setDetail(null);
                     setEditor({ initial: p });
@@ -417,6 +424,26 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
             setCategories((rows) => [...rows, c]);
             setCategoryOpen(false);
             setNotice('Category created.');
+          }}
+        />
+      )}
+      {mediaProduct && (
+        <MediaManager
+          api={api}
+          initial={mediaProduct}
+          onClose={() => {
+            setMediaProduct(null);
+            void open(mediaProduct.id);
+          }}
+          onChanged={(result) => {
+            setMediaProduct((p) =>
+              p ? { ...p, version: result.version, photos: result.photos } : p,
+            );
+            setRevision((v) => v + 1);
+          }}
+          onReload={(product) => {
+            setMediaProduct(product);
+            setRevision((v) => v + 1);
           }}
         />
       )}

@@ -27,7 +27,7 @@ export function ProductGrid({
           onClick={() => onOpen(product.id)}
         >
           <div className="product-card-media">
-            <ProductVisual name={product.name} />
+            <ProductVisual name={product.name} photo={product.primaryPhoto} />
             <span className={'catalog-status status-' + product.status}>{product.status}</span>
           </div>
           <div className="product-card-content">

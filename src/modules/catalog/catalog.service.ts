@@ -1,3 +1,5 @@
+import { photoLinks } from './media.types.js';
+import type { ProductPhoto } from './media.types.js';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import type { DataSource, EntityManager } from 'typeorm';
@@ -89,7 +91,7 @@ export class CatalogService {
   }
 
   async detail(id: string, sql: Sql = this.source): Promise<Product> {
-    const rows: Omit<Product, 'variants'>[] = await sql.query(
+    const rows: Omit<Product, 'variants' | 'photos'>[] = await sql.query(
       `
       SELECT p.id,p.style_code AS "styleCode",p.name,p.description,p.category_id AS "categoryId",
         c.name AS "categoryName",p.status,p.currency,p.version,p.created_at AS "createdAt",p.updated_at AS "updatedAt"
@@ -111,8 +113,13 @@ export class CatalogService {
       'SELECT id,sku,attributes,barcode,price_minor::text AS "priceMinor",is_active AS "isActive" FROM catalog_variants WHERE product_id=$1 ORDER BY sku',
       [id],
     );
+    const photoRows: Omit<ProductPhoto, 'url' | 'thumbnailUrl'>[] = await sql.query(
+      'SELECT id,width,height,is_primary AS "isPrimary" FROM catalog_product_photos WHERE product_id=$1 AND is_active ORDER BY is_primary DESC,created_at,id',
+      [id],
+    );
     return {
       ...row,
+      photos: photoRows.map(photoLinks),
       createdAt: new Date(row.createdAt).toISOString(),
       updatedAt: new Date(row.updatedAt).toISOString(),
       variants: variants.map(({ priceMinor, ...variant }) => ({
@@ -138,7 +145,8 @@ export class CatalogService {
           `
         SELECT p.id,p.style_code AS "styleCode",p.name,p.category_id AS "categoryId",c.name AS "categoryName",
           p.status,p.currency,p.version,p.updated_at AS "updatedAt",v.total AS "variantCount",
-          v.active AS "activeVariantCount",v.minimum
+          v.active AS "activeVariantCount",v.minimum,
+          (SELECT jsonb_build_object('id',ph.id,'width',ph.width,'height',ph.height,'isPrimary',ph.is_primary) FROM catalog_product_photos ph WHERE ph.product_id=p.id AND ph.is_active AND ph.is_primary) AS "primaryPhoto"
         FROM catalog_products p LEFT JOIN catalog_categories c ON c.id=p.category_id
         LEFT JOIN LATERAL (
           SELECT count(*)::int AS total,count(*) FILTER (WHERE is_active)::int AS active,
@@ -155,6 +163,7 @@ export class CatalogService {
         pageSize: query.pageSize,
         items: rows.map(({ minimum, ...row }) => ({
           ...row,
+          primaryPhoto: row.primaryPhoto ? photoLinks(row.primaryPhoto) : null,
           updatedAt: new Date(row.updatedAt).toISOString(),
           fromPrice: minimum === null ? null : decimal(minimum),
         })),
@@ -185,7 +194,7 @@ export class CatalogService {
               code: 'IDEMPOTENCY_MISMATCH',
               message: 'This save key belongs to a different request',
             });
-          return previous.response;
+          return { ...previous.response, photos: previous.response.photos ?? [] };
         }
         // Lock desired and existing identifiers in one deterministic order before any product row lock.
         const oldIdentifiers: { sku: string; barcode: string | null }[] = productId

@@ -27,7 +27,7 @@ Versions are pinned in the lockfile. No application dependencies were added for 
 - At wide widths, selecting a product opens a non-modal side panel. At smaller widths the same information uses a keyboard-accessible dialog.
 - Existing search, category filters, pagination, category creation, product creation/editing, variant generation, immutable identifiers, exact prices and stale-edit handling remain available.
 - Product status filters are All products / Active / Draft / Archived. These represent catalog state, not inventory availability.
-- Cards currently use an explicit no-photo state. The product-media upload/storage workflow is a separate increment; do not substitute unrelated photos as if they belonged to real products.
+- Cards show the primary protected product thumbnail. Products without photos use an explicit no-photo state. Validated uploads, gallery and primary selection are implemented; see [product-media decisions](PRODUCT-MEDIA.md).
 - Quantities, low-stock thresholds, ratings, popularity and sales statistics require real upstream records. Do not display invented numbers or unsupported filter controls.
 
 ## Source organisation
@@ -40,9 +40,10 @@ Browser QA uses only a disposable account and fixtures in commerce_platform_test
 
 ## Next increments
 
-1. Product media: validated uploads, controlled storage/access, thumbnails, ordering and variant image association.
-2. Multi-location inventory: immutable stock movements, receipts, transfers, adjustments, availability and low-stock policy.
-3. Additional catalog attributes and B2B pricing: business-approved gender/brand/material/care taxonomy, price lists and filters.
-4. Purchasing/sales/customer/payment workflows, then a public store using real catalog and inventory data.
+1. Multi-location inventory: immutable stock movements, receipts, transfers, adjustments, availability and low-stock policy.
+2. Additional catalog attributes and B2B pricing: business-approved gender/brand/material/care taxonomy, price lists and filters.
+3. Purchasing/sales/customer/payment workflows, then a public store using real catalog and inventory data.
+
+Media extensions (ordering, variant image association and remote storage) follow the documented media roadmap.
 
 Ratings, offers, channel sync and sales-derived labels should be added with their source workflows and permission/audit rules, not just their visual controls.

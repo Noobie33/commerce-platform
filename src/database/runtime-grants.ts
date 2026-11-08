@@ -60,6 +60,25 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
     await manager.query(
       'GRANT UPDATE (is_primary,is_active) ON catalog_product_photos TO "' + role + '"',
     );
+    await manager.query(
+      'GRANT SELECT,INSERT ON purchasing_suppliers,purchase_orders,purchasing_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT UPDATE(name,contact_name,phone,email,address,tax_reference,notes,is_active,version,updated_at) ON purchasing_suppliers TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT UPDATE(supplier_id,location_id,status,expected_on,reference,notes,total_minor,supplier_snapshot,version,issued_at,cancelled_at,cancellation_reason,updated_at) ON purchase_orders TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT SELECT,INSERT,UPDATE,DELETE ON purchase_order_lines TO "' + role + '"',
+    );
+    await manager.query('GRANT USAGE ON SEQUENCE purchasing_order_number TO "' + role + '"');
     await manager.query('GRANT INSERT ON locations TO "' + role + '"');
     await manager.query(
       'GRANT SELECT ON inventory_postings,inventory_entries,inventory_balances,inventory_requests TO "' +

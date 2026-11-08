@@ -17,4 +17,5 @@ export interface TeamMember {
   isActive: boolean;
 }
 
-export type WorkspacePage = 'overview' | 'inventory' | 'catalog' | 'team' | 'profile';
+export type WorkspacePage =
+  'purchasing' | 'overview' | 'inventory' | 'catalog' | 'team' | 'profile';

@@ -1,5 +1,5 @@
 import { Icon } from '../icons';
-import { canSeeTeam, canSeeCatalog, canSeeInventory } from '../access';
+import { canSeeTeam, canSeeCatalog, canSeeInventory, canSeePurchasing } from '../access';
 import type { Profile, WorkspacePage as Page } from '../types';
 export function Overview({
   user,
@@ -149,9 +149,9 @@ export function Overview({
         <div className="section-header">
           <div>
             <span className="eyebrow">GROWING WITH YOU</span>
-            <h2>What comes next</h2>
+            <h2>Your business modules</h2>
           </div>
-          <span className="muted small">The next chapters of your workspace</span>
+          <span className="muted small">Ready to use and growing with you</span>
         </div>
         <div className="roadmap-grid">
           <div>
@@ -180,9 +180,15 @@ export function Overview({
           </div>
           <div>
             <span className="roadmap-number">03</span>
-            <h3>Purchasing & sales</h3>
-            <p>Connected suppliers, customers and payments.</p>
-            <span className="badge badge-outline">Planned</span>
+            <h3>Purchasing</h3>
+            <p>Supplier records and traceable purchase orders.</p>
+            {canSeePurchasing(user) ? (
+              <button className="text-button" onClick={() => navigate('purchasing')}>
+                Open purchasing <Icon name="arrow" />
+              </button>
+            ) : (
+              <span className="badge badge-outline">Ask for access</span>
+            )}
           </div>
         </div>
       </section>

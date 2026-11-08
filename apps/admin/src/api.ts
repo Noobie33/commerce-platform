@@ -1,4 +1,13 @@
 import type {
+  Supplier,
+  SupplierInput,
+  PurchaseOrder,
+  OrderInput,
+  Page,
+  PurchaseLocation,
+  PurchaseVariant,
+} from './purchasing/types';
+import type {
   ReversalPreview,
   InventoryLocation,
   StockRow,
@@ -24,7 +33,9 @@ export class ApiError extends Error {
     validationMessage?: string,
   ) {
     super(
-      (['INVALID_CATALOG_INPUT', 'INVALID_INVENTORY_INPUT'].includes(code ?? '') &&
+      (['INVALID_CATALOG_INPUT', 'INVALID_INVENTORY_INPUT', 'INVALID_PURCHASING_INPUT'].includes(
+        code ?? '',
+      ) &&
       validationMessage &&
       validationMessage.length < 240
         ? validationMessage
@@ -32,6 +43,15 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              STALE_PURCHASING_RECORD:
+                'Someone saved a newer revision. Close and reopen the latest record.',
+              SUPPLIER_CODE_IMMUTABLE: 'Supplier codes cannot be changed after creation.',
+              PURCHASING_CODE_EXISTS:
+                'This supplier code or document identifier is already in use.',
+              PURCHASE_ORDER_STATE:
+                'This action is unavailable for the current order status. Reload the order.',
+              SUPPLIER_NOT_FOUND: 'This supplier is no longer available. Refresh the directory.',
+              PURCHASE_ORDER_NOT_FOUND: 'This purchase order could not be found.',
               INSUFFICIENT_STOCK:
                 'Not enough stock. Refresh inventory and check the physical quantity.',
               POSTING_ALREADY_REVERSED:
@@ -260,6 +280,56 @@ export class StaffApi {
   reverseStock(id: string, body: { reason: string; reference: string }, key: string) {
     return this.request<StockPosting>(
       '/inventory/postings/' + encodeURIComponent(id) + '/reverse',
+      body,
+      { key },
+    );
+  }
+  suppliers(query: { search: string; status: string; page: number }) {
+    return this.request<Page<Supplier>>(
+      '/purchasing/suppliers?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  supplier(id: string) {
+    return this.request<Supplier>('/purchasing/suppliers/' + encodeURIComponent(id));
+  }
+  saveSupplier(id: string | null, body: SupplierInput, key: string) {
+    return this.request<Supplier>(
+      '/purchasing/suppliers' + (id ? '/' + encodeURIComponent(id) : ''),
+      body,
+      { method: id ? 'PATCH' : 'POST', key },
+    );
+  }
+  purchaseLocations() {
+    return this.request<PurchaseLocation[]>('/purchasing/locations');
+  }
+  purchaseVariants(search: string) {
+    return this.request<PurchaseVariant[]>(
+      '/purchasing/variants?' + new URLSearchParams({ search }),
+    );
+  }
+  purchaseOrders(query: { search: string; status: string; page: number }) {
+    return this.request<Page<PurchaseOrder>>(
+      '/purchasing/orders?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  purchaseOrder(id: string) {
+    return this.request<PurchaseOrder>('/purchasing/orders/' + encodeURIComponent(id));
+  }
+  savePurchaseOrder(id: string | null, body: OrderInput, key: string) {
+    return this.request<PurchaseOrder>(
+      '/purchasing/orders' + (id ? '/' + encodeURIComponent(id) : ''),
+      body,
+      { method: id ? 'PATCH' : 'POST', key },
+    );
+  }
+  purchaseOrderAction(
+    id: string,
+    action: 'issue' | 'cancel',
+    body: { expectedVersion: number; reason?: string },
+    key: string,
+  ) {
+    return this.request<PurchaseOrder>(
+      '/purchasing/orders/' + encodeURIComponent(id) + '/' + action,
       body,
       { key },
     );

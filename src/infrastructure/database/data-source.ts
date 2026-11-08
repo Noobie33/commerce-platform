@@ -1,3 +1,4 @@
+import { PurchasingFoundation1794104000000 } from '../../database/migrations/1794104000000-purchasing-foundation.js';
 import { InventoryFoundation1794103000000 } from '../../database/migrations/1794103000000-inventory-foundation.js';
 import { OriginalMedia1794102000000 } from '../../database/migrations/1794102000000-original-media.js';
 import { ProductMedia1794101000000 } from '../../database/migrations/1794101000000-product-media.js';
@@ -45,6 +46,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       ProductMedia1794101000000,
       OriginalMedia1794102000000,
       InventoryFoundation1794103000000,
+      PurchasingFoundation1794104000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

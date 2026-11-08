@@ -22,3 +22,9 @@ Object.assign(permissionNames, {
   'inventory.adjust': 'Adjust stock',
   'inventory.transfer': 'Transfer stock',
 });
+
+export const canSeePurchasing = (user: Profile) => hasGlobal(user, 'purchasing.read');
+Object.assign(permissionNames, {
+  'purchasing.read': 'View suppliers and purchasing',
+  'purchasing.manage': 'Manage suppliers and purchase orders',
+});

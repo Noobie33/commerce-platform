@@ -63,6 +63,19 @@ async function stop(exitCode = 0) {
       );
       for (const row of createdLocations)
         if (!qaLocations.includes(row.id)) qaLocations.push(row.id);
+      const supplierRows = await manager.query(
+        "SELECT metadata->>'entityId' AS id FROM audit_events WHERE actor_id=$1 AND action='purchasing.supplier_created'",
+        [id],
+      );
+      await manager.query('DELETE FROM purchasing_requests WHERE actor_id=$1', [id]);
+      await manager.query(
+        'DELETE FROM purchase_order_lines WHERE order_id IN(SELECT id FROM purchase_orders WHERE created_by=$1)',
+        [id],
+      );
+      await manager.query('DELETE FROM purchase_orders WHERE created_by=$1', [id]);
+      await manager.query('DELETE FROM purchasing_suppliers WHERE id=ANY($1::uuid[])', [
+        supplierRows.map((row) => row.id),
+      ]);
       await manager.query('DELETE FROM inventory_requests WHERE actor_id=$1', [id]);
       await manager.query('DELETE FROM inventory_entries WHERE location_id=ANY($1::uuid[])', [
         qaLocations,

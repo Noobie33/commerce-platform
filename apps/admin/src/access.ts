@@ -25,6 +25,9 @@ Object.assign(permissionNames, {
 
 export const canSeePurchasing = (user: Profile) => hasGlobal(user, 'purchasing.read');
 Object.assign(permissionNames, {
+  'payables.read': 'View supplier invoices',
+  'payables.manage': 'Record supplier invoices',
+  'payables.reverse': 'Reverse supplier invoices',
   'purchasing.read': 'View suppliers and purchasing',
   'purchasing.manage': 'Manage suppliers and purchase orders',
 });

@@ -35,7 +35,7 @@ export class PurchaseReceiptService {
         await m.query('SELECT count(*)::int AS n FROM purchase_receipts WHERE order_id=$1', [id])
       )[0].n;
       const items: Omit<PurchaseReceipt, 'canReverse'>[] = await m.query(
-        `SELECT r.id,r.reason,r.reference,r.created_at AS "createdAt",u.display_name AS "actorName",r.inventory_posting_id AS "inventoryPostingId",v.created_at AS "reversedAt",v.reason AS "reversalReason",(SELECT jsonb_agg(jsonb_build_object('orderLineId',x.order_line_id,'sku',l.sku,'productName',l.product_name,'quantity',x.quantity::text) ORDER BY l.sku) FROM purchase_receipt_lines x JOIN purchase_order_lines l ON l.id=x.order_line_id WHERE x.receipt_id=r.id) AS lines FROM purchase_receipts r JOIN staff_users u ON u.id=r.actor_id LEFT JOIN purchase_receipt_reversals v ON v.receipt_id=r.id WHERE r.order_id=$1 ORDER BY r.created_at DESC,r.id DESC LIMIT 20 OFFSET $2`,
+        `SELECT EXISTS(SELECT 1 FROM supplier_invoice_lines il JOIN supplier_invoices si ON si.id=il.invoice_id WHERE il.receipt_id=r.id AND si.reversed_at IS NULL) AS invoiced,r.id,r.reason,r.reference,r.created_at AS "createdAt",u.display_name AS "actorName",r.inventory_posting_id AS "inventoryPostingId",v.created_at AS "reversedAt",v.reason AS "reversalReason",(SELECT jsonb_agg(jsonb_build_object('orderLineId',x.order_line_id,'sku',l.sku,'productName',l.product_name,'quantity',x.quantity::text) ORDER BY l.sku) FROM purchase_receipt_lines x JOIN purchase_order_lines l ON l.id=x.order_line_id WHERE x.receipt_id=r.id) AS lines FROM purchase_receipts r JOIN staff_users u ON u.id=r.actor_id LEFT JOIN purchase_receipt_reversals v ON v.receipt_id=r.id WHERE r.order_id=$1 ORDER BY r.created_at DESC,r.id DESC LIMIT 20 OFFSET $2`,
         [id, (page - 1) * 20],
       );
       return {
@@ -52,7 +52,8 @@ export class PurchaseReceiptService {
           ...r,
           createdAt: new Date(r.createdAt).toISOString(),
           reversedAt: r.reversedAt ? new Date(r.reversedAt).toISOString() : null,
-          canReverse: !r.reversedAt && can('purchasing.reverse_receipt', 'inventory.adjust'),
+          canReverse:
+            !r.reversedAt && !r.invoiced && can('purchasing.reverse_receipt', 'inventory.adjust'),
         })),
         total,
         page,

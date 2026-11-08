@@ -7,10 +7,12 @@ export function ReceiptPanel({
   api,
   orderId,
   onActive,
+  onChanged,
 }: {
   api: StaffApi;
   orderId: string;
   onActive: (value: boolean | null) => void;
+  onChanged?: () => void;
 }) {
   const [data, setData] = useState<ReceivingPage | null>(null),
     [page, setPage] = useState(1),
@@ -174,6 +176,9 @@ export function ReceiptPanel({
                       <span className="small muted">
                         Stock ref. {r.inventoryPostingId.slice(0, 8)}
                       </span>
+                      {r.invoiced && (
+                        <p>Reverse linked supplier invoices before correcting this receipt.</p>
+                      )}
                       {r.canReverse && (
                         <button
                           type="button"
@@ -232,6 +237,7 @@ export function ReceiptPanel({
             onSaved={() => {
               setAction(null);
               setNotice('Receipt and stock updated together.');
+              onChanged?.();
               onActive(null);
               setPage(1);
               setRevision((n) => n + 1);

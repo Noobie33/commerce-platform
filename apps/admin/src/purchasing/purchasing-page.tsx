@@ -1,3 +1,4 @@
+import { InvoiceListView } from './invoice-list';
 import { useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
@@ -7,8 +8,16 @@ import { OrderDetail } from './order-detail';
 import { money } from './money';
 import type { Supplier, PurchaseOrder, Page, PurchaseLocation } from './types';
 import './purchasing.css';
-export function PurchasingPage({ api, canManage }: { api: StaffApi; canManage: boolean }) {
-  const [tab, setTab] = useState<'orders' | 'suppliers'>('orders'),
+export function PurchasingPage({
+  api,
+  canManage,
+  canViewInvoices,
+}: {
+  api: StaffApi;
+  canManage: boolean;
+  canViewInvoices: boolean;
+}) {
+  const [tab, setTab] = useState<'orders' | 'suppliers' | 'invoices'>('orders'),
     [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
@@ -96,6 +105,7 @@ export function PurchasingPage({ api, canManage }: { api: StaffApi; canManage: b
       setOpening(false);
     }
   }
+  if (tab === 'invoices') return <InvoiceListView api={api} onBack={() => setTab('orders')} />;
   return (
     <div className="purchasing-page">
       <div className="page-heading">
@@ -106,6 +116,11 @@ export function PurchasingPage({ api, canManage }: { api: StaffApi; canManage: b
           </h1>
           <p>Organise suppliers. Plan purchases. Keep every order traceable.</p>
         </div>
+        {canViewInvoices && (
+          <button className="secondary-button" onClick={() => setTab('invoices')}>
+            Supplier invoices
+          </button>
+        )}
         {canManage && (
           <button
             className="primary-button"
@@ -392,6 +407,7 @@ export function PurchasingPage({ api, canManage }: { api: StaffApi; canManage: b
           api={api}
           order={detail}
           canManage={canManage}
+          canViewInvoices={canViewInvoices}
           onClose={() => setDetail(null)}
           onEdit={() => {
             setEditor({ initial: detail });

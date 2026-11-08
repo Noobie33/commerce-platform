@@ -1,3 +1,4 @@
+import { InvoicePanel } from './invoice-panel';
 import { ReceiptPanel } from './receipt-panel';
 import { useRef, useState } from 'react';
 import { ApiError, StaffApi } from '../api';
@@ -8,6 +9,7 @@ export function OrderDetail({
   api,
   order,
   canManage,
+  canViewInvoices,
   onClose,
   onEdit,
   onSaved,
@@ -15,10 +17,12 @@ export function OrderDetail({
   api: StaffApi;
   order: PurchaseOrder;
   canManage: boolean;
+  canViewInvoices: boolean;
   onClose: () => void;
   onEdit: () => void;
   onSaved: (o: PurchaseOrder) => void;
 }) {
+  const [operations, setOperations] = useState(0);
   const [receiptActive, setReceiptActive] = useState<boolean | null>(null);
   const [action, setAction] = useState<'issue' | 'cancel' | null>(null),
     [reason, setReason] = useState(''),
@@ -137,7 +141,21 @@ export function OrderDetail({
             </details>
           )}
           {order.status !== 'draft' && (
-            <ReceiptPanel api={api} orderId={order.id} onActive={setReceiptActive} />
+            <ReceiptPanel
+              key={operations}
+              api={api}
+              orderId={order.id}
+              onActive={setReceiptActive}
+              onChanged={() => setOperations((n) => n + 1)}
+            />
+          )}
+          {canViewInvoices && order.status !== 'draft' && (
+            <InvoicePanel
+              key={'invoice:' + operations}
+              api={api}
+              orderId={order.id}
+              onChanged={() => setOperations((n) => n + 1)}
+            />
           )}
           {order.status === 'cancelled' && (
             <p className="inventory-guidance">Cancelled: {order.cancellationReason}</p>

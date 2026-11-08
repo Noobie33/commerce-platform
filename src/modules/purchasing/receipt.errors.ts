@@ -26,6 +26,7 @@ export function receiptError(error: unknown): never {
       message: 'Check the receipt details and ordered SKUs',
     });
   const codes: Record<string, string> = {
+    RECEIPT_INVOICED: 'RECEIPT_INVOICED',
     RECEIPT_STALE: 'STALE_RECEIPT',
     RECEIPT_ORDER_STATE: 'PURCHASE_ORDER_STATE',
     RECEIPT_OVER_QUANTITY: 'RECEIPT_OVER_QUANTITY',

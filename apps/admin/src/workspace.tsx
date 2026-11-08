@@ -307,7 +307,11 @@ export function Workspace({
             <InventoryPage api={api} canManageLocations={hasGlobal(user, 'locations.manage')} />
           )}
           {page === 'purchasing' && canSeePurchasing(user) && (
-            <PurchasingPage api={api} canManage={hasGlobal(user, 'purchasing.manage')} />
+            <PurchasingPage
+              api={api}
+              canViewInvoices={hasGlobal(user, 'payables.read')}
+              canManage={hasGlobal(user, 'purchasing.manage')}
+            />
           )}
           {page === 'team' && <Team api={api} user={user} />}
           {page === 'profile' && (

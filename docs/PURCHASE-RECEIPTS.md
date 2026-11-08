@@ -4,9 +4,9 @@
 
 Open Purchasing, an issued purchase order, then Receive goods. Enter only the quantities physically delivered now; blank skips a SKU. Ordered, received and remaining quantities appear separately. Receipt history is paginated at 20 records, with review before receive/reverse and preserved reasons, references, actors and stock links. Whole-piece quantities retain existing inventory limits and at most 25 distinct PO lines are accepted per operation.
 
-A receipt updates PO progress, stock movements/balances, both audits and retry records in one transaction. Any failure rolls everything back. Issuing a PO still changes neither stock nor payables. Receipt costs do not create valuation, supplier invoices, tax, landed cost, liabilities or payments. Those financial workflows are the next increment.
+A receipt updates PO progress, stock movements/balances, both audits and retry records in one transaction. Any failure rolls everything back. Issuing a PO still changes neither stock nor payables. Receipt costs do not create valuation, supplier invoices, tax, landed cost, liabilities or payments. [Supplier invoice matching](SUPPLIER-INVOICES.md) now records supplier documents separately; payment allocation, journals and valuation remain later increments.
 
-Reverse receipt corrects every line of one receipt; it removes the original physical quantities from the same location and restores remaining PO quantities. Insufficient stock blocks the entire reversal. It does not represent a supplier return, refund or reversal of a future invoice. Original receipt and reversal history remain immutable. Cancel requires every active receipt reversed first; the database also enforces this against a concurrent cancellation.
+Reverse receipt corrects every line of one receipt; it removes the original physical quantities from the same location and restores remaining PO quantities. Insufficient stock blocks the entire reversal. It does not represent a supplier return, refund or reversal of a future invoice. Original receipt and reversal history remain immutable. Active supplier invoices now block receipt reversal; reverse the linked invoices first to preserve received/invoiced consistency. Cancel requires every active receipt reversed first; the database also enforces this against a concurrent cancellation.
 
 ## Why separate receiving state
 

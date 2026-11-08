@@ -1,3 +1,5 @@
+import { SupplierInvoiceService } from './invoice.service.js';
+import { SupplierInvoiceController } from './invoice.controller.js';
 import { PurchaseReceiptService } from './receipt.service.js';
 import { PurchaseReceiptController } from './receipt.controller.js';
 import { Module } from '@nestjs/common';
@@ -14,8 +16,13 @@ export class PurchasingModule {
     return {
       module: PurchasingModule,
       imports: [databaseModule],
-      controllers: [PurchasingController, PurchaseReceiptController],
+      controllers: [PurchasingController, PurchaseReceiptController, SupplierInvoiceController],
       providers: [
+        {
+          provide: SupplierInvoiceService,
+          useFactory: (source: DataSource) => new SupplierInvoiceService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: PurchaseReceiptService,
           useFactory: (source: DataSource) => new PurchaseReceiptService(source),

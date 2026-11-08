@@ -1,3 +1,4 @@
+import type { InvoicePage, InvoiceResult, InvoiceList } from './purchasing/invoice-types';
 import type { ReceivingPage, ReceiptResult } from './purchasing/receipt-types';
 import type {
   Supplier,
@@ -44,6 +45,20 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              RECEIPT_INVOICED:
+                'Reverse the active supplier invoices linked to this receipt before reversing its stock.',
+              INVOICE_STALE:
+                'Invoice allocations changed. Close this form and refresh invoices before continuing.',
+              INVOICE_REVERSED: 'This invoice has already been reversed. Refresh invoices.',
+              INVOICE_ORDER_STATE:
+                'This order is no longer available for invoicing. Refresh the order.',
+              INVOICE_RECEIPT_UNAVAILABLE:
+                'A selected receipt is unavailable or reversed. Refresh invoices.',
+              INVOICE_OVER_QUANTITY:
+                'This quantity exceeds the received, uninvoiced quantity. Refresh invoices.',
+              INVOICE_NUMBER_EXISTS:
+                'This supplier invoice number already belongs to an active invoice for this supplier.',
+              INVOICE_NOT_FOUND: 'This invoice or order could not be found.',
               STALE_RECEIPT:
                 'Receiving changed since this form was opened. Refresh receiving before continuing.',
               RECEIPT_OVER_QUANTITY:
@@ -379,6 +394,51 @@ export class StaffApi {
   ) {
     return this.request<ReceiptResult>(
       '/purchasing/receipts/' + encodeURIComponent(id) + '/reverse',
+      body,
+      { key },
+    );
+  }
+  orderInvoices(id: string, page = 1, linePage = 1) {
+    return this.request<InvoicePage>(
+      '/payables/orders/' +
+        encodeURIComponent(id) +
+        '?' +
+        new URLSearchParams({ page: String(page), linePage: String(linePage) }),
+    );
+  }
+  supplierInvoices(query: { page: number; search: string; status: string }) {
+    return this.request<InvoiceList>(
+      '/payables/invoices?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  postSupplierInvoice(
+    id: string,
+    body: {
+      expectedRevision: number;
+      number: string;
+      invoiceOn: string;
+      dueOn: string;
+      tax: string;
+      delivery: string;
+      discount: string;
+      reason: string;
+      lines: { receiptId: string; orderLineId: string; quantity: string; unitCost: string }[];
+    },
+    key: string,
+  ) {
+    return this.request<InvoiceResult>(
+      '/payables/orders/' + encodeURIComponent(id) + '/invoices',
+      body,
+      { key },
+    );
+  }
+  reverseSupplierInvoice(
+    id: string,
+    body: { expectedRevision: number; reason: string },
+    key: string,
+  ) {
+    return this.request<InvoiceResult>(
+      '/payables/invoices/' + encodeURIComponent(id) + '/reverse',
       body,
       { key },
     );

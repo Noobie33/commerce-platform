@@ -43,6 +43,7 @@ export interface PurchaseReceipt {
   reversedAt: string | null;
   reversalReason: string | null;
   canReverse: boolean;
+  invoiced: boolean;
   lines: { orderLineId: string; sku: string; productName: string; quantity: string }[];
 }
 export interface ReceivingPage {

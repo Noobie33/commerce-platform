@@ -68,6 +68,15 @@ async function stop(exitCode = 0) {
         [id],
       );
       await manager.query(
+        'DELETE FROM supplier_invoice_lines WHERE invoice_id IN(SELECT id FROM supplier_invoices WHERE actor_id=$1)',
+        [id],
+      );
+      await manager.query('DELETE FROM supplier_invoices WHERE actor_id=$1', [id]);
+      await manager.query(
+        'DELETE FROM supplier_invoice_state WHERE order_id IN(SELECT id FROM purchase_orders WHERE created_by=$1)',
+        [id],
+      );
+      await manager.query(
         'DELETE FROM purchase_receipt_reversals WHERE receipt_id IN(SELECT id FROM purchase_receipts WHERE actor_id=$1)',
         [id],
       );

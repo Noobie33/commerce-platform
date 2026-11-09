@@ -129,6 +129,9 @@ async function stop(exitCode = 0) {
       await manager.query('DELETE FROM catalog_categories WHERE id=ANY($1::uuid[])', [
         createdCategories.map((row) => row.id),
       ]);
+      await manager.query('DELETE FROM customer_requests WHERE actor_id=$1', [id]);
+      await manager.query('DELETE FROM customer_credit_history WHERE actor_id=$1', [id]);
+      await manager.query('DELETE FROM customers WHERE created_by=$1', [id]);
       await manager.query('DELETE FROM audit_events WHERE actor_id=$1', [id]);
       await manager.query('DELETE FROM staff_sessions WHERE staff_id=$1', [id]);
       await manager.query('DELETE FROM staff_role_assignments WHERE staff_id=$1', [id]);

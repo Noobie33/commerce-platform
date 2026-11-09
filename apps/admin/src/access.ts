@@ -38,3 +38,9 @@ Object.assign(permissionNames, {
   'purchasing.receive': 'Receive purchase orders',
   'purchasing.reverse_receipt': 'Reverse purchase receipts',
 });
+
+Object.assign(permissionNames, {
+  'customers.read': 'View customers',
+  'customers.manage': 'Manage customers',
+  'customers.credit.manage': 'Manage customer credit policy',
+});

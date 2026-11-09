@@ -1,3 +1,4 @@
+import { CustomersPage } from './customers/customers-page';
 import { PurchasingPage } from './purchasing/purchasing-page';
 import { useEffect, useState } from 'react';
 import { StaffApi } from './api';
@@ -22,7 +23,15 @@ export function Workspace({
 }) {
   const parsePage = (): Page => {
     const value = window.location.hash.slice(1);
-    return ['overview', 'catalog', 'inventory', 'purchasing', 'team', 'profile'].includes(value)
+    return [
+      'overview',
+      'catalog',
+      'inventory',
+      'customers',
+      'purchasing',
+      'team',
+      'profile',
+    ].includes(value)
       ? (value as Page)
       : 'overview';
   };
@@ -30,7 +39,7 @@ export function Workspace({
   useEffect(() => {
     const changed = () => {
       if (
-        ['overview', 'catalog', 'inventory', 'purchasing', 'team', 'profile'].includes(
+        ['overview', 'catalog', 'inventory', 'customers', 'purchasing', 'team', 'profile'].includes(
           window.location.hash.slice(1),
         )
       )
@@ -61,6 +70,7 @@ export function Workspace({
   }, [api]);
   useEffect(() => {
     if (
+      (page === 'customers' && !hasGlobal(user, 'customers.read')) ||
       (page === 'purchasing' && !canSeePurchasing(user)) ||
       (page === 'inventory' && !canSeeInventory(user)) ||
       (page === 'team' && !canSeeTeam(user)) ||
@@ -168,6 +178,15 @@ export function Workspace({
             <Icon name="overview" />
             Overview
           </button>
+          {hasGlobal(user, 'customers.read') && (
+            <button
+              aria-current={page === 'customers' ? 'page' : undefined}
+              className={page === 'customers' ? 'nav-active' : ''}
+              onClick={() => navigate('customers')}
+            >
+              <Icon name="team" /> Customers
+            </button>
+          )}
           {canSeePurchasing(user) && (
             <button
               aria-current={page === 'purchasing' ? 'page' : undefined}
@@ -258,15 +277,17 @@ export function Workspace({
             <strong>
               {page === 'profile'
                 ? 'My profile'
-                : page === 'team'
-                  ? 'Team'
-                  : page === 'purchasing'
-                    ? 'Purchasing'
-                    : page === 'inventory'
-                      ? 'Inventory'
-                      : page === 'catalog'
-                        ? 'Catalog'
-                        : 'Overview'}
+                : page === 'customers'
+                  ? 'Customers'
+                  : page === 'team'
+                    ? 'Team'
+                    : page === 'purchasing'
+                      ? 'Purchasing'
+                      : page === 'inventory'
+                        ? 'Inventory'
+                        : page === 'catalog'
+                          ? 'Catalog'
+                          : 'Overview'}
             </strong>
           </div>
           <button
@@ -311,6 +332,13 @@ export function Workspace({
               api={api}
               canViewInvoices={hasGlobal(user, 'payables.read')}
               canManage={hasGlobal(user, 'purchasing.manage')}
+            />
+          )}
+          {page === 'customers' && hasGlobal(user, 'customers.read') && (
+            <CustomersPage
+              api={api}
+              canManage={hasGlobal(user, 'customers.manage')}
+              canCredit={hasGlobal(user, 'customers.credit.manage')}
             />
           )}
           {page === 'team' && <Team api={api} user={user} />}

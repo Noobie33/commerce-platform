@@ -18,4 +18,4 @@ export interface TeamMember {
 }
 
 export type WorkspacePage =
-  'purchasing' | 'overview' | 'inventory' | 'catalog' | 'team' | 'profile';
+  'customers' | 'purchasing' | 'overview' | 'inventory' | 'catalog' | 'team' | 'profile';

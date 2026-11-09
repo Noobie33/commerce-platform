@@ -72,3 +72,7 @@ Purchasing / Supplier payments supports supplier lookup, outstanding invoices, p
 ## Recorded supplier reports
 
 Purchasing / Statements & aging adds a Bangladesh-date cutoff, supplier search, full filtered aging totals and paginated supplier rows. Open a supplier statement for a date period, brought-forward/increase/reduction/closing amounts, historical outstanding invoices and recorded activity with actors/reasons. Supplier payments also opens the statement. CSV downloads all period events up to 5,000, preserves Bengali and protects spreadsheet cells against formulas. These read-only reports use recorded timestamps, not document dates, and do not import opening balances or create accounting journals. See [report basis and verification](PAYABLES-REPORTS.md).
+
+## Customer directory
+
+Customers supports retail/wholesale/both classification, people/business profiles, literal search, status/type filters and pagination. Contact details, independent Bangladesh billing/delivery addresses, explicit copy-address and active/inactive status live in one profile. Shared phone/email matches warn without blocking save. Credit managers separately review exact BDT limits/terms with a mandatory reason and inspect previous/current policy history; no artificial customer due/available-credit totals are shown. See [customer decisions](CUSTOMERS.md).

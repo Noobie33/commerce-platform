@@ -1,3 +1,11 @@
+import type {
+  Customer,
+  CustomerInput,
+  CustomerPage,
+  CreditInput,
+  CustomerResult,
+  CreditHistory,
+} from './customers/types';
 import type { AgingReport, SupplierStatement } from './purchasing/report-types';
 import type {
   PaymentSupplier,
@@ -42,9 +50,12 @@ export class ApiError extends Error {
     validationMessage?: string,
   ) {
     super(
-      (['INVALID_CATALOG_INPUT', 'INVALID_INVENTORY_INPUT', 'INVALID_PURCHASING_INPUT'].includes(
-        code ?? '',
-      ) &&
+      ([
+        'INVALID_CUSTOMER_INPUT',
+        'INVALID_CATALOG_INPUT',
+        'INVALID_INVENTORY_INPUT',
+        'INVALID_PURCHASING_INPUT',
+      ].includes(code ?? '') &&
       validationMessage &&
       validationMessage.length < 240
         ? validationMessage
@@ -52,6 +63,12 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              CUSTOMER_STALE:
+                'This customer changed. Close this form and refresh before editing again.',
+              CUSTOMER_INACTIVE: 'Activate this customer before enabling credit.',
+              CUSTOMER_IDEMPOTENCY:
+                'This request key was already used for different details. Close and reopen the form.',
+              CUSTOMER_NOT_FOUND: 'This customer could not be found.',
               REPORT_EXPORT_TOO_LARGE:
                 'This period has more than 5,000 entries. Choose a shorter period to download a CSV.',
               REPORT_RECONCILIATION:
@@ -564,6 +581,45 @@ export class StaffApi {
     if (!response.headers.get('content-type')?.startsWith('text/csv'))
       throw new Error('The workspace returned an unexpected export.');
     return response.blob();
+  }
+  customers(query: {
+    search: string;
+    page: number;
+    status: string;
+    segment: string;
+    kind: string;
+  }) {
+    return this.request<CustomerPage>(
+      '/customers?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  customer(id: string) {
+    return this.request<Customer>('/customers/' + encodeURIComponent(id));
+  }
+  customerMatches(phone: string, email: string, excludeId?: string) {
+    return this.request<{ items: { id: string; code: string; name: string }[] }>(
+      '/customers/contact-matches?' +
+        new URLSearchParams({ phone, email, ...(excludeId ? { excludeId } : {}) }),
+    );
+  }
+  saveCustomer(id: string | null, body: CustomerInput, key: string) {
+    return this.request<CustomerResult>(
+      '/customers' + (id ? '/' + encodeURIComponent(id) : ''),
+      body,
+      { key, ...(id ? { method: 'PATCH' } : {}) },
+    );
+  }
+  customerCredit(id: string, body: CreditInput, key: string) {
+    return this.request<CustomerResult>(
+      '/customers/' + encodeURIComponent(id) + '/credit-policy',
+      body,
+      { key },
+    );
+  }
+  customerCreditHistory(id: string, page: number) {
+    return this.request<CreditHistory>(
+      '/customers/' + encodeURIComponent(id) + '/credit-history?page=' + page,
+    );
   }
   async ready() {
     try {

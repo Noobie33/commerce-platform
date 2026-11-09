@@ -1,28 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
+import { useCallback, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
-import type { Profile, TeamMember } from '../types';
+import type { Profile } from '../types';
 export function Team({ api, user }: { api: StaffApi; user: Profile }) {
-  const [rows, setRows] = useState<TeamMember[] | null>(null);
   const [query, setQuery] = useState('');
-  const [error, setError] = useState('');
+
   const [revision, setRevision] = useState(0);
-  useEffect(() => {
-    let active = true;
-    setRows(null);
-    setError('');
-    api
-      .team()
-      .then((data) => {
-        if (active) setRows(data);
-      })
-      .catch((err) => {
-        if (active) setError(err instanceof Error ? err.message : 'Unable to load the team.');
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, revision]);
+  const read = useLiveRead(
+    useCallback((options) => api.team(options), [api]),
+    { revision },
+  );
+  const rows = read.data,
+    error = read.error;
   const filtered = rows?.filter((row) =>
     (row.displayName + ' ' + row.username).toLowerCase().includes(query.toLowerCase()),
   );
@@ -41,6 +32,8 @@ export function Team({ api, user }: { api: StaffApi; user: Profile }) {
           Refresh team
         </button>
       </header>
+      <ReadStatus read={read} />
+
       <section className="panel team-panel">
         <div className="team-toolbar">
           <div>

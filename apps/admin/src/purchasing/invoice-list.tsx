@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
+import { useCallback, useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import { Dialog } from '../components/dialog';
 import { InvoicePanel } from './invoice-panel';
 import { money } from './money';
-import type { InvoiceList } from './invoice-types';
+
 export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => void }) {
-  const [data, setData] = useState<InvoiceList | null>(null),
-    [search, setSearch] = useState(''),
+  const [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true),
     [orderId, setOrderId] = useState<string | null>(null);
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -21,26 +20,22 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
     }, 250);
     return () => window.clearTimeout(t);
   }, [search]);
+  const read = useLiveRead(
+    useCallback(
+      (options) => api.supplierInvoices({ search: query, status, page }, options),
+      [api, query, status, page],
+    ),
+    { revision, paused: !!orderId },
+  );
+  const data = read.data,
+    loading = read.loading,
+    error = read.error;
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    setData(null);
-    void api
-      .supplierInvoices({ search: query, status, page })
-      .then((d) => {
-        if (active) setData(d);
-      })
-      .catch((e) => {
-        if (active) setError(e instanceof Error ? e.message : 'Unable to load invoices.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, query, status, page, revision]);
+    if (data) {
+      const last = Math.max(1, Math.ceil(data.total / 20));
+      if (page > last) setPage(last);
+    }
+  }, [data, page]);
   return (
     <div className="purchasing-page">
       <div className="page-heading">
@@ -55,6 +50,8 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
           Back to purchasing
         </button>
       </div>
+      <ReadStatus read={read} />
+
       <p className="inventory-guidance">
         Record invoices after receiving goods. Recorded payments reduce the remaining amounts;
         opening balances are not included yet.
@@ -91,7 +88,7 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
           </label>
           <button
             className="secondary-button"
-            disabled={loading}
+            disabled={loading || read.refreshing}
             onClick={() => setRevision((n) => n + 1)}
           >
             Refresh invoice list

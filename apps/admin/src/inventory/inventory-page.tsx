@@ -1,10 +1,12 @@
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
 import type { ReversalPreview } from './types';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import { PostingDialog, labels } from './posting-dialog';
 import { LocationDialog } from './location-dialog';
-import type { HistoryRow, InventoryLocation, PostingKind, StockPage } from './types';
+import type { HistoryRow, PostingKind } from './types';
 import './inventory.css';
 export function InventoryPage({
   api,
@@ -13,17 +15,8 @@ export function InventoryPage({
   api: StaffApi;
   canManageLocations: boolean;
 }) {
-  const [locations, setLocations] = useState<InventoryLocation[]>([]),
-    [locationId, setLocation] = useState(''),
-    [locationsReady, setLocationsReady] = useState(false),
-    [locationError, setLocationError] = useState('');
-  const [stock, setStock] = useState<StockPage | null>(null),
-    [history, setHistory] = useState<{
-      items: HistoryRow[];
-      total: number;
-      page: number;
-      pageSize: number;
-    } | null>(null);
+  const [locationId, setLocation] = useState('');
+
   const [tab, setTab] = useState<'stock' | 'history'>('stock'),
     [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
@@ -31,72 +24,72 @@ export function InventoryPage({
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0),
     [locationRevision, setLocationRevision] = useState(0),
-    [loading, setLoading] = useState(false),
-    [error, setError] = useState(''),
+    [actionError, setError] = useState(''),
     [notice, setNotice] = useState('');
   const [reversalPreview, setReversalPreview] = useState<ReversalPreview[]>([]),
     [openingPreview, setOpeningPreview] = useState(false);
   const [action, setAction] = useState<PostingKind | null>(null),
     [reversing, setReversing] = useState<HistoryRow | undefined>(),
     [locationOpen, setLocationOpen] = useState(false);
+  const locationRead = useLiveRead(
+    useCallback((options) => api.inventoryLocations(options), [api]),
+    {
+      revision: locationRevision,
+      paused: !!(action || reversing || locationOpen || openingPreview),
+    },
+  );
+  const locations = locationRead.data ?? [],
+    locationsReady = !locationRead.loading,
+    locationError = locationRead.error;
+  const selectedId = locations.some((l) => l.id === locationId) ? locationId : '';
   useEffect(() => {
-    let active = true;
-    setLocationError('');
-    void api
-      .inventoryLocations()
-      .then((rows) => {
-        if (active) {
-          setLocations(rows);
-          setLocation((id) => (rows.some((l) => l.id === id) ? id : (rows[0]?.id ?? '')));
-          setLocationsReady(true);
-        }
-      })
-      .catch((err) => {
-        if (active) {
-          setLocationError(err instanceof Error ? err.message : 'Unable to load locations.');
-          setLocationsReady(true);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, locationRevision]);
+    if (locationRead.data || locationRead.accessDenied) {
+      setLocation((id) =>
+        locationRead.data?.some((l) => l.id === id) ? id : (locationRead.data?.[0]?.id ?? ''),
+      );
+    }
+  }, [locationRead.data, locationRead.accessDenied]);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setQuery(search.trim());
       setPage(1);
     }, 250);
+
     return () => window.clearTimeout(timer);
   }, [search]);
+  useEffect(() => setError(''), [selectedId, query, filter, page, tab, revision]);
+  const read = useLiveRead(
+    useCallback(
+      (options) =>
+        Promise.all([
+          api.stock(
+            selectedId,
+            { search: query, stock: filter, page: tab === 'stock' ? page : 1 },
+            options,
+          ),
+          tab === 'history'
+            ? api.stockHistory(selectedId, { search: query, page }, options)
+            : Promise.resolve(null),
+        ]),
+      [api, selectedId, query, filter, page, tab],
+    ),
+    {
+      revision,
+      enabled: !!selectedId && !locationRead.accessDenied,
+      paused: !!(action || reversing || locationOpen || openingPreview),
+    },
+  );
+  const stock = read.data?.[0] ?? null,
+    history = read.data?.[1] ?? null,
+    loading = read.loading,
+    error = read.error || actionError;
   useEffect(() => {
-    if (!locationId) return;
-    let active = true;
-    setLoading(true);
-    setError('');
-    setStock(null);
-    setHistory(null);
-    void Promise.all([
-      api.stock(locationId, { search: query, stock: filter, page: tab === 'stock' ? page : 1 }),
-      tab === 'history'
-        ? api.stockHistory(locationId, { search: query, page })
-        : Promise.resolve(null),
-    ])
-      .then(([s, h]) => {
-        if (active) {
-          setStock(s);
-          setHistory(h);
-        }
-      })
-      .catch((err) => {
-        if (active) setError(err instanceof Error ? err.message : 'Unable to load inventory.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, locationId, query, filter, page, tab, revision]);
+    const total = (tab === 'stock' ? stock : history)?.total;
+    if (total !== undefined) {
+      const last = Math.max(1, Math.ceil(total / 20));
+      if (page > last) setPage(last);
+    }
+  }, [stock, history, page, tab]);
   const location = locations.find((l) => l.id === locationId),
     data = tab === 'stock' ? stock : history,
     totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / 20));
@@ -128,6 +121,7 @@ export function InventoryPage({
           )}
         </div>
       </div>
+      <ReadStatus read={selectedId ? read : locationRead} />
       {notice && (
         <p className="notice" role="status">
           {notice}
@@ -298,7 +292,7 @@ export function InventoryPage({
                   className="icon-button"
                   aria-label="Refresh inventory"
                   onClick={() => setRevision((n) => n + 1)}
-                  disabled={loading}
+                  disabled={loading || read.refreshing}
                 >
                   <Icon name="refresh" />
                 </button>

@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
-import type { SalesOrder, SalesLocation, SalesPage as Page } from './types';
+import type { SalesOrder, SalesLocation } from './types';
 import { SalesEditor } from './sales-editor';
 import { SalesDetail } from './sales-detail';
 import { CancelDraft } from './cancel-draft';
@@ -12,10 +14,8 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
     [status, setStatus] = useState('all'),
     [page, setPage] = useState(1),
     [revision, refresh] = useState(0),
-    [data, setData] = useState<Page | null>(null),
     [locations, setLocations] = useState<SalesLocation[]>([]),
-    [loading, setLoading] = useState(true),
-    [error, setError] = useState(''),
+    [actionError, setError] = useState(''),
     [locationError, setLocationError] = useState(''),
     [notice, setNotice] = useState(''),
     [detail, setDetail] = useState<SalesOrder | null>(null),
@@ -27,30 +27,26 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
       setQuery(search);
       setPage(1);
     }, 250);
+
     return () => clearTimeout(t);
   }, [search]);
+  useEffect(() => setError(''), [query, status, page, revision]);
+  const read = useLiveRead(
+    useCallback(
+      (options) => api.salesOrders({ search: query, status, page }, options),
+      [api, query, status, page],
+    ),
+    { revision, paused: !!(detail || editor || cancel) },
+  );
+  const data = read.data,
+    loading = read.loading,
+    error = read.error || actionError;
   useEffect(() => {
-    let live = true;
-    setLoading(true);
-    setError('');
-    void api
-      .salesOrders({ search: query, status, page })
-      .then((r) => {
-        if (live) {
-          setData(r);
-          if (page > 1 && !r.items.length) setPage(Math.max(1, Math.ceil(r.total / 20)));
-        }
-      })
-      .catch((e) => {
-        if (live) setError(problem(e));
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [api, query, status, page, revision]);
+    if (data) {
+      const last = Math.max(1, Math.ceil(data.total / data.pageSize));
+      if (page > last) setPage(last);
+    }
+  }, [data, page]);
   useEffect(() => {
     let live = true;
     setLocationError('');
@@ -96,7 +92,7 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
         <div className="sales-actions">
           <button
             className="secondary-button"
-            disabled={loading}
+            disabled={loading || read.refreshing}
             onClick={() => refresh((n) => n + 1)}
           >
             Refresh
@@ -112,6 +108,8 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
           )}
         </div>
       </div>
+      <ReadStatus read={read} />
+
       {notice && (
         <p className="sales-notice" role="status">
           {notice}

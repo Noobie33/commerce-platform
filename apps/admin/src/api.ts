@@ -1,3 +1,4 @@
+import type { ReadOptions } from './data/live-read';
 import type { ContentView, ContentInput, ContentResult } from './catalog/content-types';
 import type {
   ReservationPage,
@@ -244,7 +245,12 @@ export class StaffApi {
   private async request<T>(
     path: string,
     body?: unknown,
-    options?: { method?: 'POST' | 'PATCH'; key?: string; image?: File; version?: number },
+    options?: {
+      method?: 'POST' | 'PATCH';
+      key?: string;
+      image?: File;
+      version?: number;
+    } & ReadOptions,
   ): Promise<T> {
     const writing = body !== undefined;
     let response: Response;
@@ -253,6 +259,7 @@ export class StaffApi {
         method: writing ? (options?.method ?? 'POST') : 'GET',
         credentials: 'same-origin',
         cache: 'no-store',
+        ...(options?.signal ? { signal: options.signal } : {}),
         headers: writing
           ? {
               'Content-Type': options?.image?.type ?? 'application/json',
@@ -261,7 +268,10 @@ export class StaffApi {
               'X-CSRF-Token': this.csrf,
               ...(options?.key ? { 'X-Idempotency-Key': options.key } : {}),
             }
-          : { Accept: 'application/json' },
+          : {
+              Accept: 'application/json',
+              ...(options?.background ? { 'X-Background-Read': '1' } : {}),
+            },
         ...(writing ? { body: options?.image ?? JSON.stringify(body) } : {}),
       });
     } catch {
@@ -319,16 +329,19 @@ export class StaffApi {
     await this.request('/auth/password', { currentPassword, newPassword });
     this.forget();
   }
-  team() {
-    return this.request<TeamMember[]>('/staff');
+  team(read?: ReadOptions) {
+    return this.request<TeamMember[]>('/staff', undefined, read);
   }
-  categories() {
-    return this.request<Category[]>('/catalog/categories');
+  categories(read?: ReadOptions) {
+    return this.request<Category[]>('/catalog/categories', undefined, read);
   }
   createCategory(name: string, parentId: string | null) {
     return this.request<Category>('/catalog/categories', { name, parentId });
   }
-  products(query: { search: string; status: string; categoryId: string; page: number }) {
+  products(
+    query: { search: string; status: string; categoryId: string; page: number },
+    read?: ReadOptions,
+  ) {
     const params = new URLSearchParams({
       search: query.search,
       status: query.status,
@@ -336,7 +349,7 @@ export class StaffApi {
       pageSize: '20',
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
     });
-    return this.request<ProductPage>('/catalog/products?' + params);
+    return this.request<ProductPage>('/catalog/products?' + params, undefined, read);
   }
   product(id: string) {
     return this.request<Product>('/catalog/products/' + encodeURIComponent(id));
@@ -376,8 +389,8 @@ export class StaffApi {
       { key },
     );
   }
-  inventoryLocations() {
-    return this.request<InventoryLocation[]>('/inventory/locations');
+  inventoryLocations(read?: ReadOptions) {
+    return this.request<InventoryLocation[]>('/inventory/locations', undefined, read);
   }
   createInventoryLocation(body: { code: string; name: string; kind: 'warehouse' | 'store' }) {
     return this.request<InventoryLocation>('/inventory/locations', body);
@@ -390,20 +403,24 @@ export class StaffApi {
         new URLSearchParams({ search }),
     );
   }
-  stock(id: string, query: { search: string; stock: string; page: number }) {
+  stock(id: string, query: { search: string; stock: string; page: number }, read?: ReadOptions) {
     return this.request<StockPage>(
       '/inventory/locations/' +
         encodeURIComponent(id) +
         '/stock?' +
         new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
-  stockHistory(id: string, query: { search: string; page: number }) {
+  stockHistory(id: string, query: { search: string; page: number }, read?: ReadOptions) {
     return this.request<{ items: HistoryRow[]; total: number; page: number; pageSize: number }>(
       '/inventory/locations/' +
         encodeURIComponent(id) +
         '/history?' +
         new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   postStock(body: StockInput, key: string) {
@@ -421,9 +438,11 @@ export class StaffApi {
       { key },
     );
   }
-  suppliers(query: { search: string; status: string; page: number }) {
+  suppliers(query: { search: string; status: string; page: number }, read?: ReadOptions) {
     return this.request<Page<Supplier>>(
       '/purchasing/suppliers?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   supplier(id: string) {
@@ -436,17 +455,19 @@ export class StaffApi {
       { method: id ? 'PATCH' : 'POST', key },
     );
   }
-  purchaseLocations() {
-    return this.request<PurchaseLocation[]>('/purchasing/locations');
+  purchaseLocations(read?: ReadOptions) {
+    return this.request<PurchaseLocation[]>('/purchasing/locations', undefined, read);
   }
   purchaseVariants(search: string) {
     return this.request<PurchaseVariant[]>(
       '/purchasing/variants?' + new URLSearchParams({ search }),
     );
   }
-  purchaseOrders(query: { search: string; status: string; page: number }) {
+  purchaseOrders(query: { search: string; status: string; page: number }, read?: ReadOptions) {
     return this.request<Page<PurchaseOrder>>(
       '/purchasing/orders?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   purchaseOrder(id: string) {
@@ -514,9 +535,11 @@ export class StaffApi {
         new URLSearchParams({ page: String(page), linePage: String(linePage) }),
     );
   }
-  supplierInvoices(query: { page: number; search: string; status: string }) {
+  supplierInvoices(query: { page: number; search: string; status: string }, read?: ReadOptions) {
     return this.request<InvoiceList>(
       '/payables/invoices?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   postSupplierInvoice(
@@ -564,9 +587,11 @@ export class StaffApi {
         new URLSearchParams({ page: String(page), invoicePage: String(invoicePage) }),
     );
   }
-  supplierPayments(query: { page: number; search: string; status: string }) {
+  supplierPayments(query: { page: number; search: string; status: string }, read?: ReadOptions) {
     return this.request<PaymentList>(
       '/payables/payments?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   recordSupplierPayment(
@@ -600,9 +625,11 @@ export class StaffApi {
       { key },
     );
   }
-  payableAging(query: { asOf?: string; search: string; page: number }) {
+  payableAging(query: { asOf?: string; search: string; page: number }, read?: ReadOptions) {
     return this.request<AgingReport>(
       '/payables/reports/aging?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   supplierStatement(
@@ -662,9 +689,14 @@ export class StaffApi {
       { key },
     );
   }
-  customers(query: { search: string; page: number; status: string; kind: string }) {
+  customers(
+    query: { search: string; page: number; status: string; kind: string },
+    read?: ReadOptions,
+  ) {
     return this.request<CustomerPage>(
       '/customers?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   customer(id: string) {
@@ -691,8 +723,8 @@ export class StaffApi {
   salesCustomers(search: string) {
     return this.request<SalesCustomer[]>('/sales/customers?' + new URLSearchParams({ search }));
   }
-  salesLocations() {
-    return this.request<SalesLocation[]>('/sales/locations');
+  salesLocations(read?: ReadOptions) {
+    return this.request<SalesLocation[]>('/sales/locations', undefined, read);
   }
   salesVariants(search: string) {
     return this.request<SalesVariant[]>('/sales/variants?' + new URLSearchParams({ search }));
@@ -700,9 +732,11 @@ export class StaffApi {
   salesVariant(id: string) {
     return this.request<SalesVariant>('/sales/variants/' + encodeURIComponent(id));
   }
-  salesOrders(query: { search: string; status: string; page: number }) {
+  salesOrders(query: { search: string; status: string; page: number }, read?: ReadOptions) {
     return this.request<SalesPage>(
       '/sales/orders?' + new URLSearchParams({ ...query, page: String(query.page) }),
+      undefined,
+      read,
     );
   }
   salesOrder(id: string) {

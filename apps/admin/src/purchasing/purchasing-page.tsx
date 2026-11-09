@@ -1,14 +1,16 @@
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
 import { PayablesReports } from './reports-page';
 import { PaymentListView } from './payment-list';
 import { InvoiceListView } from './invoice-list';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import { SupplierDialog } from './supplier-dialog';
 import { OrderEditor } from './order-editor';
 import { OrderDetail } from './order-detail';
 import { money } from './money';
-import type { Supplier, PurchaseOrder, Page, PurchaseLocation } from './types';
+import type { Supplier, PurchaseOrder, Page } from './types';
 import './purchasing.css';
 export function PurchasingPage({
   api,
@@ -27,12 +29,8 @@ export function PurchasingPage({
     [status, setStatus] = useState('all'),
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0);
-  const [suppliers, setSuppliers] = useState<Page<Supplier> | null>(null),
-    [orders, setOrders] = useState<Page<PurchaseOrder> | null>(null),
-    [locations, setLocations] = useState<PurchaseLocation[]>([]),
-    [loading, setLoading] = useState(true),
-    [opening, setOpening] = useState(false),
-    [error, setError] = useState(''),
+  const [opening, setOpening] = useState(false),
+    [actionError, setError] = useState(''),
     [notice, setNotice] = useState('');
   const [supplierDialog, setSupplierDialog] = useState<{ initial: Supplier | null } | null>(null),
     [editor, setEditor] = useState<{ initial: PurchaseOrder | null } | null>(null),
@@ -42,37 +40,42 @@ export function PurchasingPage({
       setQuery(search.trim());
       setPage(1);
     }, 250);
+
     return () => window.clearTimeout(timer);
   }, [search]);
+  useEffect(() => setError(''), [tab, query, status, page, revision]);
+  const read = useLiveRead(
+    useCallback(
+      async (options) => {
+        const [locations, result] = await Promise.all([
+          api.purchaseLocations(options),
+          tab === 'orders'
+            ? api.purchaseOrders({ search: query, status, page }, options)
+            : api.suppliers({ search: query, status, page }, options),
+        ]);
+        return { locations, result };
+      },
+      [api, tab, query, status, page],
+    ),
+    {
+      revision,
+      enabled: tab === 'orders' || tab === 'suppliers',
+      paused: !!(supplierDialog || editor || detail),
+    },
+  );
+  const locations = read.data?.locations ?? [],
+    orders =
+      tab === 'orders' ? ((read.data?.result as Page<PurchaseOrder> | undefined) ?? null) : null,
+    suppliers =
+      tab === 'suppliers' ? ((read.data?.result as Page<Supplier> | undefined) ?? null) : null,
+    loading = read.loading,
+    error = read.error || actionError;
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    setSuppliers(null);
-    setOrders(null);
-    void Promise.all([
-      api.purchaseLocations(),
-      tab === 'orders'
-        ? api.purchaseOrders({ search: query, status, page })
-        : api.suppliers({ search: query, status, page }),
-    ])
-      .then(([l, p]) => {
-        if (active) {
-          setLocations(l);
-          if (tab === 'orders') setOrders(p as Page<PurchaseOrder>);
-          else setSuppliers(p as Page<Supplier>);
-        }
-      })
-      .catch((err) => {
-        if (active) setError(err instanceof Error ? err.message : 'Unable to load purchasing.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, tab, query, status, page, revision]);
+    if (read.data) {
+      const last = Math.max(1, Math.ceil(read.data.result.total / 20));
+      if (page > last) setPage(last);
+    }
+  }, [read.data, page]);
   const total = (tab === 'orders' ? orders : suppliers)?.total ?? 0,
     totalPages = Math.max(1, Math.ceil(total / 20));
   const savedOrder = (order: PurchaseOrder) => {
@@ -153,6 +156,8 @@ export function PurchasingPage({
           )}
         </div>
       </div>
+      <ReadStatus read={read} />
+
       {notice && (
         <p className="notice" role="status">
           {notice}
@@ -228,7 +233,7 @@ export function PurchasingPage({
             <button
               className="icon-button"
               aria-label="Refresh purchasing"
-              disabled={loading}
+              disabled={loading || read.refreshing}
               onClick={() => setRevision((n) => n + 1)}
             >
               <Icon name="refresh" />

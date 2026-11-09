@@ -10,6 +10,8 @@ Active workspace: D:\Business Software\commerce-platform. See [architecture and 
 
 Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, multi-location inventory, suppliers/purchase orders/partial receiving/supplier invoices, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md) and [visual direction / frontend decisions](docs/INTERFACE-DIRECTION.md).
 
+Lists now update automatically while visible, with protected editing, last-checked status and manual retry. See [data freshness and session behavior](docs/DATA-FRESHNESS.md).
+
 ## Current implementation
 
 - Managed PostgreSQL connection, schema-aware readiness and shutdown cleanup.
@@ -65,7 +67,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification - 10 November 2026
 
-Strict type checking, clean build, formatting check, 36 database-free/interface tests and 190 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 43 database-free/interface tests and 191 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

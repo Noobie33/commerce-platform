@@ -112,6 +112,87 @@ test('staff identity: real PostgreSQL security and transactional audit', async (
     await app.listen(0, '127.0.0.1');
     base = await app.getUrl();
 
+    await t.test(
+      'background GET preserves idle expiry without bypassing permissions or write protection',
+      async () => {
+        const session = await login();
+        assert.equal(session.response.status, 200);
+        const hash = tokenHash(session.cookie.split('=')[1]!);
+        const age = async (minutes: number) => {
+          await source.query(
+            'UPDATE staff_sessions SET last_seen_at=now()-make_interval(mins => $2::int) WHERE token_hash=$1',
+            [hash, minutes],
+          );
+          return (
+            await source.query('SELECT last_seen_at FROM staff_sessions WHERE token_hash=$1', [
+              hash,
+            ])
+          )[0].last_seen_at.getTime();
+        };
+        const seen = async () =>
+          (
+            await source.query('SELECT last_seen_at FROM staff_sessions WHERE token_hash=$1', [
+              hash,
+            ])
+          )[0].last_seen_at.getTime();
+        const background = { Cookie: session.cookie, 'X-Background-Read': '1' };
+        const before = await age(5);
+        assert.equal((await request('/api/v1/staff/me', { headers: background })).status, 200);
+        assert.equal(await seen(), before);
+        assert.equal(
+          (await request('/api/v1/staff/me', { headers: { Cookie: session.cookie } })).status,
+          200,
+        );
+        assert.ok((await seen()) > before);
+        assert.equal(
+          (
+            await request('/api/v1/auth/logout', {
+              method: 'POST',
+              headers: { ...headers, ...background },
+              body: '{}',
+            })
+          ).status,
+          403,
+        );
+        const writeBefore = await age(5);
+        assert.equal(
+          (
+            await request('/api/v1/auth/logout', {
+              method: 'POST',
+              headers: { ...authHeaders(session), 'X-Background-Read': '1' },
+              body: '{}',
+            })
+          ).status,
+          200,
+        );
+        assert.ok((await seen()) > writeBefore);
+        const expired = await login();
+        const expiredHash = tokenHash(expired.cookie.split('=')[1]!);
+        await source.query(
+          "UPDATE staff_sessions SET last_seen_at=now()-interval '31 minutes' WHERE token_hash=$1",
+          [expiredHash],
+        );
+        assert.equal(
+          (
+            await request('/api/v1/staff/me', {
+              headers: { Cookie: expired.cookie, 'X-Background-Read': '1' },
+            })
+          ).status,
+          401,
+        );
+        const scoped = await login(usernames[2]);
+        assert.equal(scoped.response.status, 200);
+        assert.equal(
+          (
+            await request('/api/v1/staff', {
+              headers: { Cookie: scoped.cookie, 'X-Background-Read': '1' },
+            })
+          ).status,
+          403,
+        );
+      },
+    );
+
     await t.test('unauthenticated/forged sessions and cross-origin login fail', async () => {
       assert.equal((await request('/api/v1/staff/me')).status, 401);
       assert.equal(

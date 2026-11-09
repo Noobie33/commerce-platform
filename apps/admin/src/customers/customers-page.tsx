@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
+import { useCallback, useEffect, useState } from 'react';
 import { StaffApi } from '../api';
-import type { Customer, CustomerPage } from './types';
+import type { Customer } from './types';
 import { errorText } from './helpers';
 import { CustomerDetail } from './customer-detail';
 import { CustomerEditor } from './customer-editor';
@@ -20,9 +22,7 @@ export function CustomersPage({
     [kind, setKind] = useState('all'),
     [page, setPage] = useState(1),
     [revision, refresh] = useState(0),
-    [data, setData] = useState<CustomerPage | null>(null),
-    [loading, setLoading] = useState(true),
-    [error, setError] = useState(''),
+    [actionError, setError] = useState(''),
     [notice, setNotice] = useState(''),
     [detail, setDetail] = useState<Customer | null>(null),
     [editor, setEditor] = useState<Customer | 'new' | null>(null);
@@ -31,30 +31,26 @@ export function CustomersPage({
       setQuery(search);
       setPage(1);
     }, 250);
+
     return () => clearTimeout(t);
   }, [search]);
+  useEffect(() => setError(''), [query, status, kind, page, revision]);
+  const read = useLiveRead(
+    useCallback(
+      (options) => api.customers({ search: query, status, kind, page }, options),
+      [api, query, status, kind, page],
+    ),
+    { revision, paused: !!(detail || editor) },
+  );
+  const data = read.data,
+    loading = read.loading,
+    error = read.error || actionError;
   useEffect(() => {
-    let live = true;
-    setLoading(true);
-    setError('');
-    void api
-      .customers({ search: query, status, kind, page })
-      .then((value) => {
-        if (live) {
-          setData(value);
-          if (page > 1 && !value.items.length) setPage(Math.max(1, Math.ceil(value.total / 20)));
-        }
-      })
-      .catch((e) => {
-        if (live) setError(errorText(e));
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [api, query, status, kind, page, revision]);
+    if (data) {
+      const last = Math.max(1, Math.ceil(data.total / data.pageSize));
+      if (page > last) setPage(last);
+    }
+  }, [data, page]);
   async function open(id: string) {
     setError('');
     try {
@@ -83,7 +79,7 @@ export function CustomersPage({
           <button
             className="secondary-button"
             onClick={() => refresh((n) => n + 1)}
-            disabled={loading}
+            disabled={loading || read.refreshing}
           >
             Refresh
           </button>
@@ -94,6 +90,8 @@ export function CustomersPage({
           )}
         </div>
       </div>
+      <ReadStatus read={read} />
+
       {notice && (
         <p className="customer-notice" role="status">
           {notice}

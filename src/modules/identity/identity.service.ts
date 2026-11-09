@@ -67,7 +67,7 @@ export class IdentityService {
     });
   }
 
-  async authenticate(token: string): Promise<Principal> {
+  async authenticate(token: string, renewActivity = true): Promise<Principal> {
     if (!/^[A-Za-z0-9_-]{43}$/.test(token))
       throw new UnauthorizedException('Authentication required');
     const rows: (UserRow & { session_id: string; csrf_token: string })[] = await this.source.query(
@@ -90,10 +90,11 @@ export class IdentityService {
     `,
       [user.id],
     );
-    await this.source.query(
-      "UPDATE staff_sessions SET last_seen_at=now() WHERE id=$1 AND last_seen_at < now()-interval '1 minute'",
-      [user.session_id],
-    );
+    if (renewActivity)
+      await this.source.query(
+        "UPDATE staff_sessions SET last_seen_at=now() WHERE id=$1 AND last_seen_at < now()-interval '1 minute'",
+        [user.session_id],
+      );
     return {
       id: user.id,
       username: user.username,

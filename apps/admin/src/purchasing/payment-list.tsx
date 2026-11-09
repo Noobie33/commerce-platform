@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
+import { useCallback, useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import { PaymentWorkspace } from './payment-workspace';
 import { money } from './money';
-import type { PaymentList, PaymentSupplier } from './payment-types';
+import type { PaymentSupplier } from './payment-types';
 export function PaymentListView({ api, onBack }: { api: StaffApi; onBack: () => void }) {
-  const [data, setData] = useState<PaymentList | null>(null),
-    [search, setSearch] = useState(''),
+  const [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(true),
     [supplierId, setSupplierId] = useState<string | null>(null),
     [supplierSearch, setSupplierSearch] = useState(''),
     [suppliers, setSuppliers] = useState<PaymentSupplier[]>([]),
@@ -24,26 +23,22 @@ export function PaymentListView({ api, onBack }: { api: StaffApi; onBack: () => 
     }, 250);
     return () => window.clearTimeout(t);
   }, [search]);
+  const read = useLiveRead(
+    useCallback(
+      (options) => api.supplierPayments({ search: query, status, page }, options),
+      [api, query, status, page],
+    ),
+    { revision, paused: !!supplierId },
+  );
+  const data = read.data,
+    loading = read.loading,
+    error = read.error;
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    setData(null);
-    void api
-      .supplierPayments({ search: query, status, page })
-      .then((d) => {
-        if (active) setData(d);
-      })
-      .catch((e) => {
-        if (active) setError(e instanceof Error ? e.message : 'Unable to load payments.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, query, status, page, revision]);
+    if (data) {
+      const last = Math.max(1, Math.ceil(data.total / 20));
+      if (page > last) setPage(last);
+    }
+  }, [data, page]);
   useEffect(() => {
     let active = true;
     setSupplierLoading(true);
@@ -82,6 +77,8 @@ export function PaymentListView({ api, onBack }: { api: StaffApi; onBack: () => 
           Back to purchasing
         </button>
       </div>
+      <ReadStatus read={read} />
+
       <p className="inventory-guidance">
         These records track payments already made. They do not send money or show a bank/cash
         account balance.
@@ -151,7 +148,7 @@ export function PaymentListView({ api, onBack }: { api: StaffApi; onBack: () => 
           </label>
           <button
             className="secondary-button"
-            disabled={loading}
+            disabled={loading || read.refreshing}
             onClick={() => setRevision((n) => n + 1)}
           >
             Refresh payment list

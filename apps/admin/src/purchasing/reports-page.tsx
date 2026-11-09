@@ -1,43 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
+import { useCallback, useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import { AgingCards, agingLabels } from './report-cards';
 import { ReportSupplierPicker } from './report-supplier-picker';
 import { SupplierStatementDialog } from './statement-dialog';
 import { money } from './money';
-import type { AgingReport } from './report-types';
+
 export function PayablesReports({ api, onBack }: { api: StaffApi; onBack: () => void }) {
-  const [data, setData] = useState<AgingReport | null>(null),
-    [asOf, setAsOf] = useState(''),
+  const [asOf, setAsOf] = useState(''),
     [search, setSearch] = useState(''),
     [query, setQuery] = useState<{ asOf?: string; search: string }>({ search: '' }),
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0),
-    [loading, setLoading] = useState(true),
-    [error, setError] = useState(''),
+    [actionError, setError] = useState(''),
     [supplierId, setSupplierId] = useState<string | null>(null);
+  const read = useLiveRead(
+    useCallback((options) => api.payableAging({ ...query, page }, options), [api, query, page]),
+    {
+      revision,
+      paused:
+        !!supplierId || (!!query.asOf && asOf !== query.asOf) || search.trim() !== query.search,
+    },
+  );
+  const data = read.data,
+    loading = read.loading,
+    error = read.error || actionError;
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    setData(null);
-    void api
-      .payableAging({ ...query, page })
-      .then((d) => {
-        if (active) {
-          setData(d);
-          setAsOf((v) => v || d.asOf);
-        }
-      })
-      .catch((e) => {
-        if (active) setError(e instanceof Error ? e.message : 'Unable to load aging report.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, query, page, revision]);
+    if (!data) return;
+    setAsOf((value) => value || data.asOf);
+    if (!query.asOf) setQuery((value) => ({ ...value, asOf: data.asOf }));
+    const last = Math.max(1, Math.ceil(data.total / 20));
+    if (page > last) setPage(last);
+  }, [data, page, query.asOf]);
+  useEffect(() => setError(''), [query, page, revision]);
   return (
     <div className="purchasing-page">
       <div className="page-heading">
@@ -52,6 +48,8 @@ export function PayablesReports({ api, onBack }: { api: StaffApi; onBack: () => 
           Back to purchasing
         </button>
       </div>
+      <ReadStatus read={read} />
+
       <p className="inventory-guidance">
         Balances cover invoices and payments recorded here, including inactive suppliers. Older
         cutoffs filter the stored recorded timestamps. Opening balances from other systems and
@@ -92,13 +90,13 @@ export function PayablesReports({ api, onBack }: { api: StaffApi; onBack: () => 
               onChange={(e) => setSearch(e.target.value)}
             />
           </label>
-          <button className="secondary-button" disabled={loading}>
+          <button className="secondary-button" disabled={loading || read.refreshing}>
             Apply aging filters
           </button>
           <button
             type="button"
             className="secondary-button"
-            disabled={loading}
+            disabled={loading || read.refreshing}
             onClick={() => setRevision((n) => n + 1)}
           >
             Refresh aging

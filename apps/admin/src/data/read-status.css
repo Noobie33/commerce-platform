@@ -1,0 +1,12 @@
+﻿.read-status {
+  display: grid;
+  gap: 5px;
+  padding: 10px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted, #6b7280);
+  overflow-wrap: anywhere;
+}
+.read-status-warning {
+  color: #92400e;
+}

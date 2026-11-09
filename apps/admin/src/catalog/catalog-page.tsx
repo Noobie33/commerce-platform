@@ -1,5 +1,7 @@
+import { useLiveRead } from '../data/use-live-read';
+import { ReadStatus } from '../data/read-status';
 import { ProductContent } from './product-content';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import { categoryName, money } from './helpers';
@@ -8,7 +10,7 @@ import { ProductEditor } from './product-editor';
 import { ProductDetail } from './product-detail';
 import { ProductGrid } from './product-grid';
 import { MediaManager } from './media-manager';
-import type { Category, Product, ProductPage, ProductStatus } from './types';
+import type { Category, Product, ProductStatus } from './types';
 export function CatalogPage({
   api,
   canManage,
@@ -29,6 +31,7 @@ export function CatalogPage({
     const media = window.matchMedia('(min-width: 1180px)');
     const changed = () => setWide(media.matches);
     media.addEventListener('change', changed);
+
     return () => media.removeEventListener('change', changed);
   }, []);
   function closeDetails() {
@@ -37,16 +40,14 @@ export function CatalogPage({
     else document.getElementById('page-title')?.focus({ preventScroll: true });
   }
   const [categories, setCategories] = useState<Category[]>([]),
-    [data, setData] = useState<ProductPage | null>(null),
     [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState<ProductStatus | 'all'>('all'),
     [categoryId, setCategory] = useState(''),
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0);
-  const [loading, setLoading] = useState(true),
-    [opening, setOpening] = useState(false),
-    [error, setError] = useState(''),
+  const [opening, setOpening] = useState(false),
+    [actionError, setError] = useState(''),
     [notice, setNotice] = useState(''),
     [categoryOpen, setCategoryOpen] = useState(false),
     [editor, setEditor] = useState<{ initial: Product | null } | null>(null),
@@ -58,27 +59,32 @@ export function CatalogPage({
     }, 250);
     return () => window.clearTimeout(timer);
   }, [search]);
+  useEffect(() => setError(''), [query, status, categoryId, page, revision]);
+  const read = useLiveRead(
+    useCallback(
+      (options) =>
+        Promise.all([
+          api.products({ search: query, status, categoryId, page }, options),
+          api.categories(options),
+        ]),
+      [api, query, status, categoryId, page],
+    ),
+    { revision, paused: !!(editor || detail || mediaProduct || contentProduct || categoryOpen) },
+  );
+  const data = read.data?.[0] ?? null,
+    categoriesFromRead = read.data?.[1] ?? [];
+  const loading = read.loading,
+    error = read.error || actionError;
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    void Promise.all([api.products({ search: query, status, categoryId, page }), api.categories()])
-      .then(([products, cats]) => {
-        if (active) {
-          setData(products);
-          setCategories(cats);
-        }
-      })
-      .catch((error) => {
-        if (active) setError(error instanceof Error ? error.message : 'Unable to load catalog.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, query, status, categoryId, page, revision]);
+    if (read.data) setCategories(categoriesFromRead);
+    else if (read.accessDenied) setCategories([]);
+  }, [read.data, read.accessDenied]);
+  useEffect(() => {
+    if (data) {
+      const last = Math.max(1, Math.ceil(data.total / data.pageSize));
+      if (page > last) setPage(last);
+    }
+  }, [data, page]);
   async function open(id: string) {
     lastTrigger.current = document.activeElement as HTMLElement | null;
     setOpening(true);
@@ -131,6 +137,8 @@ export function CatalogPage({
           </button>
         )}
       </div>
+      <ReadStatus read={read} />
+
       {notice && (
         <p className="catalog-notice" role="status">
           <Icon name="check" />
@@ -222,7 +230,7 @@ export function CatalogPage({
               <button
                 className="icon-button"
                 aria-label="Refresh catalog"
-                disabled={loading}
+                disabled={loading || read.refreshing}
                 onClick={() => setRevision((v) => v + 1)}
               >
                 <Icon name="refresh" />

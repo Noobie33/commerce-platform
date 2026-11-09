@@ -1,4 +1,13 @@
 import type {
+  SalesCustomer,
+  SalesLocation,
+  SalesVariant,
+  SalesInput,
+  SalesOrder,
+  SalesPage,
+  SalesResult,
+} from './sales/types';
+import type {
   Customer,
   CustomerInput,
   CustomerPage,
@@ -51,6 +60,7 @@ export class ApiError extends Error {
   ) {
     super(
       ([
+        'INVALID_SALES_INPUT',
         'INVALID_CUSTOMER_INPUT',
         'INVALID_CATALOG_INPUT',
         'INVALID_INVENTORY_INPUT',
@@ -63,6 +73,24 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              SALES_STALE: 'This order changed. Close this form and refresh before editing again.',
+              SALES_STATE: 'Only draft orders can be edited or cancelled.',
+              SALES_IDEMPOTENCY:
+                'This request key belongs to different details. Close and reopen the form.',
+              SALES_CUSTOMER_UNAVAILABLE: 'Choose an active customer.',
+              SALES_CUSTOMER_STALE:
+                'This customer changed. Reselect the customer and review the order.',
+              SALES_CUSTOMER_SEGMENT:
+                'The customer is not enabled for this sales channel. Choose the matching channel or update the customer profile.',
+              SALES_LOCATION_UNAVAILABLE: 'Choose an active fulfillment location.',
+              SALES_VARIANT_UNAVAILABLE:
+                'A product is inactive or unavailable. Remove it or choose another active variant.',
+              SALES_PRICE_CHANGED:
+                'Catalog prices changed. Refresh catalog prices and review the draft again.',
+              SALES_PRICE_PERMISSION:
+                'A separate price override permission is required. Use current catalog prices or ask your workspace owner.',
+              SALES_TOTAL_LIMIT: 'This order total exceeds the supported limit.',
+              SALES_NOT_FOUND: 'This sales order could not be found.',
               CUSTOMER_STALE:
                 'This customer changed. Close this form and refresh before editing again.',
               CUSTOMER_INACTIVE: 'Activate this customer before enabling credit.',
@@ -620,6 +648,38 @@ export class StaffApi {
     return this.request<CreditHistory>(
       '/customers/' + encodeURIComponent(id) + '/credit-history?page=' + page,
     );
+  }
+  salesCustomers(search: string) {
+    return this.request<SalesCustomer[]>('/sales/customers?' + new URLSearchParams({ search }));
+  }
+  salesLocations() {
+    return this.request<SalesLocation[]>('/sales/locations');
+  }
+  salesVariants(search: string) {
+    return this.request<SalesVariant[]>('/sales/variants?' + new URLSearchParams({ search }));
+  }
+  salesVariant(id: string) {
+    return this.request<SalesVariant>('/sales/variants/' + encodeURIComponent(id));
+  }
+  salesOrders(query: { search: string; status: string; channel: string; page: number }) {
+    return this.request<SalesPage>(
+      '/sales/orders?' + new URLSearchParams({ ...query, page: String(query.page) }),
+    );
+  }
+  salesOrder(id: string) {
+    return this.request<SalesOrder>('/sales/orders/' + encodeURIComponent(id));
+  }
+  saveSalesOrder(id: string | null, body: SalesInput, key: string) {
+    return this.request<SalesResult>(
+      '/sales/orders' + (id ? '/' + encodeURIComponent(id) : ''),
+      body,
+      { key, method: id ? 'PATCH' : 'POST' },
+    );
+  }
+  cancelSalesOrder(id: string, body: { expectedVersion: number; reason: string }, key: string) {
+    return this.request<SalesResult>('/sales/orders/' + encodeURIComponent(id) + '/cancel', body, {
+      key,
+    });
   }
   async ready() {
     try {

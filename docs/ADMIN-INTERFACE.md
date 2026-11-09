@@ -76,3 +76,7 @@ Purchasing / Statements & aging adds a Bangladesh-date cutoff, supplier search, 
 ## Customer directory
 
 Customers supports retail/wholesale/both classification, people/business profiles, literal search, status/type filters and pagination. Contact details, independent Bangladesh billing/delivery addresses, explicit copy-address and active/inactive status live in one profile. Shared phone/email matches warn without blocking save. Credit managers separately review exact BDT limits/terms with a mandatory reason and inspect previous/current policy history; no artificial customer due/available-credit totals are shown. See [customer decisions](CUSTOMERS.md).
+
+## Sales preparation
+
+Sales adds a searchable/filterable order directory and retail/wholesale draft editor. Choose an active compatible customer, fulfillment location and active product variants. Catalog prices are the default; overriding requires permission and a reason. The editor calculates exact BDT goods totals and reviews before saving. Saved customer/address/product snapshots remain visible after directory changes. Only draft orders can be edited/cancelled, with version checks and cancellation reasons; cancellation preserves all lines. These drafts create no stock reservations or customer due amounts. See [sales boundaries and next gates](SALES-DRAFTS.md).

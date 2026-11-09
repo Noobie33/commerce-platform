@@ -468,7 +468,10 @@ test('customer records: protected profiles, contact matching and independently c
           await r.query('CREATE SCHEMA ' + schema);
           await r.query('SET search_path TO ' + schema + ',public');
           const migrations = db.migrations;
-          for (const migration of migrations) await migration.up(r);
+          for (const migration of migrations) {
+            await migration.up(r);
+            if (migration instanceof CustomerFoundation1794108000000) break;
+          }
           assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 10);
           const next = new CustomerFoundation1794108000000();
           await next.down(r);

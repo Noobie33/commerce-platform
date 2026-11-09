@@ -1,0 +1,300 @@
+import { useEffect, useRef, useState } from 'react';
+import { StaffApi } from '../api';
+import type { SalesOrder, SalesLocation, SalesPage as Page } from './types';
+import { SalesEditor } from './sales-editor';
+import { SalesDetail } from './sales-detail';
+import { CancelDraft } from './cancel-draft';
+import { money, problem } from './helpers';
+import './sales.css';
+export function SalesPage({
+  api,
+  canManage,
+  canOverride,
+}: {
+  api: StaffApi;
+  canManage: boolean;
+  canOverride: boolean;
+}) {
+  const [search, setSearch] = useState(''),
+    [query, setQuery] = useState(''),
+    [status, setStatus] = useState('all'),
+    [channel, setChannel] = useState('all'),
+    [page, setPage] = useState(1),
+    [revision, refresh] = useState(0),
+    [data, setData] = useState<Page | null>(null),
+    [locations, setLocations] = useState<SalesLocation[]>([]),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(''),
+    [locationError, setLocationError] = useState(''),
+    [notice, setNotice] = useState(''),
+    [detail, setDetail] = useState<SalesOrder | null>(null),
+    [editor, setEditor] = useState<SalesOrder | 'new' | null>(null),
+    [cancel, setCancel] = useState<SalesOrder | null>(null);
+  const opening = useRef(0);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setQuery(search);
+      setPage(1);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [search]);
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    setError('');
+    void api
+      .salesOrders({ search: query, status, channel, page })
+      .then((r) => {
+        if (live) {
+          setData(r);
+          if (page > 1 && !r.items.length) setPage(Math.max(1, Math.ceil(r.total / 20)));
+        }
+      })
+      .catch((e) => {
+        if (live) setError(problem(e));
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [api, query, status, channel, page, revision]);
+  useEffect(() => {
+    let live = true;
+    setLocationError('');
+    void api
+      .salesLocations()
+      .then((r) => {
+        if (live) setLocations(r);
+      })
+      .catch((e) => {
+        if (live) setLocationError(problem(e));
+      });
+    return () => {
+      live = false;
+    };
+  }, [api, revision]);
+  async function open(id: string) {
+    const token = ++opening.current;
+    setError('');
+    try {
+      const order = await api.salesOrder(id);
+      if (token === opening.current) setDetail(order);
+    } catch (e) {
+      if (token === opening.current) setError(problem(e));
+    }
+  }
+  function saved(r: { id: string }, message: string) {
+    setEditor(null);
+    setCancel(null);
+    setNotice(message);
+    refresh((n) => n + 1);
+    void open(r.id);
+  }
+  return (
+    <section className="sales-page">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">RETAIL & WHOLESALE</span>
+          <h1 id="page-title" tabIndex={-1}>
+            Sales orders
+          </h1>
+          <p>Prepare clear, accurate orders for your customers.</p>
+        </div>
+        <div className="sales-actions">
+          <button
+            className="secondary-button"
+            disabled={loading}
+            onClick={() => refresh((n) => n + 1)}
+          >
+            Refresh
+          </button>
+          {canManage && (
+            <button
+              className="primary-button"
+              disabled={!locations.length}
+              onClick={() => setEditor('new')}
+            >
+              + New sales draft
+            </button>
+          )}
+        </div>
+      </div>
+      {notice && (
+        <p className="sales-notice" role="status">
+          {notice}
+        </p>
+      )}
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      {locationError && (
+        <p className="form-error" role="alert">
+          {locationError} Refresh to reload locations.
+        </p>
+      )}
+      {canManage && !locationError && !locations.length && (
+        <p className="sales-warning">
+          Add an active warehouse or store in Inventory before preparing sales orders.
+        </p>
+      )}
+      <div className="sales-toolbar">
+        <label>
+          Search orders
+          <input
+            maxLength={140}
+            value={search}
+            placeholder="Order number, customer or reference"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
+        <label>
+          Order status
+          <select
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">All statuses</option>
+            <option value="draft">Draft</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </label>
+        <label>
+          Sales channel
+          <select
+            value={channel}
+            onChange={(e) => {
+              setChannel(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">All channels</option>
+            <option value="retail">Retail</option>
+            <option value="wholesale">Wholesale</option>
+          </select>
+        </label>
+      </div>
+      <div className="sales-panel" aria-busy={loading}>
+        <div className="sales-panel-heading">
+          <h2>Order workspace</h2>
+          <span>{loading ? 'Loading…' : `${data?.total ?? 0} matching orders`}</span>
+        </div>
+        {!loading && !error && data?.items.length === 0 ? (
+          <div className="sales-empty">
+            <h3>No orders in this view</h3>
+            <p>Prepare a draft or adjust the search and filters.</p>
+          </div>
+        ) : (
+          <div
+            className="sales-table-wrap"
+            tabIndex={0}
+            role="region"
+            aria-label="Sales order table"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Channel / location</th>
+                  <th>Goods total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.items.map((o) => (
+                  <tr key={o.id}>
+                    <td>
+                      <button className="sales-link" onClick={() => void open(o.id)}>
+                        {o.number}
+                      </button>
+                      <small>{o.reference || 'No customer reference'}</small>
+                    </td>
+                    <td>
+                      {o.customerName}
+                      <small>{o.customerSnapshot.code}</small>
+                    </td>
+                    <td>
+                      {o.channel === 'retail' ? 'Retail' : 'Wholesale'}
+                      <small>{o.locationName}</small>
+                    </td>
+                    <td>{money(o.total)}</td>
+                    <td>
+                      <span className={'sales-badge ' + o.status}>
+                        {o.status === 'draft' ? 'Draft' : 'Cancelled'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="sales-pagination">
+          <span>
+            Page {page} of {Math.max(1, Math.ceil((data?.total ?? 0) / 20))}
+          </span>
+          <div>
+            <button
+              className="secondary-button"
+              disabled={loading || page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </button>
+            <button
+              className="secondary-button"
+              disabled={loading || page * 20 >= (data?.total ?? 0)}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+      <p className="sales-hint">
+        Drafts do not reserve inventory or create receivables. Order confirmation, fulfillment and
+        invoicing are the next sales workflows.
+      </p>
+      {detail && (
+        <SalesDetail
+          order={detail}
+          close={() => setDetail(null)}
+          canManage={canManage}
+          edit={() => {
+            setEditor(detail);
+            setDetail(null);
+          }}
+          cancel={() => {
+            setCancel(detail);
+            setDetail(null);
+          }}
+        />
+      )}
+      {editor && (
+        <SalesEditor
+          api={api}
+          initial={editor === 'new' ? null : editor}
+          locations={locations}
+          canOverride={canOverride}
+          close={() => setEditor(null)}
+          saved={(r) => saved(r, 'Sales draft saved.')}
+        />
+      )}
+      {cancel && (
+        <CancelDraft
+          api={api}
+          order={cancel}
+          close={() => setCancel(null)}
+          saved={(r) => saved(r, 'Sales draft cancelled. History retained.')}
+        />
+      )}
+    </section>
+  );
+}

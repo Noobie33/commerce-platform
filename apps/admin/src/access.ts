@@ -44,3 +44,9 @@ Object.assign(permissionNames, {
   'customers.manage': 'Manage customers',
   'customers.credit.manage': 'Manage customer credit policy',
 });
+
+Object.assign(permissionNames, {
+  'sales.read': 'View sales orders and sales customer lookup',
+  'sales.manage': 'Manage sales drafts',
+  'sales.price_override': 'Override sales prices',
+});

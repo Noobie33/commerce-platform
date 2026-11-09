@@ -46,4 +46,4 @@ At 390px, page and dialog widths were both 390px and mobile re-review completed 
 
 ## Remaining scope
 
-Next: reusable versioned size guides and collections/category vocabulary management; then public-media approval and explicit publication, video processing, search/facet projection and the Aarong-aligned storefront templates. Content approval alone does not activate a public product. Retail confirmation, firm stock allocations, payments/COD/courier settlement, return/refund controls and customer-facing account/checkout remain later phases.
+Versioned size guides and collection assignments are now implemented in schema 17; see [workflow and safety rules](SIZE-GUIDES-AND-COLLECTIONS.md). Next: category vocabulary/SEO, public-media approval and explicit publication, video processing, search/facet projection and the Aarong-aligned storefront templates. Content approval alone does not activate a public product. Retail confirmation, firm stock allocations, payments/COD/courier settlement, return/refund controls and customer-facing account/checkout remain later phases.

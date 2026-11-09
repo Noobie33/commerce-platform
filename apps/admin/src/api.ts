@@ -1,3 +1,4 @@
+import type { MerchInput, MerchItem, MerchPage, MerchDefinition } from './catalog/merch-types';
 import type { ReadOptions } from './data/live-read';
 import type { ContentView, ContentInput, ContentResult } from './catalog/content-types';
 import type {
@@ -79,6 +80,15 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              INVALID_MERCH_INPUT:
+                'Check title, unique size labels, measurement columns and positive decimal values.',
+              MERCH_IDENTIFIER_EXISTS:
+                'This permanent URL name is already used for this record type.',
+              MERCH_STALE:
+                'Another version was saved. Reopen this guide or collection before saving.',
+              MERCH_IDEMPOTENCY:
+                'This save attempt belongs to different details. Reopen the record and review the changes.',
+              MERCH_NOT_FOUND: 'The guide or collection could not be found.',
               SALES_RESERVED:
                 'Release the active stock hold before editing or cancelling this draft.',
               STOCK_RESERVED:
@@ -768,6 +778,32 @@ export class StaffApi {
       body,
       { key },
     );
+  }
+  merchItems(
+    query: { search?: string; kind?: string; status?: string; page?: number },
+    read?: ReadOptions,
+  ) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query))
+      if (value !== undefined) params.set(key, String(value));
+    return this.request<MerchPage>('/catalog/merchandising?' + params, undefined, read);
+  }
+  merchItem(id: string, page = 1) {
+    return this.request<{
+      item: MerchItem;
+      history: {
+        version: number;
+        definition: MerchDefinition;
+        reason: string;
+        createdAt: string;
+      }[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>('/catalog/merchandising/' + encodeURIComponent(id) + '?page=' + page);
+  }
+  saveMerch(body: MerchInput, key: string) {
+    return this.request<{ id: string; version: number }>('/catalog/merchandising', body, { key });
   }
   async ready() {
     try {

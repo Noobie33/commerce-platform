@@ -9,7 +9,14 @@ export function useLiveRead<T>(
     paused = false,
     revision = 0,
     topics = [],
-  }: { enabled?: boolean; paused?: boolean; revision?: number; topics?: readonly string[] } = {},
+    allowInDialog = false,
+  }: {
+    enabled?: boolean;
+    paused?: boolean;
+    revision?: number;
+    topics?: readonly string[];
+    allowInDialog?: boolean;
+  } = {},
 ) {
   const topicKey = topics.join(',');
   const pausedRef = useRef(paused);
@@ -33,7 +40,8 @@ export function useLiveRead<T>(
       },
       visible: () => document.visibilityState === 'visible',
       online: () => navigator.onLine,
-      paused: () => pausedRef.current || !!document.querySelector('dialog[open]'),
+      paused: () =>
+        pausedRef.current || (!allowInDialog && !!document.querySelector('dialog[open]')),
       every: (fn, ms) => {
         const id = window.setInterval(fn, ms);
         return () => window.clearInterval(id);
@@ -54,7 +62,7 @@ export function useLiveRead<T>(
       },
     };
     return new LiveRead(load, env, enabled);
-  }, [load, enabled, topicKey]);
+  }, [load, enabled, topicKey, allowInDialog]);
   const [observed, setObserved] = useState({ resource, state: resource.snapshot() });
   const previous = useRef({ resource, revision });
   useEffect(() => {

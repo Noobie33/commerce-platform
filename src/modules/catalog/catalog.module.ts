@@ -1,3 +1,5 @@
+import { MerchController } from './merch.controller.js';
+import { MerchService } from './merch.service.js';
 import { ProductContentController } from './content.controller.js';
 import { ProductContentService } from './content.service.js';
 import { readMediaPolicy } from '../../infrastructure/media/media-policy.js';
@@ -22,8 +24,18 @@ export class CatalogModule {
     return {
       module: CatalogModule,
       imports: [databaseModule],
-      controllers: [CatalogController, ProductMediaController, ProductContentController],
+      controllers: [
+        CatalogController,
+        ProductMediaController,
+        ProductContentController,
+        MerchController,
+      ],
       providers: [
+        {
+          provide: MerchService,
+          useFactory: (source: DataSource) => new MerchService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: ProductContentService,
           useFactory: (source: DataSource) => new ProductContentService(source),

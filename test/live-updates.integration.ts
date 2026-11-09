@@ -278,6 +278,19 @@ test('live updates: commit-only cross-instance delivery, privacy and idle securi
         const migration = new LiveUpdates1794114000000();
         try {
           await r.startTransaction();
+          const schema = 'push_scratch_' + suffix;
+          await r.query('CREATE SCHEMA ' + schema);
+          await r.query('SET LOCAL search_path TO ' + schema + ',public');
+          for (const prior of db.migrations) {
+            if (prior instanceof LiveUpdates1794114000000) break;
+            await prior.up(r);
+          }
+          await migration.up(r);
+          await r.query('INSERT INTO catalog_categories(id,name,name_key) VALUES($1,$2,$3)', [
+            category,
+            'Scratch category',
+            'scratch category',
+          ]);
           const before = await r.query(
             'SELECT to_jsonb(c) AS row FROM catalog_categories c WHERE id=$1',
             [category],

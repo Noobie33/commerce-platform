@@ -67,7 +67,7 @@ export class ProductContentService {
       const message = error instanceof Error ? error.message : '';
       if (message === 'CONTENT_PERMISSION') throw new ForbiddenException({ code: 'FORBIDDEN' });
       if (message === 'CONTENT_NOT_FOUND') throw new NotFoundException({ code: message });
-      if (message === 'CONTENT_INVALID')
+      if (message === 'CONTENT_INVALID' || message === 'MERCH_INVALID')
         throw new BadRequestException({
           code: 'INVALID_CONTENT_INPUT',
           message: 'Check the selected product type and its field values.',

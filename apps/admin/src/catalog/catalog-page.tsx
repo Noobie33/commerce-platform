@@ -1,3 +1,4 @@
+import { MerchLibrary } from './merch-library';
 import { useLiveRead } from '../data/use-live-read';
 import { ReadStatus } from '../data/read-status';
 import { ProductContent } from './product-content';
@@ -16,12 +17,15 @@ export function CatalogPage({
   canManage,
   canManageContent,
   canReviewContent,
+  canManageMerch,
 }: {
   api: StaffApi;
   canManage: boolean;
   canManageContent: boolean;
   canReviewContent: boolean;
+  canManageMerch: boolean;
 }) {
+  const [merchOpen, setMerchOpen] = useState(false);
   const [contentProduct, setContentProduct] = useState<Product | null>(null);
   const [mediaProduct, setMediaProduct] = useState<Product | null>(null);
   const [view, setView] = useState<'grid' | 'table'>('grid');
@@ -72,7 +76,7 @@ export function CatalogPage({
     {
       topics: ['catalog'],
       revision,
-      paused: !!(editor || detail || mediaProduct || contentProduct || categoryOpen),
+      paused: !!(editor || detail || mediaProduct || contentProduct || categoryOpen || merchOpen),
     },
   );
   const data = read.data?.[0] ?? null,
@@ -140,6 +144,11 @@ export function CatalogPage({
             + Create product
           </button>
         )}
+      </div>
+      <div className="merch-actions">
+        <button className="secondary-button" onClick={() => setMerchOpen(true)}>
+          Size guides & collections
+        </button>
       </div>
       <ReadStatus read={read} />
 
@@ -502,6 +511,9 @@ export function CatalogPage({
             setRevision((v) => v + 1);
           }}
         />
+      )}
+      {merchOpen && (
+        <MerchLibrary api={api} canManage={canManageMerch} close={() => setMerchOpen(false)} />
       )}
     </section>
   );

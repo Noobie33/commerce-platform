@@ -1,4 +1,5 @@
-﻿export type ContentState = 'draft' | 'in_review' | 'approved' | 'changes_requested';
+import type { MerchAssignments, MerchProjection } from './merch-types';
+export type ContentState = 'draft' | 'in_review' | 'approved' | 'changes_requested';
 export interface SpecificationField {
   label: string;
   kind: 'text' | 'choice' | 'decimal';
@@ -12,6 +13,7 @@ export interface ContentProfile {
   fields: Record<string, SpecificationField>;
 }
 export interface ContentSnapshot {
+  merchandising?: MerchProjection;
   productId: string;
   productVersion: number;
   styleCode: string;
@@ -64,6 +66,7 @@ export interface ContentInput {
   description?: string;
   specifications?: Record<string, string>;
   reason?: string;
+  merchandising?: MerchAssignments;
 }
 export interface ContentResult {
   productId: string;

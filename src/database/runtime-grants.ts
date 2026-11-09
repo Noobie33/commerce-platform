@@ -159,6 +159,19 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         role +
         '"',
     );
+    await manager.query(
+      'GRANT SELECT ON catalog_merch_items,catalog_merch_versions,catalog_merch_links,catalog_merch_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.catalog_merch_post(uuid,uuid,uuid,jsonb) TO "' + role + '"',
+    );
+    await manager.query(
+      'REVOKE ALL ON FUNCTION public.catalog_content_post_v14(uuid,uuid,uuid,jsonb),public.catalog_content_snapshot_v14(uuid),public.catalog_content_issues_v14(uuid) FROM "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

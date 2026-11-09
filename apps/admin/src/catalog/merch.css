@@ -1,0 +1,137 @@
+﻿.merch-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.merch-actions h3 {
+  flex: 1;
+}
+.merch-table-scroll {
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+}
+.merch-table-scroll table {
+  border-collapse: collapse;
+  min-width: 360px;
+  width: 100%;
+  font-size: 13px;
+}
+.merch-table-scroll th,
+.merch-table-scroll td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  vertical-align: top;
+}
+.merch-table-scroll th {
+  background: #fafafa;
+}
+.merch-table-scroll input {
+  min-width: 110px;
+}
+.merch-table-scroll caption {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+}
+.merch-library-list {
+  display: grid;
+  gap: 10px;
+}
+.merch-library-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  padding: 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #fff;
+  color: #242424;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+.merch-library-row small {
+  display: block;
+  color: #737373;
+  margin-top: 5px;
+}
+.merch-library-row span {
+  overflow-wrap: anywhere;
+}
+.merch-preview,
+.merch-history,
+.merch-assignments {
+  min-width: 0;
+}
+.merch-preview small {
+  font-weight: 400;
+  color: #737373;
+}
+.merch-preview p,
+.merch-copy {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.merch-selection {
+  padding: 14px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.merch-selection .merch-preview {
+  width: 100%;
+}
+.merch-history details {
+  padding: 16px 0;
+  border-bottom: 1px solid #eee;
+}
+.merch-history summary {
+  cursor: pointer;
+  line-height: 1.5;
+}
+.content-fields .merch-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.content-fields .merch-checkbox input {
+  width: auto;
+}
+.merch-assignments > label {
+  margin: 14px 0;
+}
+@media (max-width: 600px) {
+  .merch-library-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .merch-actions > * {
+    max-width: 100%;
+  }
+  .merch-selection {
+    align-items: flex-start;
+  }
+  .merch-table-scroll th,
+  .merch-table-scroll td {
+    padding: 10px;
+  }
+}
+.merch-preview .merch-table-scroll table {
+  min-width: 100%;
+}
+.merch-preview .merch-table-scroll th,
+.merch-preview .merch-table-scroll td {
+  white-space: nowrap;
+}

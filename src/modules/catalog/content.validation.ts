@@ -1,4 +1,5 @@
-﻿import { BadRequestException } from '@nestjs/common';
+import { merchAssignments } from './merch.validation.js';
+import { BadRequestException } from '@nestjs/common';
 import type { ContentInput } from './content.types.js';
 function invalid(): never {
   throw new BadRequestException({
@@ -32,6 +33,7 @@ export function contentInput(value: unknown): ContentInput {
     'description',
     'specifications',
     'reason',
+    'merchandising',
   ]);
   if (
     !['save', 'submit', 'approve', 'request_changes', 'withdraw'].includes(String(b.action)) ||
@@ -50,6 +52,7 @@ export function contentInput(value: unknown): ContentInput {
   };
   if (result.action === 'save') {
     if ('reason' in b) invalid();
+    if ('merchandising' in b) result.merchandising = merchAssignments(b.merchandising);
     result.profile = text(b.profile, 60);
     result.slug = text(b.slug, 120);
     result.description = text(b.description, 2000);
@@ -72,7 +75,8 @@ export function contentInput(value: unknown): ContentInput {
       result.specifications[key] = text(v, 600);
     }
   } else {
-    if (['profile', 'slug', 'description', 'specifications'].some((k) => k in b)) invalid();
+    if (['profile', 'slug', 'description', 'specifications', 'merchandising'].some((k) => k in b))
+      invalid();
     if (result.action === 'submit') {
       if ('reason' in b) invalid();
     } else {

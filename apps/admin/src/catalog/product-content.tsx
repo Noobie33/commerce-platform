@@ -1,4 +1,7 @@
-﻿import { useCallback, useEffect, useRef, useState } from 'react';
+import { MerchAssignmentsEditor } from './merch-assignments';
+import { MerchDetails } from './merch-details';
+import type { MerchAssignments } from './merch-types';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
 import { Dialog } from '../components/dialog';
 import type { Product } from './types';
@@ -25,6 +28,7 @@ function orderedEntries<T>(fields: Record<string, T>): [string, T][] {
   });
 }
 type Draft = {
+  merchandising: MerchAssignments;
   profile: string;
   slug: string;
   description: string;
@@ -35,6 +39,13 @@ const money = (value: string) => {
   const n = BigInt(value);
   return 'BDT ' + (n / 100n).toLocaleString('en-BD') + '.' + (n % 100n).toString().padStart(2, '0');
 };
+function toAssignments(value: ContentView): MerchAssignments {
+  const p = value.preview.merchandising;
+  return {
+    sizeGuide: p?.sizeGuide ? { id: p.sizeGuide.id, version: p.sizeGuide.version } : null,
+    collections: p?.collections.map((x) => ({ id: x.id, version: x.version })) ?? [],
+  };
+}
 export function ProductContent({
   api,
   product,
@@ -69,8 +80,15 @@ export function ProductContent({
           slug: value.record.slug,
           description: value.record.description,
           specifications: value.record.specifications,
+          merchandising: toAssignments(value),
         }
-      : { profile: 'clothing-v1', slug: '', description: '', specifications: {} };
+      : {
+          profile: 'clothing-v1',
+          slug: '',
+          description: '',
+          specifications: {},
+          merchandising: toAssignments(value),
+        };
     setView(value);
     setForm(draft);
     setOriginal(JSON.stringify(draft));
@@ -89,8 +107,15 @@ export function ProductContent({
               slug: value.record.slug,
               description: value.record.description,
               specifications: value.record.specifications,
+              merchandising: toAssignments(value),
             }
-          : { profile: 'clothing-v1', slug: '', description: '', specifications: {} };
+          : {
+              profile: 'clothing-v1',
+              slug: '',
+              description: '',
+              specifications: {},
+              merchandising: toAssignments(value),
+            };
         setView(value);
         setForm(draft);
         setOriginal(JSON.stringify(draft));
@@ -176,7 +201,16 @@ export function ProductContent({
   const profile = view?.profiles.find((p) => p.code === form?.profile),
     reviewing = view?.record?.state === 'in_review',
     editable = canManage && !reviewing;
-  const currentPreview = view && form ? { ...view.preview, ...form } : null;
+  const currentPreview =
+    view && form
+      ? {
+          ...view.preview,
+          profile: form.profile,
+          slug: form.slug,
+          description: form.description,
+          specifications: form.specifications,
+        }
+      : null;
   const snapshot =
     historical ??
     (!dirty &&
@@ -300,9 +334,30 @@ export function ProductContent({
                     </li>
                   ))}
                 </ul>
+                {(!dirty || historical) && snapshot?.merchandising?.sizeGuide && (
+                  <MerchDetails item={snapshot.merchandising.sizeGuide} />
+                )}
+                {(!dirty || historical) && !!snapshot?.merchandising?.collections.length && (
+                  <section>
+                    <h3>Collections</h3>
+                    <ul>
+                      {snapshot.merchandising.collections.map((x) => (
+                        <li key={x.id}>
+                          {x.definition.title} / v{x.version}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {dirty && (
+                  <p className="catalog-note">
+                    Save the draft to preview its selected guide and collection versions.
+                  </p>
+                )}
                 <p className="catalog-note">
-                  These are reference product measurements. Size-specific garment and body
-                  measurements belong in a separate size guide.
+                  {snapshot?.merchandising?.sizeGuide
+                    ? 'The selected chart states its own unit and garment/body measurement basis.'
+                    : 'Select a size guide to add size-specific garment or body measurements.'}
                 </p>
               </section>
             ) : (
@@ -347,6 +402,12 @@ export function ProductContent({
                     onChange={(e) => update({ description: e.target.value })}
                   />
                 </label>
+                <MerchAssignmentsEditor
+                  api={api}
+                  value={form.merchandising}
+                  projection={view.preview.merchandising}
+                  onChange={(merchandising) => update({ merchandising })}
+                />
                 {orderedEntries(profile?.fields ?? {}).map(([key, field]) => (
                   <label key={key} className={key === 'care' ? 'content-full' : ''}>
                     {field.label}

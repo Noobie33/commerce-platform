@@ -10,7 +10,7 @@ Create a style, optionally select/create a category, and enter variants individu
 
 Draft, active and archived are explicit product states. An active product needs an active variant. Archived records and inactive variants remain in history. Saved style codes, SKUs and option attributes are permanent; deactivate a variant and add a replacement when an option changes. Saved variants cannot be removed from an edit.
 
-Product photos are now managed through a separate protected workflow. See [photo upload/storage decisions](PRODUCT-MEDIA.md).
+Product photos are managed through a separate protected workflow. See [photo upload/storage decisions](PRODUCT-MEDIA.md). Product content now has its own typed preparation, private preview and review workflow at schema 14; see [Product content and review](PRODUCT-CONTENT.md). Operational active status does not mean a product is approved or publicly published.
 
 ## Technical decisions and reasons
 
@@ -45,4 +45,4 @@ Authenticated writes require the existing exact Origin, JSON, X-Requested-With a
 
 Database tests exercise actual HTTP permissions/CSRF, Unicode categories, exact prices, concurrent retries, key/body/actor mismatch, stale edits, SKU/barcode conflicts, identifier immutability, variant replacement, literal search, pagination, audit rollback and migration apply/revert.
 
-Inventory quantities, purchase cost, tax/discount policy, B2B price lists, bulk import, stock movement, purchasing and sales are separate upcoming slices. A retail price in this catalog does not mean inventory or a posted financial transaction exists. Production rollout still requires the documented hardening, recovery and operational work.
+Multi-location stock, purchasing and retail sales drafts are implemented in separate modules. Wholesale/B2B pricing is excluded by the retail-only decision. Bulk import, tax/retail promotion policy, public publishing, size guides, collections and the storefront remain separate upcoming slices. A retail price in this catalog does not mean inventory or a posted financial transaction exists. Production rollout still requires the documented hardening, recovery and operational work.

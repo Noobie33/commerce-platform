@@ -343,7 +343,12 @@ export function Workspace({
             />
           )}
           {page === 'catalog' && canSeeCatalog(user) && (
-            <CatalogPage api={api} canManage={hasGlobal(user, 'catalog.manage')} />
+            <CatalogPage
+              api={api}
+              canManage={hasGlobal(user, 'catalog.manage')}
+              canManageContent={hasGlobal(user, 'catalog.content.manage')}
+              canReviewContent={hasGlobal(user, 'catalog.content.review')}
+            />
           )}
           {page === 'inventory' && canSeeInventory(user) && (
             <InventoryPage api={api} canManageLocations={hasGlobal(user, 'locations.manage')} />

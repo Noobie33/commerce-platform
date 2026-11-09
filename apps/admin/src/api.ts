@@ -1,3 +1,4 @@
+import type { ContentView, ContentInput, ContentResult } from './catalog/content-types';
 import type {
   ReservationPage,
   ReservationInput,
@@ -115,6 +116,19 @@ export class ApiError extends Error {
               SALES_NOT_FOUND: 'This sales order could not be found.',
               CUSTOMER_STALE:
                 'This customer changed. Close this form and refresh before editing again.',
+              CONTENT_STALE: 'This product or content changed. Reload before continuing.',
+              CONTENT_CHANGED:
+                'The catalog or photos changed after submission. Request changes and submit a fresh version.',
+              CONTENT_INCOMPLETE: 'Complete the review checklist before submitting or approving.',
+              CONTENT_STATE: 'This review state no longer permits that action. Reload the content.',
+              CONTENT_SELF_REVIEW:
+                'A different reviewer must approve this content. Only an owner may explicitly self-approve.',
+              CONTENT_SLUG_EXISTS: 'This product URL name is already in use.',
+              CONTENT_IDEMPOTENCY:
+                'This request key belongs to another action. Reload before retrying.',
+              INVALID_CONTENT_INPUT:
+                'Check the selected product type, values, URL name and field limits.',
+              CONTENT_NOT_FOUND: 'This product could not be found.',
               CUSTOMER_RETAIL_ONLY:
                 'Historical trade profiles are read-only. Only retail profiles can be changed.',
               SALES_RETAIL_ONLY: 'Only retail drafts at catalog prices can be changed.',
@@ -635,6 +649,18 @@ export class StaffApi {
     if (!response.headers.get('content-type')?.startsWith('text/csv'))
       throw new Error('The workspace returned an unexpected export.');
     return response.blob();
+  }
+  productContent(id: string, page = 1) {
+    return this.request<ContentView>(
+      '/catalog/products/' + encodeURIComponent(id) + '/content?page=' + page,
+    );
+  }
+  saveProductContent(id: string, input: ContentInput, key: string) {
+    return this.request<ContentResult>(
+      '/catalog/products/' + encodeURIComponent(id) + '/content',
+      input,
+      { key },
+    );
   }
   customers(query: { search: string; page: number; status: string; kind: string }) {
     return this.request<CustomerPage>(

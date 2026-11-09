@@ -1,3 +1,5 @@
+import { ProductContentController } from './content.controller.js';
+import { ProductContentService } from './content.service.js';
 import { readMediaPolicy } from '../../infrastructure/media/media-policy.js';
 import { ProductMediaController } from './media.controller.js';
 import { ProductMediaService } from './media.service.js';
@@ -20,8 +22,13 @@ export class CatalogModule {
     return {
       module: CatalogModule,
       imports: [databaseModule],
-      controllers: [CatalogController, ProductMediaController],
+      controllers: [CatalogController, ProductMediaController, ProductContentController],
       providers: [
+        {
+          provide: ProductContentService,
+          useFactory: (source: DataSource) => new ProductContentService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: ProductMediaService,
           useFactory: (source: DataSource) =>

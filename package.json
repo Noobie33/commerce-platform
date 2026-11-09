@@ -13,7 +13,7 @@
     "start": "node dist/src/main.js",
     "test": "npm run build && node --test dist/test/*.test.js",
     "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
-    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js dist/test/media.integration.js dist/test/inventory.integration.js dist/test/purchasing.integration.js dist/test/receipts.integration.js dist/test/invoices.integration.js dist/test/payments.integration.js dist/test/reports.integration.js dist/test/customers.integration.js dist/test/sales.integration.js dist/test/reservations.integration.js dist/test/retail.integration.js",
+    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js dist/test/media.integration.js dist/test/inventory.integration.js dist/test/purchasing.integration.js dist/test/receipts.integration.js dist/test/invoices.integration.js dist/test/payments.integration.js dist/test/reports.integration.js dist/test/customers.integration.js dist/test/sales.integration.js dist/test/reservations.integration.js dist/test/retail.integration.js dist/test/content.integration.js",
     "db:provision-local": "node --env-file=.env.setup src/scripts/provision-local.mjs",
     "db:verify-local": "node src/scripts/verify-local-databases.mjs",
     "start:local": "node --env-file=.env dist/src/main.js",
@@ -31,7 +31,8 @@
     "payments:verify-local": "node --env-file=.env dist/src/scripts/verify-payments.js",
     "customers:verify-local": "node --env-file=.env dist/src/scripts/verify-customers.js",
     "sales:verify-local": "node --env-file=.env dist/src/scripts/verify-sales.js",
-    "reservations:verify-local": "node --env-file=.env dist/src/scripts/verify-reservations.js"
+    "reservations:verify-local": "node --env-file=.env dist/src/scripts/verify-reservations.js",
+    "content:verify-local": "node --env-file=.env dist/src/scripts/verify-content.js"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",

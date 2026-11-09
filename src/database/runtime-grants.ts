@@ -149,6 +149,16 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
     );
     if (privateAccess[0]?.allowed)
       throw new Error('Runtime role must not execute the private stock posting function');
+    await manager.query(
+      'GRANT SELECT ON catalog_content_profiles,catalog_product_content,catalog_content_events,catalog_content_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.catalog_content_snapshot(uuid),public.catalog_content_issues(uuid),public.catalog_content_post(uuid,uuid,uuid,jsonb) TO "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

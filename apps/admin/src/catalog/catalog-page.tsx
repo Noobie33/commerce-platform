@@ -1,3 +1,4 @@
+import { ProductContent } from './product-content';
 import { useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
@@ -8,7 +9,18 @@ import { ProductDetail } from './product-detail';
 import { ProductGrid } from './product-grid';
 import { MediaManager } from './media-manager';
 import type { Category, Product, ProductPage, ProductStatus } from './types';
-export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: boolean }) {
+export function CatalogPage({
+  api,
+  canManage,
+  canManageContent,
+  canReviewContent,
+}: {
+  api: StaffApi;
+  canManage: boolean;
+  canManageContent: boolean;
+  canReviewContent: boolean;
+}) {
+  const [contentProduct, setContentProduct] = useState<Product | null>(null);
   const [mediaProduct, setMediaProduct] = useState<Product | null>(null);
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const [wide, setWide] = useState(() => window.matchMedia('(min-width: 1180px)').matches);
@@ -393,6 +405,10 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
         </div>
         {detail && (
           <ProductDetail
+            onContent={(p) => {
+              setContentProduct(p);
+              setDetail(null);
+            }}
             product={detail}
             categories={categories}
             inline={wide}
@@ -424,6 +440,18 @@ export function CatalogPage({ api, canManage }: { api: StaffApi; canManage: bool
             setCategories((rows) => [...rows, c]);
             setCategoryOpen(false);
             setNotice('Category created.');
+          }}
+        />
+      )}
+      {contentProduct && (
+        <ProductContent
+          api={api}
+          product={contentProduct}
+          canManage={canManageContent}
+          canReview={canReviewContent}
+          close={() => {
+            setContentProduct(null);
+            void open(contentProduct.id);
           }}
         />
       )}

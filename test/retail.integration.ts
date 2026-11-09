@@ -313,7 +313,10 @@ test('retail policy safely reverts and reapplies on an empty scratch schema', as
   try {
     await r.query('CREATE SCHEMA ' + schema);
     await r.query('SET search_path TO ' + schema + ',public');
-    for (const migration of db.migrations) await migration.up(r);
+    for (const migration of db.migrations) {
+      await migration.up(r);
+      if (migration instanceof RetailOnly1794111000000) break;
+    }
     const next = new RetailOnly1794111000000();
     await next.down(r);
     assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 12);

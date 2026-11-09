@@ -84,3 +84,7 @@ Sales adds a searchable/filterable order directory and retail-only draft editor.
 ## Timed stock holds
 
 Sales order detail now includes a permission-scoped availability table and stock hold history. Authorized staff review a reason/duration before holding the full order or releasing its hold. An active hold disables draft edit/cancel until release. Inventory shows physical, reserved and available pieces; expired holds stop consuming availability. No financial approval or customer balance is created. See [reservation rules and concurrency verification](SALES-RESERVATIONS.md).
+
+## Product content and review
+
+In Catalog, select a product and open Product content & review. Content preparers choose Clothing/Accessories/Lifestyle fields, save drafts and submit complete copy. Reviewers inspect protected previews and approve or request changes with a reason. Submitted content cannot be silently edited. Historical snapshots preserve their original SKU price/copy; later catalog or photo changes require re-review. Ordinary staff cannot self-approve; owner self-approval is explicit and audited. This approval does not put the product online. See [content decisions](PRODUCT-CONTENT.md).

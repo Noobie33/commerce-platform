@@ -10,6 +10,7 @@ export function ProductDetail({
   onClose,
   onEdit,
   onManagePhotos,
+  onContent,
   inline = false,
 }: {
   product: Product;
@@ -17,6 +18,7 @@ export function ProductDetail({
   onClose: () => void;
   onEdit?: (p: Product) => void;
   onManagePhotos?: (p: Product) => void;
+  onContent?: (p: Product) => void;
   inline?: boolean;
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -72,6 +74,14 @@ export function ProductDetail({
           </button>
         )}
 
+        {onContent && (
+          <button
+            className="secondary-button manage-photos-button"
+            onClick={() => onContent(product)}
+          >
+            Product content & review
+          </button>
+        )}
         <div className="detail-facts">
           <div>
             <span>From price</span>

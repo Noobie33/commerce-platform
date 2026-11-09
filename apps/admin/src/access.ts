@@ -11,6 +11,8 @@ export const permissionNames: Record<string, string> = {
   'audit.read': 'View activity history',
   'catalog.read': 'View catalog',
   'catalog.manage': 'Manage catalog',
+  'catalog.content.manage': 'Prepare product content',
+  'catalog.content.review': 'Review product content',
 };
 
 export const canSeeInventory = (user: Profile) =>

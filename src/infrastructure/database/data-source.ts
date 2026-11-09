@@ -1,3 +1,5 @@
+import { ContentIntegrity1794113000000 } from '../../database/migrations/1794113000000-content-integrity.js';
+import { CatalogContent1794112000000 } from '../../database/migrations/1794112000000-catalog-content.js';
 import { RetailOnly1794111000000 } from '../../database/migrations/1794111000000-retail-only.js';
 import { SalesReservations1794110000000 } from '../../database/migrations/1794110000000-sales-reservations.js';
 import { SalesDrafts1794109000000 } from '../../database/migrations/1794109000000-sales-drafts.js';
@@ -61,6 +63,8 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       SalesDrafts1794109000000,
       SalesReservations1794110000000,
       RetailOnly1794111000000,
+      CatalogContent1794112000000,
+      ContentIntegrity1794113000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

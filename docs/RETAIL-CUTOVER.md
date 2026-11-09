@@ -43,4 +43,4 @@ Browser QA used a disposable test-only staff session and records. At 390px, a re
 
 ## Next boundary
 
-R2 begins with a small catalog/content slice: typed category-specific specifications and controlled draft/review/preview/publication contracts, followed by reusable size guides, collections and safe image/video publishing. Staff/role administration required for real employee workflows remains pending. The Aarong-aligned public storefront, confirmed-order allocations, checkout, payments/COD settlement, delivery and returns are subsequent phases; none is implied by this cutover.
+R2a now implements typed product-content profiles, private preview and reviewed snapshots; see [product content](PRODUCT-CONTENT.md). Reusable size guides, category vocabulary/collections and safe public image/video publication remain next. Staff/role administration required for real employee workflows remains pending. The Aarong-aligned public storefront, confirmed-order allocations, checkout, payments/COD settlement, delivery and returns are subsequent phases; none is implied by this cutover.

@@ -40,7 +40,7 @@ export function CustomersPage({
       (options) => api.customers({ search: query, status, kind, page }, options),
       [api, query, status, kind, page],
     ),
-    { revision, paused: !!(detail || editor) },
+    { topics: ['customers'], revision, paused: !!(detail || editor) },
   );
   const data = read.data,
     loading = read.loading,

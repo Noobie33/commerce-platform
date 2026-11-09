@@ -5,6 +5,7 @@ import { permits } from '../authorization/policy.js';
 import { IdentityService } from './identity.service.js';
 import {
   AUTHENTICATED,
+  BACKGROUND_READ,
   IMAGE_UPLOAD,
   PASSWORD_CHANGE_ALLOWED,
   PERMISSION,
@@ -46,7 +47,10 @@ export class StaffGuard implements CanActivate {
       .filter((cookie) => cookie.startsWith(this.config.cookieName + '='));
     if (cookies.length !== 1) throw new UnauthorizedException('Authentication required');
     const token = cookies[0]!.slice(this.config.cookieName.length + 1);
-    const backgroundRead = req.method === 'GET' && req.headers['x-background-read'] === '1';
+    const backgroundRead =
+      req.method === 'GET' &&
+      (req.headers['x-background-read'] === '1' ||
+        this.reflector.getAllAndOverride<boolean>(BACKGROUND_READ, targets));
     const principal = await this.identity.authenticate(token, !backgroundRead);
     req.principal = principal;
     if (writing) this.identity.assertCsrf(principal, req.headers['x-csrf-token']);

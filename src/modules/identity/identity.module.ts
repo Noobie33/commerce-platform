@@ -18,6 +18,7 @@ export class IdentityModule {
       module: IdentityModule,
       imports: [databaseModule],
       controllers: [IdentityController],
+      exports: [IdentityService, AUTH_CONFIG],
       providers: [
         { provide: AUTH_CONFIG, useValue: readAuthConfig(env) },
         { provide: PasswordService, useFactory: () => new PasswordService() },

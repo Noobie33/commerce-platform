@@ -18,6 +18,7 @@ export function PayablesReports({ api, onBack }: { api: StaffApi; onBack: () => 
   const read = useLiveRead(
     useCallback((options) => api.payableAging({ ...query, page }, options), [api, query, page]),
     {
+      topics: ['purchasing'],
       revision,
       paused:
         !!supplierId || (!!query.asOf && asOf !== query.asOf) || search.trim() !== query.search,

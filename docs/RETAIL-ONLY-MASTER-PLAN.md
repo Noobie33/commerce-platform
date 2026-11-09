@@ -1,6 +1,6 @@
 ﻿# Retail-only master plan
 
-Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 15). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
+Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 16; authenticated live-update infrastructure added). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
 
 This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. The original R0 planning change altered documentation only. The subsequent R1 implementation retires trade writes through a forward migration while preserving business history; later phases remain pending.
 
@@ -171,7 +171,7 @@ Local development currently uses existing tools. Hosting/domain, public storage/
 
 ## 13. Next-session checkpoint
 
-R1 and R2a are implemented at schema 15. Continue with reusable versioned size guides, collections/category vocabulary and the remaining staff-role/public-media publication gates. Typed product profiles, private previews and content review already exist; do not rebuild them. Review current code/data first. Do not resume the old customer-credit or B2B confirmation roadmap. Keep current operational history intact. Update this plan and the feature register after each accepted slice, and distinguish implemented behavior, tested evidence and remaining gaps.
+R1 and R2a are implemented; schema 16 adds authenticated live updates with recovery checks (see [data freshness](DATA-FRESHNESS.md)). Continue with reusable versioned size guides, collections/category vocabulary and the remaining staff-role/public-media publication gates. Typed product profiles, private previews and content review already exist; do not rebuild them. Review current code/data first. Do not resume the old customer-credit or B2B confirmation roadmap. Keep current operational history intact. Update this plan and the feature register after each accepted slice, and distinguish implemented behavior, tested evidence and remaining gaps.
 
 ## Sources
 

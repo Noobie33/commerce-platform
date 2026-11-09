@@ -12,3 +12,6 @@ export const RequirePermission = (code: string, locationParam?: string) =>
 
 export const IMAGE_UPLOAD = 'staff.image_upload';
 export const ImageUpload = () => SetMetadata(IMAGE_UPLOAD, true);
+
+export const BACKGROUND_READ = 'staff.background_read';
+export const BackgroundRead = () => SetMetadata(BACKGROUND_READ, true);

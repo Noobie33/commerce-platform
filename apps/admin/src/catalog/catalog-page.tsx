@@ -69,7 +69,11 @@ export function CatalogPage({
         ]),
       [api, query, status, categoryId, page],
     ),
-    { revision, paused: !!(editor || detail || mediaProduct || contentProduct || categoryOpen) },
+    {
+      topics: ['catalog'],
+      revision,
+      paused: !!(editor || detail || mediaProduct || contentProduct || categoryOpen),
+    },
   );
   const data = read.data?.[0] ?? null,
     categoriesFromRead = read.data?.[1] ?? [];

@@ -1,29 +1,37 @@
-﻿# Automatic staff-list updates
+﻿# Live staff updates and recovery
 
-Implemented 10 November 2026. Native Fetch already handled asynchronous requests; a Refresh button has always requested data without reloading the page. Fetch is the transport. Automatic revalidation is the separate policy added here.
+Implemented 10 November 2026, schema 16. This extends the earlier automatic-read policy: server push is now the primary change signal; a 30-second read remains a safety reconciliation, including time-based stock-hold expiry. Native Fetch still retrieves authorized data and performs writes. There are no new package dependencies or paid services.
 
-## Behavior and scope
+## Why these choices
 
-Visible catalog/category, customer, stock/movement/location, supplier/purchase-order, supplier-invoice, supplier-payment, payable-aging and team lists check for changes every 30 seconds. Focus, reconnect and returning to a visible tab also trigger a check, with a short duplicate-event throttle. An update is a fresh authorized server read, not a browser page reload. Saved changes still invalidate the relevant list immediately through the existing save callbacks.
+Use same-origin, cookie-authenticated Server-Sent Events (SSE) for server-to-browser invalidation. Staff writes already use HTTP/Fetch; bidirectional WebSocket messaging is unnecessary for this workflow. A single stream per signed-in browser tab serves its visible lists. [NestJS SSE guidance](https://docs.nestjs.com/techniques/server-sent-events) describes this server-push transport.
 
-This is periodic refresh, not instantaneous push delivery. A timer may run later in a suspended/background browser. There is no request while hidden, offline, already fetching or paused for an open record. No websocket service or additional dependency is needed for this bounded local increment.
+Use PostgreSQL LISTEN/NOTIFY on a dedicated runtime connection per application instance. Schema 16 adds notification triggers to the explicit catalog, inventory, purchasing, customer, sales and access tables. A transaction's hints reach listeners only after commit; rollback produces none. This also covers changes made by a different application instance or an authorized database connection. Notification payloads contain only allowlisted topics and, internally where needed, a location UUID. Browser frames contain only coarse topics; no customer contacts, amounts, quantities, record IDs, session tokens or snapshots. [PostgreSQL NOTIFY semantics](https://www.postgresql.org/docs/18/sql-notify.html) support commit-time delivery and folding of identical hints within a transaction.
 
-The status line shows the last successful check in Dhaka time and distinguishes updating, paused, offline and failed refreshes. Existing data remains visible during background reads and temporary failures. Refresh/Retry remains an explicit fallback. Search, filters, pagination and card/table choice stay in place. If removal shrinks a result set, pagination moves to its last valid page.
+These are disposable cache-invalidation hints, not a durable event log or business queue. A lost event is repaired by rereading the current authorized state. Payments, courier jobs and other future guaranteed side effects require their own transactional outbox/retry design; they must never depend on this stream.
 
-## Editing and correctness
+## Visible behavior
 
-An open editor, detail/review panel or document workspace pauses background list checks. The payable-aging report also pauses while its filters have unapplied edits; its chosen report date stays fixed. Existing detail views, supplier-picker searches and transactional forms retain their deliberate read/review/save flow. Automatic reads do not replace typed text, reviewed prices or approval snapshots. Server-side permissions, revision checks, transactions and stock validation remain authoritative on every write.
+Catalog, customer, stock/location/history, sales, supplier/purchase-order, invoice, payment, aging and team lists react to relevant permitted changes. The UI displays `Live updates connected` while the server's database listener is available. Lost browser/database connections show a recovery/fallback state. EventSource reconnects; a recovered connection requests a fresh read to cover any missing hints. Focus, reconnect, visibility return and 30-second safety checks also reconcile data. Delivery is near real time, subject to network and request duration; there is no zero-latency guarantee.
 
-One controller owns each query's request generation and abort signal. Automatic requests coalesce; an explicit retry supersedes the older read. Late responses cannot replace newer results or publish after unmount. A changed query starts without rows belonging to its previous filter. React subscriptions, focus listeners and timers are cleaned up on unmount.
+Server notification batches use a short 100 ms delay. Browser invalidations coalesce with a minimum request spacing; notifications arriving during an active request remain pending and trigger a subsequent read. Hidden/offline views and open editors/details pause reads. Pending changes reconcile after the view is safe again. Typed text, reviewed prices, report cutoffs and content-review snapshots are not silently rewritten. Query changes create a separate resource; old responses cannot overwrite a newer query.
 
-## Sessions and privacy
+During temporary read failures, last successful rows and check time remain visible with a retry message. Search/filter/page/card choice remains intact, with pagination clamped when a result set shrinks. Refresh/Retry is retained as a manual fallback. Existing save callbacks continue immediate local invalidation. Detailed record panels retain their deliberate read/review/save flow.
 
-Only automatic GETs carry `X-Background-Read: 1`. The server still checks session validity, idle expiry, active staff and current grants, but does not renew session activity for those reads. Normal interactive requests retain existing activity renewal. Writes cannot turn off their normal authentication/CSRF behavior by adding that header.
+## Security and bounded resources
 
-Authentication/permission failures clear the affected list's cached private rows. A permission failure stops its automatic retries until an explicit retry or changed query. Expired authenticated sessions also use the existing sign-in transition. No database migration or stored business-data conversion is involved.
+The stream requires the existing protected staff cookie and default-deny guard; it is marked as a background read on the server because EventSource cannot set the ordinary background header. Opening/reconnecting, heartbeats and notification checks never renew idle activity. Authentication and current grants are checked before notification delivery and every 15 seconds. Idle expiry, logout/revocation, deactivation and forced password change close the stream. Cross-site/origin-mismatched requests are rejected. No credential is placed in a URL.
 
-## Verification and remaining work
+Inventory hints are filtered by current location grants before their location identifiers are discarded. Other feature topics require the corresponding global read grants. Access changes produce a generic reconciliation signal after authentication is rechecked; actual list APIs remain authoritative and clear private cached rows on denial. A hint is never authorization to read a record or mutate stock/money.
 
-Focused controller tests cover polling, overlap, hidden/offline/edit pauses, reconnect, transient errors, access revocation, request supersession, cleanup and remount. Real PostgreSQL/HTTP tests verify background idle behavior, normal activity renewal, expired sessions, scoped permissions and write protection. Existing unit and database suites remain required.
+Streams are capped at five per staff member and 256 per process. Slow clients are closed instead of buffering an unbounded history. Pending server hints are capped and overflow becomes a generic reconciliation. Request/listener timers, disconnected clients and the dedicated PostgreSQL connection are released on shutdown. Database listener failures use bounded exponential reconnect delay, up to 30 seconds. Stream traffic is optional for business correctness; normal authorized APIs and recovery reads remain available when it fails.
 
-Browser verification uses disposable fixtures in the isolated test database, on a separate loopback hostname from the development account. Operational push notifications and detailed cross-user edit conflict indicators can be considered later if measured needs justify them. Size guides, collections/category vocabulary and publication remain the next product-content roadmap work; this freshness increment does not implement them.
+## Verification and deployment gates
+
+Required checks include pure controller and browser-connection tests, real HTTP session/scope tests, commit versus rollback, delivery across two application instances, listener termination/reconnect, permission removal, idle expiry and migration revert/reapply. UI verification uses disposable test-database fixtures on a separate loopback hostname, checks external updates before the safety interval, and confirms an open unsaved form survives.
+
+Local evidence: 48 unit/interface tests and 200 reported PostgreSQL checks passed. The schema-16 development migration applied once and left all 48 existing data-table fingerprints unchanged; its pre-migration backup was restored and compared in an isolated PostgreSQL instance. A disposable browser check observed an external change trigger a read in 304 ms, with unsaved text preserved and pending changes applied after closing the form. This single local measurement is not a performance guarantee.
+
+Production remains a separate gate: validate TLS/cookies, reverse-proxy buffering disabled, streaming timeouts longer than the heartbeat, HTTP/2 or browser connection limits, shutdown under active streams, load/connection capacity, monitoring and recovery. LISTEN needs a persistent database session; do not route it through transaction-mode pooling. Current database configuration deliberately remains local only. This increment does not establish production readiness or a universal enterprise-capacity claim.
+
+Reusable size guides, collections/category vocabulary, publication and the remaining retail lifecycle are still the product roadmap. This change does not publish a storefront or implement checkout.

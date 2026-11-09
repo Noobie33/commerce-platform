@@ -20,7 +20,9 @@ export function ReadStatus({ read }: { read: ReadSnapshot<unknown> }) {
               ? 'Automatic updates paused while editing or viewing a record'
               : read.refreshing
                 ? 'Checking for updates…'
-                : 'Automatic updates every 30 seconds'}
+                : read.live
+                  ? 'Live updates connected'
+                  : 'Live updates reconnecting; automatic checks every 30 seconds'}
         {time ? ' · Last checked ' + time + ' (Dhaka)' : ''}
       </span>
       {read.refreshError && (

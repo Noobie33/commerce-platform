@@ -58,6 +58,7 @@ export function PurchasingPage({
       [api, tab, query, status, page],
     ),
     {
+      topics: ['purchasing'],
       revision,
       enabled: tab === 'orders' || tab === 'suppliers',
       paused: !!(supplierDialog || editor || detail),

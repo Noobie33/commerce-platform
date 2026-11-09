@@ -2,7 +2,7 @@ import { useLiveRead } from '../data/use-live-read';
 import { ReadStatus } from '../data/read-status';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
-import type { SalesOrder, SalesLocation } from './types';
+import type { SalesOrder } from './types';
 import { SalesEditor } from './sales-editor';
 import { SalesDetail } from './sales-detail';
 import { CancelDraft } from './cancel-draft';
@@ -14,9 +14,7 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
     [status, setStatus] = useState('all'),
     [page, setPage] = useState(1),
     [revision, refresh] = useState(0),
-    [locations, setLocations] = useState<SalesLocation[]>([]),
     [actionError, setError] = useState(''),
-    [locationError, setLocationError] = useState(''),
     [notice, setNotice] = useState(''),
     [detail, setDetail] = useState<SalesOrder | null>(null),
     [editor, setEditor] = useState<SalesOrder | 'new' | null>(null),
@@ -33,12 +31,18 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
   useEffect(() => setError(''), [query, status, page, revision]);
   const read = useLiveRead(
     useCallback(
-      (options) => api.salesOrders({ search: query, status, page }, options),
+      (options) =>
+        Promise.all([
+          api.salesOrders({ search: query, status, page }, options),
+          api.salesLocations(options),
+        ]),
       [api, query, status, page],
     ),
-    { revision, paused: !!(detail || editor || cancel) },
+    { topics: ['sales'], revision, paused: !!(detail || editor || cancel) },
   );
-  const data = read.data,
+  const data = read.data?.[0] ?? null,
+    locations = read.data?.[1] ?? [],
+    locationError = read.error,
     loading = read.loading,
     error = read.error || actionError;
   useEffect(() => {
@@ -47,21 +51,6 @@ export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolea
       if (page > last) setPage(last);
     }
   }, [data, page]);
-  useEffect(() => {
-    let live = true;
-    setLocationError('');
-    void api
-      .salesLocations()
-      .then((r) => {
-        if (live) setLocations(r);
-      })
-      .catch((e) => {
-        if (live) setLocationError(problem(e));
-      });
-    return () => {
-      live = false;
-    };
-  }, [api, revision]);
   async function open(id: string) {
     const token = ++opening.current;
     setError('');

@@ -6,7 +6,14 @@ function fixture() {
   const clock = { time: 10000, visible: true, online: true, paused: false, timers: 0, wakes: 0 };
   let tick = () => {},
     wake = () => {};
+  const deferred = new Set<() => void>();
   const env: ReadEnvironment = {
+    after: (fn) => {
+      deferred.add(fn);
+      return () => {
+        deferred.delete(fn);
+      };
+    },
     now: () => clock.time,
     visible: () => clock.visible,
     online: () => clock.online,
@@ -41,7 +48,21 @@ function fixture() {
     clock.time += ms;
     tick();
   };
-  return { clock, resource, calls, advance, wake: () => wake(), env, load };
+  return {
+    clock,
+    resource,
+    calls,
+    advance,
+    wake: () => wake(),
+    env,
+    load,
+    flush: () => {
+      for (const fn of [...deferred]) {
+        deferred.delete(fn);
+        fn();
+      }
+    },
+  };
 }
 const settle = async () => {
   await Promise.resolve();
@@ -183,4 +204,52 @@ test('a new query starts with no rows from an earlier resource; disabled reads d
   assert.equal(disabled.snapshot().loading, false);
   disabled.stop();
   f.resource.stop();
+});
+
+test('push invalidations coalesce and are not lost behind an in-flight request', async () => {
+  const f = fixture();
+  f.resource.start();
+  f.resource.invalidate();
+  f.resource.invalidate();
+  f.flush();
+  assert.equal(f.calls.length, 1);
+  f.calls[0]!.resolve(['old']);
+  await settle();
+  f.flush();
+  assert.equal(f.calls.length, 2);
+  assert.equal(f.calls[1]!.options.background, true);
+  f.calls[1]!.resolve(['new']);
+  await settle();
+  assert.deepEqual(f.resource.snapshot().data, ['new']);
+  f.resource.stop();
+});
+test('push changes wait for an edited, hidden or offline view and resume after it is safe', async () => {
+  const f = fixture();
+  f.resource.start();
+  f.calls[0]!.resolve(['first']);
+  await settle();
+  f.clock.paused = true;
+  f.resource.invalidate();
+  f.flush();
+  assert.equal(f.calls.length, 1);
+  f.clock.paused = false;
+  f.clock.visible = false;
+  f.wake();
+  f.flush();
+  assert.equal(f.calls.length, 1);
+  f.clock.visible = true;
+  f.clock.online = false;
+  f.wake();
+  f.flush();
+  assert.equal(f.calls.length, 1);
+  f.clock.online = true;
+  f.wake();
+  f.flush();
+  assert.equal(f.calls.length, 2);
+  f.calls[1]!.resolve(['resumed']);
+  await settle();
+  f.resource.invalidate();
+  f.resource.stop();
+  f.flush();
+  assert.equal(f.calls.length, 2);
 });

@@ -1,3 +1,4 @@
+import { startStaffUpdates } from './data/live-channel';
 import { useEffect, useState } from 'react';
 import { StaffApi } from './api';
 import { SignIn, ChangePassword } from './auth';
@@ -39,6 +40,13 @@ export default function App() {
       api.onPasswordChangeRequired = undefined;
     };
   }, [api]);
+  useEffect(() => {
+    if (!user || user.mustChangePassword) return;
+    return startStaffUpdates(() => {
+      api.forget();
+      api.onSessionExpired?.();
+    });
+  }, [api, user?.id, user?.mustChangePassword]);
   const signedOut = (message: string) => {
     api.forget();
     setUser(null);

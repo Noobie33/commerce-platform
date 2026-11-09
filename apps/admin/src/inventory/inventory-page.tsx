@@ -34,6 +34,7 @@ export function InventoryPage({
   const locationRead = useLiveRead(
     useCallback((options) => api.inventoryLocations(options), [api]),
     {
+      topics: ['inventory', 'catalog'],
       revision: locationRevision,
       paused: !!(action || reversing || locationOpen || openingPreview),
     },
@@ -74,6 +75,7 @@ export function InventoryPage({
       [api, selectedId, query, filter, page, tab],
     ),
     {
+      topics: ['inventory', 'catalog'],
       revision,
       enabled: !!selectedId && !locationRead.accessDenied,
       paused: !!(action || reversing || locationOpen || openingPreview),

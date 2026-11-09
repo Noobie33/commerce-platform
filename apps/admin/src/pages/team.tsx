@@ -10,7 +10,7 @@ export function Team({ api, user }: { api: StaffApi; user: Profile }) {
   const [revision, setRevision] = useState(0);
   const read = useLiveRead(
     useCallback((options) => api.team(options), [api]),
-    { revision },
+    { topics: ['team'], revision },
   );
   const rows = read.data,
     error = read.error;

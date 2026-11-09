@@ -1,3 +1,4 @@
+import { LiveUpdatesModule } from './modules/live-updates/live-updates.module.js';
 import { SalesModule } from './modules/sales/sales.module.js';
 import { CustomerModule } from './modules/customers/customer.module.js';
 import { PurchasingModule } from './modules/purchasing/purchasing.module.js';
@@ -20,6 +21,7 @@ import type { StaffRequest, StaffResponse } from './modules/identity/http.types.
 
 export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: DatabaseDriver) {
   const databaseModule = DatabaseModule.forRoot(env, driver);
+  const identityModule = IdentityModule.forRoot(databaseModule, env);
   @Module({
     imports: [
       CatalogModule.forRoot(databaseModule, env),
@@ -29,7 +31,8 @@ export async function createApp(env: NodeJS.ProcessEnv = process.env, driver?: D
       SalesModule.forRoot(databaseModule),
       AdminModule,
       databaseModule,
-      IdentityModule.forRoot(databaseModule, env),
+      identityModule,
+      LiveUpdatesModule.forRoot(identityModule, env, !driver),
       OrganizationModule.forRoot(databaseModule),
     ],
     controllers: [HealthController],

@@ -25,7 +25,7 @@ export function InvoiceListView({ api, onBack }: { api: StaffApi; onBack: () => 
       (options) => api.supplierInvoices({ search: query, status, page }, options),
       [api, query, status, page],
     ),
-    { revision, paused: !!orderId },
+    { topics: ['purchasing'], revision, paused: !!orderId },
   );
   const data = read.data,
     loading = read.loading,

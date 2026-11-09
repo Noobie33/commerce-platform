@@ -28,7 +28,7 @@ export function PaymentListView({ api, onBack }: { api: StaffApi; onBack: () => 
       (options) => api.supplierPayments({ search: query, status, page }, options),
       [api, query, status, page],
     ),
-    { revision, paused: !!supplierId },
+    { topics: ['purchasing'], revision, paused: !!supplierId },
   );
   const data = read.data,
     loading = read.loading,

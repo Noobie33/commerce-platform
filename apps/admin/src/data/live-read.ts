@@ -12,6 +12,7 @@ export interface ReadSnapshot<T> {
   online: boolean;
   paused: boolean;
   accessDenied: boolean;
+  live: boolean;
 }
 export interface ReadEnvironment {
   now: () => number;
@@ -20,6 +21,9 @@ export interface ReadEnvironment {
   paused: () => boolean;
   every: (fn: () => void, ms: number) => () => void;
   onWake: (fn: () => void) => () => void;
+  onInvalidate?: (fn: () => void) => () => void;
+  live?: () => boolean;
+  after: (fn: () => void, ms: number) => () => void;
 }
 // One active generation per resource. Quiet refreshes never erase its last
 // successful result; changing the query creates a separate resource instead.
@@ -31,6 +35,9 @@ export class LiveRead<T> {
   private cancelTimer: (() => void) | null = null;
   private cancelWake: (() => void) | null = null;
   private lastAttempt = -Infinity;
+  private dirty = false;
+  private cancelPush: (() => void) | null = null;
+  private cancelPending: (() => void) | null = null;
   private state: ReadSnapshot<T>;
   constructor(
     private readonly load: (options: ReadOptions) => Promise<T>,
@@ -48,6 +55,7 @@ export class LiveRead<T> {
       online: env.online(),
       paused: env.paused(),
       accessDenied: false,
+      live: env.live?.() ?? false,
     };
   }
   snapshot = () => this.state;
@@ -67,6 +75,7 @@ export class LiveRead<T> {
     if (!this.enabled) return;
     this.cancelTimer = this.env.every(() => this.wake(), this.interval);
     this.cancelWake = this.env.onWake(() => this.wake());
+    this.cancelPush = this.env.onInvalidate?.(this.invalidate) ?? null;
     if (this.env.visible() && this.env.online()) void this.run(false);
   }
   stop() {
@@ -74,6 +83,9 @@ export class LiveRead<T> {
     this.generation++;
     this.controller?.abort();
     this.controller = null;
+    this.cancelPending?.();
+    this.cancelPush?.();
+    this.cancelPending = this.cancelPush = null;
     this.cancelTimer?.();
     this.cancelWake?.();
     this.cancelTimer = this.cancelWake = null;
@@ -82,7 +94,11 @@ export class LiveRead<T> {
     if (!this.active || !this.enabled) return;
     const online = this.env.online(),
       paused = this.env.paused();
-    this.publish({ online, paused });
+    this.publish({ online, paused, live: this.env.live?.() ?? false });
+    if (this.dirty) {
+      this.schedule();
+      return;
+    }
     if (
       this.state.accessDenied ||
       !online ||
@@ -94,6 +110,40 @@ export class LiveRead<T> {
       return;
     void this.run(true);
   };
+  invalidate = () => {
+    if (!this.active || !this.enabled || this.state.accessDenied) return;
+    this.dirty = true;
+    this.schedule();
+  };
+  private schedule() {
+    if (
+      !this.active ||
+      !this.dirty ||
+      this.state.accessDenied ||
+      this.controller ||
+      this.cancelPending ||
+      !this.env.visible() ||
+      !this.env.online() ||
+      this.env.paused()
+    )
+      return;
+    this.cancelPending = this.env.after(
+      () => {
+        this.cancelPending = null;
+        if (
+          !this.active ||
+          !this.dirty ||
+          this.controller ||
+          !this.env.visible() ||
+          !this.env.online() ||
+          this.env.paused()
+        )
+          return;
+        void this.run(true);
+      },
+      Math.max(100, this.lastAttempt + 250 - this.env.now()),
+    );
+  }
   refresh = () => {
     if (this.active && this.enabled) void this.run(false);
   };
@@ -103,6 +153,7 @@ export class LiveRead<T> {
       return;
     }
     if (background && this.controller) return;
+    this.dirty = false;
     // An explicit retry/save invalidation supersedes any older in-flight read.
     this.controller?.abort();
     const controller = new AbortController(),
@@ -142,6 +193,7 @@ export class LiveRead<T> {
       if (this.active && ticket === this.generation) {
         this.controller = null;
         this.publish({ loading: false, refreshing: false });
+        this.schedule();
       }
     }
   }

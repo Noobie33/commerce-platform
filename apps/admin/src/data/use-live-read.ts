@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { liveConnected } from './live-channel';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { LiveRead } from './live-read';
 import type { ReadEnvironment, ReadOptions } from './live-read';
 export function useLiveRead<T>(
@@ -7,13 +8,29 @@ export function useLiveRead<T>(
     enabled = true,
     paused = false,
     revision = 0,
-  }: { enabled?: boolean; paused?: boolean; revision?: number } = {},
+    topics = [],
+  }: { enabled?: boolean; paused?: boolean; revision?: number; topics?: readonly string[] } = {},
 ) {
+  const topicKey = topics.join(',');
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
   const resource = useMemo(() => {
     const env: ReadEnvironment = {
       now: () => Date.now(),
+      live: liveConnected,
+      after: (fn, ms) => {
+        const id = window.setTimeout(fn, ms);
+        return () => window.clearTimeout(id);
+      },
+      onInvalidate: (fn) => {
+        const changed = (event: Event) => {
+          const topics = (event as CustomEvent<string[]>).detail;
+          if (topics.includes('all') || topics.some((topic) => topicKey.split(',').includes(topic)))
+            fn();
+        };
+        window.addEventListener('commerce:data-change', changed);
+        return () => window.removeEventListener('commerce:data-change', changed);
+      },
       visible: () => document.visibilityState === 'visible',
       online: () => navigator.onLine,
       paused: () => pausedRef.current || !!document.querySelector('dialog[open]'),
@@ -22,11 +39,13 @@ export function useLiveRead<T>(
         return () => window.clearInterval(id);
       },
       onWake: (fn) => {
+        window.addEventListener('commerce:live-state', fn);
         window.addEventListener('focus', fn);
         window.addEventListener('online', fn);
         window.addEventListener('offline', fn);
         document.addEventListener('visibilitychange', fn);
         return () => {
+          window.removeEventListener('commerce:live-state', fn);
           window.removeEventListener('focus', fn);
           window.removeEventListener('online', fn);
           window.removeEventListener('offline', fn);
@@ -35,7 +54,7 @@ export function useLiveRead<T>(
       },
     };
     return new LiveRead(load, env, enabled);
-  }, [load, enabled]);
+  }, [load, enabled, topicKey]);
   const [observed, setObserved] = useState({ resource, state: resource.snapshot() });
   const previous = useRef({ resource, revision });
   useEffect(() => {

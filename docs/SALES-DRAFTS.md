@@ -1,5 +1,7 @@
 ﻿# Sales draft foundation
 
+> **Scope update - 9 November 2026:** The [retail-only master plan](RETAIL-ONLY-MASTER-PLAN.md) is authoritative. Wholesale/B2B and customer trade credit are excluded from the target system. Existing implementation details below remain accurate until the planned forward migration; this documentation change does not remove features or alter business data.
+
 ## Implemented boundary
 
 Sales is a separate feature module. Staff with global `sales.read` can search saved sales orders and look up active customers, locations and active sellable variants at their catalog prices. This permission explicitly includes order contact/address snapshots and sales customer lookup; it does not grant customer-profile editing, catalog editing or physical inventory balances. Global `sales.manage` plus read permits creating/editing/cancelling drafts. Location-only grants do not authorize this shared commercial workspace. Stock/fulfillment scope will be enforced separately when those workflows arrive.

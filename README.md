@@ -1,5 +1,7 @@
 # Commerce Platform
 
+> **Scope update - 9 November 2026:** The [retail-only master plan](docs/RETAIL-ONLY-MASTER-PLAN.md) is authoritative. Wholesale/B2B and customer trade credit are excluded from the target system. Existing implementation details below remain accurate until the planned forward migration; this documentation change does not remove features or alter business data.
+
 Neutral ERP foundation and staff interface for a fashion/lifestyle ERP and future e-commerce.
 
 Active workspace: D:\Business Software\commerce-platform. See [architecture and initial audit](ENGINEERING-PLAN.md), [engineering standards](docs/ENGINEERING-STANDARDS.md), [database decisions](docs/DATABASE-DECISION.md) and [staff identity API](docs/IDENTITY-API.md).

@@ -1,5 +1,7 @@
 ﻿# Customer records and configured credit policy
 
+> **Scope update - 9 November 2026:** The [retail-only master plan](RETAIL-ONLY-MASTER-PLAN.md) is authoritative. Wholesale/B2B and customer trade credit are excluded from the target system. Existing implementation details below remain accurate until the planned forward migration; this documentation change does not remove features or alter business data.
+
 ## Scope and reasons
 
 A dedicated Customers module separates people/business contacts from purchasing suppliers. A customer may be retail, wholesale or both; these are classifications, not separate identity records. Immutable automatically numbered `CUST-…` codes avoid manual numbering collisions. Sequence gaps after aborted transactions are expected. Referenced records are deactivated rather than deleted.

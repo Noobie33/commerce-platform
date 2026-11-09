@@ -41,6 +41,7 @@ export interface SalesInput {
   expectedVersion?: number;
 }
 export interface SalesOrder {
+  stockReserved: boolean;
   id: string;
   number: string;
   customerId: string;

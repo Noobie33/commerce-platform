@@ -48,6 +48,16 @@ async function stop(exitCode = 0) {
   try {
     await app.close();
     await source.transaction(async (manager) => {
+      await manager.query('DELETE FROM sales_reservation_requests WHERE actor_id=$1', [id]);
+      await manager.query(
+        'DELETE FROM sales_reservation_lines WHERE reservation_id IN(SELECT id FROM sales_reservations WHERE actor_id=$1)',
+        [id],
+      );
+      await manager.query('DELETE FROM sales_reservations WHERE actor_id=$1', [id]);
+      await manager.query(
+        'DELETE FROM sales_reservation_state WHERE order_id IN(SELECT id FROM sales_orders WHERE created_by=$1)',
+        [id],
+      );
       await manager.query('DELETE FROM sales_requests WHERE actor_id=$1', [id]);
       await manager.query(
         'DELETE FROM sales_order_lines WHERE order_id IN(SELECT id FROM sales_orders WHERE created_by=$1)',

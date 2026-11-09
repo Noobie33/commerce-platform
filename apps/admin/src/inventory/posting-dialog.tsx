@@ -48,7 +48,8 @@ export function PostingDialog({
     [error, setError] = useState('');
   const errorRef = useRef<HTMLParagraphElement>(null),
     retry = useRef<{ body: string; key: string } | null>(null);
-  const cannotReverse = !!reversing && reversalPreview.some((l) => BigInt(l.quantityAfter) < 0n);
+  const cannotReverse =
+    !!reversing && reversalPreview.some((l) => BigInt(l.quantityAfter) < BigInt(l.reserved));
   const dirty = !!(lines.length || reason || reference || destination);
   useEffect(() => {
     if (!dirty) return;
@@ -157,7 +158,7 @@ export function PostingDialog({
                   ? 'Moves physical stock between two locations. Both sides are saved together.'
                   : kind === 'adjustment'
                     ? 'Record a physical count correction, damage or loss. Include a clear reason.'
-                    : 'Record stock physically received. Supplier bills and purchase order matching will be added in the purchasing module.'}
+                    : 'Record a direct stock receipt. For purchase order deliveries, receive through Purchasing to keep quantities and supplier invoices linked.'}
           </div>
           {review ? (
             <section className="inventory-review" aria-label="Review stock action">
@@ -381,8 +382,8 @@ export function PostingDialog({
           )}
           {cannotReverse && (
             <p className="form-error" role="alert">
-              There is not enough stock to reverse every line. Refresh history after reconciling
-              physical stock.
+              There is not enough unreserved stock to reverse every line. Release the relevant holds
+              or restore physical stock, then refresh history.
             </p>
           )}
           {error && (

@@ -331,3 +331,40 @@
     padding: 14px;
   }
 }
+.reservation-panel {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid #e4e6e9;
+}
+.reservation-actions {
+  margin: 16px 0;
+}
+.reservation-form {
+  padding: 18px;
+  border: 1px solid #e4e6e9;
+  border-radius: 10px;
+  margin: 16px 0;
+}
+.reservation-form > .sales-actions {
+  margin-top: 18px;
+}
+.reservation-history {
+  margin-top: 20px;
+}
+.reservation-history summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 0;
+}
+.reservation-history article {
+  padding: 14px;
+  border: 1px solid #e4e6e9;
+  border-radius: 9px;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.reservation-history small {
+  color: #62666e;
+  font-size: 12px;
+}

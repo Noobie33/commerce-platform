@@ -67,7 +67,7 @@ export function CancelDraft({
       if (
         e instanceof Error &&
         'code' in e &&
-        ['SALES_STALE', 'SALES_STATE'].includes(String(e.code))
+        ['SALES_STALE', 'SALES_STATE', 'SALES_RESERVED'].includes(String(e.code))
       )
         setStale(true);
     } finally {

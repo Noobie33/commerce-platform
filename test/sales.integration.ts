@@ -562,7 +562,10 @@ test('sales drafts: exact pricing, protected snapshots, safe retry and no financ
           await assert.rejects(next.down(r), /Cannot discard/);
           await r.query('CREATE SCHEMA ' + schema);
           await r.query('SET search_path TO ' + schema + ',public');
-          for (const migration of db.migrations) await migration.up(r);
+          for (const migration of db.migrations) {
+            await migration.up(r);
+            if (migration instanceof SalesDrafts1794109000000) break;
+          }
           assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 11);
           await next.down(r);
           assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 10);

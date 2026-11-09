@@ -221,7 +221,10 @@ export function SalesEditor({
       saved(await api.saveSalesOrder(initial?.id ?? null, body, retry.current.key));
     } catch (e) {
       setError(problem(e));
-      if (e instanceof ApiError && ['SALES_STALE', 'SALES_STATE'].includes(e.code ?? ''))
+      if (
+        e instanceof ApiError &&
+        ['SALES_STALE', 'SALES_STATE', 'SALES_RESERVED'].includes(e.code ?? '')
+      )
         setStale(true);
       else if (e instanceof ApiError && e.status >= 400 && e.status < 500) setReview(false);
     } finally {

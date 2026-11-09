@@ -22,7 +22,7 @@ Posted entries cannot be edited or deleted by the application. Corrections appen
 - New receipts/opening stock require an active variant and a non-archived product. Draft products may hold prelaunch stock. Physical transfers/corrections of inactive variants remain possible so deactivated merchandise can be moved out or reconciled. In-flight master-data changes do not retroactively cancel already authorized operations.
 - Inactive locations cannot receive or post movements. Location editing/deactivation and staff-role editing are future administration increments.
 - Stock overview lists SKUs with a recorded movement, including retained zero balances; it does not manufacture a zero balance for every catalog variant. Location summary totals are independent of search filters.
-- On hand means recorded physical stock. Reservations, saleable availability, quarantine buckets and configurable low-stock thresholds are later workflows.
+- On hand means recorded physical stock. [Sales stock holds](SALES-RESERVATIONS.md) now provide separate reserved/available quantities and protect all deductions/reversals. Quarantine buckets and configurable low-stock thresholds remain later workflows.
 - No purchase cost, landed cost, tax, valuation, COGS, supplier bill or accounting transaction is created by a stock receipt. Purchasing and financial policy will be implemented explicitly next.
 - Fabric length/weight, unit conversion, kits and manufacturing consumption require a separate base-unit design.
 

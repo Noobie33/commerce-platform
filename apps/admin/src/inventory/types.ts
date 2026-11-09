@@ -27,6 +27,8 @@ export interface InventoryLocation {
   canTransfer: boolean;
 }
 export interface StockRow {
+  reserved: string;
+  available: string;
   variantId: string;
   sku: string;
   productName: string;
@@ -85,6 +87,7 @@ export interface InventoryQuery {
 }
 
 export interface ReversalPreview extends MovementLine {
+  reserved: string;
   locationId: string;
   locationName: string;
 }

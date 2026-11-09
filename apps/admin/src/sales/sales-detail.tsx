@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { StaffApi } from '../api';
+import { ReservationPanel } from './reservation-panel';
 import { Dialog } from '../components/dialog';
 import type { SalesOrder } from './types';
 import { money } from './helpers';
@@ -7,13 +10,22 @@ export function SalesDetail({
   edit,
   cancel,
   canManage,
+  api,
+  refresh,
 }: {
   order: SalesOrder;
   close: () => void;
   edit: () => void;
   cancel: () => void;
   canManage: boolean;
+  api: StaffApi;
+  refresh: () => Promise<void>;
 }) {
+  const [busy, setBusy] = useState(false),
+    [dirty, setDirty] = useState(false);
+  function action(next: () => void) {
+    if (!busy && (!dirty || window.confirm('Discard unsaved stock hold details?'))) next();
+  }
   return (
     <Dialog
       title={o.number}
@@ -22,12 +34,14 @@ export function SalesDetail({
           ? 'Sales draft · Version ' + o.version
           : 'Cancelled sales draft · Version ' + o.version
       }
-      onClose={close}
+      onClose={() => action(close)}
       wide
     >
       <div className="sales-dialog-body">
         <p className="sales-scope">
-          No inventory is reserved and no customer balance has been created.
+          {o.stockReserved
+            ? 'Stock is reserved for this draft. No customer balance or credit approval has been created.'
+            : 'No stock is currently held for this draft. No customer balance has been created.'}
         </p>
         <div className="sales-facts">
           <div>
@@ -149,17 +163,24 @@ export function SalesDetail({
           Contact and product details are captured when this draft is saved. Later directory edits
           do not silently rewrite the saved draft. Editing and saving refreshes its snapshot.
         </p>
+        <ReservationPanel
+          api={api}
+          order={o}
+          onChanged={refresh}
+          onBusy={setBusy}
+          onDirty={setDirty}
+        />
       </div>
       <footer className="dialog-footer sales-actions">
-        <button className="secondary-button" onClick={close}>
+        <button className="secondary-button" onClick={() => action(close)} disabled={busy}>
           Close
         </button>
-        {canManage && o.status === 'draft' && (
+        {canManage && o.status === 'draft' && !o.stockReserved && !dirty && (
           <>
-            <button className="secondary-button" onClick={cancel}>
+            <button className="secondary-button" onClick={() => action(cancel)} disabled={busy}>
               Cancel draft
             </button>
-            <button className="primary-button" onClick={edit}>
+            <button className="primary-button" onClick={() => action(edit)} disabled={busy}>
               Edit draft
             </button>
           </>

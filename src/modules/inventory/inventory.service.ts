@@ -82,8 +82,8 @@ export class InventoryService {
     if (search.length < 2) return [];
     return this.source.query(
       `
- SELECT v.id AS "variantId",v.sku,p.name AS "productName",p.style_code AS "styleCode",v.attributes,v.is_active AS "isActive",p.status AS "productStatus",coalesce(b.quantity,0)::text AS quantity
- FROM catalog_variants v JOIN catalog_products p ON p.id=v.product_id LEFT JOIN inventory_balances b ON b.variant_id=v.id AND b.location_id=$1
+ SELECT v.id AS "variantId",v.sku,p.name AS "productName",p.style_code AS "styleCode",v.attributes,v.is_active AS "isActive",p.status AS "productStatus",coalesce(b.quantity,0)::text AS quantity,coalesce(a.reserved,0)::text AS reserved,coalesce(a.available,0)::text AS available
+ FROM catalog_variants v JOIN catalog_products p ON p.id=v.product_id LEFT JOIN inventory_balances b ON b.variant_id=v.id AND b.location_id=$1 LEFT JOIN inventory_availability a ON a.variant_id=v.id AND a.location_id=$1
  WHERE v.sku ILIKE $2 OR p.name ILIKE $2 OR p.style_code ILIKE $2 ORDER BY v.sku,v.id LIMIT 20`,
       [locationId, this.escape(search)],
     );
@@ -108,7 +108,7 @@ export class InventoryService {
         )
       )[0].total;
       const items: StockRow[] = await m.query(
-        'SELECT v.id AS "variantId",v.sku,p.name AS "productName",p.style_code AS "styleCode",v.attributes,v.is_active AS "isActive",p.status AS "productStatus",b.quantity::text AS quantity FROM inventory_balances b JOIN catalog_variants v ON v.id=b.variant_id JOIN catalog_products p ON p.id=v.product_id WHERE ' +
+        'SELECT v.id AS "variantId",v.sku,p.name AS "productName",p.style_code AS "styleCode",v.attributes,v.is_active AS "isActive",p.status AS "productStatus",b.quantity::text AS quantity,a.reserved::text AS reserved,a.available::text AS available FROM inventory_balances b JOIN inventory_availability a ON a.variant_id=b.variant_id AND a.location_id=b.location_id JOIN catalog_variants v ON v.id=b.variant_id JOIN catalog_products p ON p.id=v.product_id WHERE ' +
           where +
           ' ORDER BY p.name,v.sku,v.id LIMIT $4 OFFSET $5',
         [...values, query.pageSize, (query.page - 1) * query.pageSize],
@@ -190,7 +190,7 @@ export class InventoryService {
     )
       throw new ConflictException({ code: 'POSTING_ALREADY_REVERSED' });
     return this.source.query(
-      'SELECT e.variant_id AS "variantId",e.location_id AS "locationId",l.name AS "locationName",e.sku,e.product_name AS "productName",(-e.delta)::text AS delta,coalesce(b.quantity,0)::text AS "quantityBefore",(coalesce(b.quantity,0)-e.delta)::text AS "quantityAfter" FROM inventory_entries e JOIN locations l ON l.id=e.location_id LEFT JOIN inventory_balances b ON b.location_id=e.location_id AND b.variant_id=e.variant_id WHERE e.posting_id=$1 ORDER BY l.name,e.sku',
+      'SELECT e.variant_id AS "variantId",e.location_id AS "locationId",l.name AS "locationName",e.sku,e.product_name AS "productName",(-e.delta)::text AS delta,coalesce(a.reserved,0)::text AS reserved,coalesce(b.quantity,0)::text AS "quantityBefore",(coalesce(b.quantity,0)-e.delta)::text AS "quantityAfter" FROM inventory_entries e JOIN locations l ON l.id=e.location_id LEFT JOIN inventory_balances b ON b.location_id=e.location_id AND b.variant_id=e.variant_id LEFT JOIN inventory_availability a ON a.location_id=e.location_id AND a.variant_id=e.variant_id WHERE e.posting_id=$1 ORDER BY l.name,e.sku',
       [id],
     );
   }
@@ -216,6 +216,7 @@ export class InventoryService {
           : '';
       const codes: Record<string, string> = {
         PURCHASE_RECEIPT_MANAGED: 'PURCHASE_RECEIPT_MANAGED',
+        INVENTORY_RESERVED: 'STOCK_RESERVED',
         INVENTORY_INSUFFICIENT: 'INSUFFICIENT_STOCK',
         INVENTORY_ALREADY_REVERSED: 'POSTING_ALREADY_REVERSED',
         INVENTORY_REVERSE_REVERSAL: 'CANNOT_REVERSE_REVERSAL',

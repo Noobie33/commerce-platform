@@ -16,7 +16,7 @@ import type {
 } from './sales.types.js';
 export class SalesService {
   constructor(private readonly db: DataSource) {}
-  private headers = `SELECT o.id,o.number,o.customer_id AS "customerId",o.customer_snapshot->>'name' AS "customerName",o.customer_snapshot AS "customerSnapshot",o.location_id AS "locationId",l.name AS "locationName",o.channel,o.status,o.currency,to_char(o.fulfill_on,'YYYY-MM-DD') AS "fulfillOn",o.reference,o.notes,o.price_reason AS "priceReason",o.total_minor::text AS total,o.version,o.created_at AS "createdAt",o.updated_at AS "updatedAt",o.cancelled_at AS "cancelledAt",o.cancellation_reason AS "cancellationReason" FROM sales_orders o JOIN locations l ON l.id=o.location_id`;
+  private headers = `SELECT EXISTS(SELECT 1 FROM sales_reservations h WHERE h.order_id=o.id AND h.closed_at IS NULL AND h.expires_at>CURRENT_TIMESTAMP) AS "stockReserved",o.id,o.number,o.customer_id AS "customerId",o.customer_snapshot->>'name' AS "customerName",o.customer_snapshot AS "customerSnapshot",o.location_id AS "locationId",l.name AS "locationName",o.channel,o.status,o.currency,to_char(o.fulfill_on,'YYYY-MM-DD') AS "fulfillOn",o.reference,o.notes,o.price_reason AS "priceReason",o.total_minor::text AS total,o.version,o.created_at AS "createdAt",o.updated_at AS "updatedAt",o.cancelled_at AS "cancelledAt",o.cancellation_reason AS "cancellationReason" FROM sales_orders o JOIN locations l ON l.id=o.location_id`;
   customers(search: string): Promise<SalesCustomer[]> {
     if (search.length < 2) return Promise.resolve([]);
     return this.db.query(
@@ -111,6 +111,7 @@ export class SalesService {
         });
       if (
         [
+          'SALES_RESERVED',
           'SALES_STALE',
           'SALES_STATE',
           'SALES_IDEMPOTENCY',

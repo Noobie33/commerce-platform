@@ -325,6 +325,8 @@ export function InventoryPage({
                         <th>Variant</th>
                         <th>Status</th>
                         <th className="quantity-cell">On hand (pcs)</th>
+                        <th className="quantity-cell">Reserved</th>
+                        <th className="quantity-cell">Available</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -342,10 +344,14 @@ export function InventoryPage({
                           <td>
                             <span
                               className={
-                                'badge ' + (row.quantity === '0' ? 'badge-outline' : 'badge-green')
+                                'badge ' + (row.available === '0' ? 'badge-outline' : 'badge-green')
                               }
                             >
-                              {row.quantity === '0' ? 'Zero stock' : 'In stock'}
+                              {row.quantity === '0'
+                                ? 'Zero stock'
+                                : row.available === '0'
+                                  ? 'Fully reserved'
+                                  : 'Available stock'}
                             </span>
                             {(!row.isActive || row.productStatus === 'archived') && (
                               <small>Inactive catalog item</small>
@@ -353,6 +359,12 @@ export function InventoryPage({
                           </td>
                           <td className="quantity-cell">
                             <strong>{BigInt(row.quantity).toLocaleString('en-BD')}</strong>
+                          </td>
+                          <td className="quantity-cell">
+                            {BigInt(row.reserved).toLocaleString('en-BD')}
+                          </td>
+                          <td className="quantity-cell">
+                            <strong>{BigInt(row.available).toLocaleString('en-BD')}</strong>
                           </td>
                         </tr>
                       ))}
@@ -488,8 +500,9 @@ export function InventoryPage({
             )}
           </section>
           <p className="muted small">
-            On hand means physical pieces recorded at this location. Reservations, stock value and
-            low-stock thresholds are not included yet.
+            On hand is physical stock. Available excludes active sales stock holds. Holds expire at
+            their recorded time; refresh to see current availability. Stock value and low-stock
+            thresholds are later workflows.
           </p>
         </>
       )}

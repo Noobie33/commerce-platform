@@ -124,6 +124,16 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
     await manager.query(
       'GRANT EXECUTE ON FUNCTION public.sales_draft_save(uuid,uuid,uuid,jsonb) TO "' + role + '"',
     );
+    await manager.query(
+      'GRANT SELECT ON inventory_availability,sales_reservation_state,sales_reservations,sales_reservation_lines,sales_reservation_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.sales_reservation_post(uuid,uuid,uuid,jsonb) TO "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT ON locations TO "' + role + '"');
     await manager.query(
       'GRANT SELECT ON inventory_postings,inventory_entries,inventory_balances,inventory_requests TO "' +

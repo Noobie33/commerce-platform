@@ -1,4 +1,9 @@
 import type {
+  ReservationPage,
+  ReservationInput,
+  ReservationResult,
+} from './sales/reservation-types';
+import type {
   SalesCustomer,
   SalesLocation,
   SalesVariant,
@@ -73,6 +78,24 @@ export class ApiError extends Error {
         (code &&
           (
             {
+              SALES_RESERVED:
+                'Release the active stock hold before editing or cancelling this draft.',
+              STOCK_RESERVED:
+                'This stock is reserved for sales orders. Release the relevant hold or use a smaller available quantity.',
+              RESERVATION_PERMISSION:
+                'Stock hold access requires inventory read and stock hold permission at this location.',
+              RESERVATION_STALE:
+                'The order or its stock holds changed. Refresh stock and review again.',
+              RESERVATION_IDEMPOTENCY:
+                'This request key belongs to different stock hold details. Close and reopen this form.',
+              RESERVATION_NOT_FOUND: 'This order or stock hold could not be found.',
+              RESERVATION_EXISTS: 'This order already has an active stock hold. Refresh stock.',
+              RESERVATION_CLOSED: 'This stock hold has already been released. Refresh stock.',
+              RESERVATION_UNAVAILABLE:
+                'Choose an active customer, location and sellable variants before holding stock.',
+              RESERVATION_INSUFFICIENT:
+                'Available stock cannot cover the full order. Refresh stock, adjust the draft or receive stock first.',
+              RESERVATION_BUSY: 'Stock is changing. Retry the unchanged request in a moment.',
               SALES_STALE: 'This order changed. Close this form and refresh before editing again.',
               SALES_STATE: 'Only draft orders can be edited or cancelled.',
               SALES_IDEMPOTENCY:
@@ -680,6 +703,21 @@ export class StaffApi {
     return this.request<SalesResult>('/sales/orders/' + encodeURIComponent(id) + '/cancel', body, {
       key,
     });
+  }
+  salesReservations(id: string, page = 1) {
+    return this.request<ReservationPage>(
+      '/sales/orders/' + encodeURIComponent(id) + '/reservations?page=' + page,
+    );
+  }
+  postSalesReservation(id: string, kind: 'hold' | 'release', body: ReservationInput, key: string) {
+    return this.request<ReservationResult>(
+      '/sales/orders/' +
+        encodeURIComponent(id) +
+        '/reservations' +
+        (kind === 'release' ? '/release' : ''),
+      body,
+      { key },
+    );
   }
   async ready() {
     try {

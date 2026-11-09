@@ -80,3 +80,7 @@ Customers supports retail/wholesale/both classification, people/business profile
 ## Sales preparation
 
 Sales adds a searchable/filterable order directory and retail/wholesale draft editor. Choose an active compatible customer, fulfillment location and active product variants. Catalog prices are the default; overriding requires permission and a reason. The editor calculates exact BDT goods totals and reviews before saving. Saved customer/address/product snapshots remain visible after directory changes. Only draft orders can be edited/cancelled, with version checks and cancellation reasons; cancellation preserves all lines. These drafts create no stock reservations or customer due amounts. See [sales boundaries and next gates](SALES-DRAFTS.md).
+
+## Timed stock holds
+
+Sales order detail now includes a permission-scoped availability table and stock hold history. Authorized staff review a reason/duration before holding the full order or releasing its hold. An active hold disables draft edit/cancel until release. Inventory shows physical, reserved and available pieces; expired holds stop consuming availability. No financial approval or customer balance is created. See [reservation rules and concurrency verification](SALES-RESERVATIONS.md).

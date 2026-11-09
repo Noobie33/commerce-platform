@@ -50,3 +50,5 @@ Object.assign(permissionNames, {
   'sales.manage': 'Manage sales drafts',
   'sales.price_override': 'Override sales prices',
 });
+
+Object.assign(permissionNames, { 'sales.reserve': 'Manage sales stock holds' });

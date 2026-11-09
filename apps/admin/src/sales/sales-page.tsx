@@ -229,6 +229,7 @@ export function SalesPage({
                       <span className={'sales-badge ' + o.status}>
                         {o.status === 'draft' ? 'Draft' : 'Cancelled'}
                       </span>
+                      {o.stockReserved && <small>Stock held</small>}
                     </td>
                   </tr>
                 ))}
@@ -259,11 +260,16 @@ export function SalesPage({
         </div>
       </div>
       <p className="sales-hint">
-        Drafts do not reserve inventory or create receivables. Order confirmation, fulfillment and
-        invoicing are the next sales workflows.
+        Saving a draft alone does not reserve stock or create receivables. Open an order to manage
+        timed stock holds. Confirmation, fulfillment and invoicing are later workflows.
       </p>
       {detail && (
         <SalesDetail
+          api={api}
+          refresh={async () => {
+            setDetail(await api.salesOrder(detail.id));
+            refresh((n) => n + 1);
+          }}
           order={detail}
           close={() => setDetail(null)}
           canManage={canManage}

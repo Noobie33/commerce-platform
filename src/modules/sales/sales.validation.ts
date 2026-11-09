@@ -63,7 +63,7 @@ export function salesInput(value: unknown, editing = false): SalesInput {
     'lines',
     ...(editing ? ['expectedVersion'] : []),
   ]);
-  if (b.channel !== 'retail' && b.channel !== 'wholesale') invalid('Choose retail or wholesale');
+  if (b.channel !== undefined && b.channel !== 'retail') invalid('Only retail sales are supported');
   let fulfillOn: string | null = null;
   if (b.fulfillOn !== undefined && b.fulfillOn !== null && b.fulfillOn !== '') {
     const d = text(b.fulfillOn, 10, true);
@@ -88,7 +88,7 @@ export function salesInput(value: unknown, editing = false): SalesInput {
     seen.add(variantId);
     if (typeof l.quantity !== 'string' || !/^[1-9]\d{0,8}$/.test(l.quantity))
       invalid('Quantity must be a whole number from 1 to 999,999,999');
-    if (l.priceMode !== 'catalog' && l.priceMode !== 'override') invalid('Choose a price mode');
+    if (l.priceMode !== 'catalog') invalid('Retail sales use the catalog price');
     const unitPrice = minor(l.unitPrice);
     total += BigInt(l.quantity) * BigInt(unitPrice);
     if (total > 99999999999999n) invalid('Order total is too large');
@@ -96,23 +96,20 @@ export function salesInput(value: unknown, editing = false): SalesInput {
       variantId,
       quantity: l.quantity,
       unitPrice,
-      priceMode: l.priceMode as 'catalog' | 'override',
+      priceMode: 'catalog' as const,
     };
   });
-  const priceReason = text(
-    b.priceReason,
-    500,
-    lines.some((l) => l.priceMode === 'override'),
-  );
+  const priceReason = text(b.priceReason, 500);
+  if (priceReason) invalid('Negotiated order prices are not supported');
   return {
     customerId: uuid(b.customerId),
     customerVersion: version(b.customerVersion),
     locationId: uuid(b.locationId),
-    channel: b.channel,
+    channel: 'retail',
     fulfillOn,
     reference: text(b.reference, 100),
     notes: text(b.notes, 1000),
-    priceReason: lines.some((l) => l.priceMode === 'override') ? priceReason : '',
+    priceReason: '',
     lines,
     ...(editing ? { expectedVersion: version(b.expectedVersion) } : {}),
   };

@@ -75,11 +75,11 @@ Purchasing / Statements & aging adds a Bangladesh-date cutoff, supplier search, 
 
 ## Customer directory
 
-Customers supports retail/wholesale/both classification, people/business profiles, literal search, status/type filters and pagination. Contact details, independent Bangladesh billing/delivery addresses, explicit copy-address and active/inactive status live in one profile. Shared phone/email matches warn without blocking save. Credit managers separately review exact BDT limits/terms with a mandatory reason and inspect previous/current policy history; no artificial customer due/available-credit totals are shown. See [customer decisions](CUSTOMERS.md).
+Customers supports retail-only people/business profiles, literal search, status/type filters and pagination. Contact details, independent Bangladesh billing/delivery addresses, explicit copy-address and active/inactive status live in one profile. Shared phone/email matches warn without blocking save. Credit editing and trade selectors are removed. Permitted staff can inspect archived policy history without offering current customer credit. See [customer decisions](CUSTOMERS.md).
 
 ## Sales preparation
 
-Sales adds a searchable/filterable order directory and retail/wholesale draft editor. Choose an active compatible customer, fulfillment location and active product variants. Catalog prices are the default; overriding requires permission and a reason. The editor calculates exact BDT goods totals and reviews before saving. Saved customer/address/product snapshots remain visible after directory changes. Only draft orders can be edited/cancelled, with version checks and cancellation reasons; cancellation preserves all lines. These drafts create no stock reservations or customer due amounts. See [sales boundaries and next gates](SALES-DRAFTS.md).
+Sales adds a searchable/filterable order directory and retail-only draft editor. Choose an active compatible customer, fulfillment location and active product variants. Only current catalog prices are accepted; negotiated overrides are retired. The editor calculates exact BDT goods totals and reviews before saving. Saved customer/address/product snapshots remain visible after directory changes. Only draft orders can be edited/cancelled, with version checks and cancellation reasons; cancellation preserves all lines. Saving alone does not reserve stock or create customer due amounts; timed holds are separate explicit actions. See [sales boundaries and next gates](SALES-DRAFTS.md).
 
 ## Timed stock holds
 

@@ -14,14 +14,7 @@ import { Authenticated, RequirePermission } from '../authorization/route-policy.
 import { permits } from '../authorization/policy.js';
 import type { StaffRequest } from '../identity/http.types.js';
 import { CustomerService } from './customer.service.js';
-import {
-  uuid,
-  customerInput,
-  creditInput,
-  listQuery,
-  matchQuery,
-  object,
-} from './customer.validation.js';
+import { uuid, customerInput, listQuery, matchQuery, object } from './customer.validation.js';
 @Controller('api/v1/customers')
 export class CustomerController {
   constructor(private readonly customers: CustomerService) {}
@@ -67,21 +60,6 @@ export class CustomerController {
       'update',
       uuid(id),
       customerInput(body, true),
-      uuid(key),
-      req.principal!.id,
-      req.requestId,
-    );
-  }
-  @Post(':id/credit-policy') @Authenticated() credit(
-    @Param('id') id: string,
-    @Body() body: unknown,
-    @Headers('x-idempotency-key') key: unknown,
-    @Req() req: StaffRequest,
-  ) {
-    return this.customers.save(
-      'credit',
-      uuid(id),
-      creditInput(body),
       uuid(key),
       req.principal!.id,
       req.requestId,

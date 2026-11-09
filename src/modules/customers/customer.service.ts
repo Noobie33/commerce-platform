@@ -5,13 +5,7 @@
   BadRequestException,
 } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
-import type {
-  Customer,
-  CustomerInput,
-  CreditInput,
-  CustomerResult,
-  CreditHistory,
-} from './customer.types.js';
+import type { Customer, CustomerInput, CustomerResult, CreditHistory } from './customer.types.js';
 import { listQuery, matchQuery } from './customer.validation.js';
 const columns = `id,code,kind AS "customerKind",segment,name,contact_name AS "contactName",phone,email,billing_address AS "billingAddress",delivery_address AS "deliveryAddress",notes,is_active AS "isActive",version,credit_enabled AS "creditEnabled",credit_limit_minor::text AS "creditMinor",payment_terms_days AS "paymentTermsDays",created_at AS "createdAt",updated_at AS "updatedAt"`;
 function customer(row: Record<string, unknown>): Customer {
@@ -80,9 +74,9 @@ export class CustomerService {
     })) as Promise<CreditHistory>;
   }
   async save(
-    kind: 'create' | 'update' | 'credit',
+    kind: 'create' | 'update',
     id: string | null,
-    input: CustomerInput | CreditInput,
+    input: CustomerInput,
     key: string,
     actor: string,
     requestId: string,
@@ -106,6 +100,12 @@ export class CustomerService {
         'CUSTOMER_INACTIVE',
         'CUSTOMER_INVALID',
       ].find((c) => message === c);
+      if (message === 'CUSTOMER_RETAIL_ONLY')
+        throw new ConflictException({
+          code: message,
+          message:
+            'Only retail customer profiles can be changed. Historical trade records are read-only.',
+        });
       if (code === 'CUSTOMER_PERMISSION') throw new ForbiddenException({ code: 'FORBIDDEN' });
       if (code === 'CUSTOMER_NOT_FOUND') throw new NotFoundException({ code });
       if (code === 'CUSTOMER_INVALID')

@@ -132,7 +132,7 @@ export function ReservationPanel({
       retry.current = null;
       setNotice(
         mode === 'hold'
-          ? 'Stock hold recorded. No sale, credit approval or invoice was created.'
+          ? 'Stock hold recorded. No sale, payment or invoice was created.'
           : 'Stock hold released. Physical stock is unchanged.',
       );
       try {
@@ -182,7 +182,7 @@ export function ReservationPanel({
         <>
           <p className="sales-hint">
             Snapshot: {time(data.asOf)} (Dhaka). Availability is rechecked when a hold is saved.
-            Holds manage stock only; they do not approve customer credit.
+            Holds manage stock only; they do not confirm a sale or record payment.
           </p>
           <div
             className="sales-table-wrap"
@@ -233,21 +233,25 @@ export function ReservationPanel({
           )}
           {!mode && (
             <div className="sales-actions reservation-actions">
-              {order.status === 'draft' && data.canManage && data.current?.status !== 'active' && (
-                <button
-                  type="button"
-                  className="primary-button"
-                  disabled={busy || loading}
-                  onClick={() => {
-                    setMode('hold');
-                    setMinutes(30);
-                    setReason('');
-                    setError('');
-                  }}
-                >
-                  Reserve stock
-                </button>
-              )}
+              {order.status === 'draft' &&
+                order.channel === 'retail' &&
+                order.lines.every((l) => l.priceMode === 'catalog') &&
+                data.canManage &&
+                data.current?.status !== 'active' && (
+                  <button
+                    type="button"
+                    className="primary-button"
+                    disabled={busy || loading}
+                    onClick={() => {
+                      setMode('hold');
+                      setMinutes(30);
+                      setReason('');
+                      setError('');
+                    }}
+                  >
+                    Reserve stock
+                  </button>
+                )}
               {data.current?.canRelease && (
                 <button
                   type="button"

@@ -1,5 +1,5 @@
 ﻿import { BadRequestException } from '@nestjs/common';
-import type { CustomerAddress, CustomerInput, CreditInput } from './customer.types.js';
+import type { CustomerAddress, CustomerInput } from './customer.types.js';
 export function invalid(message = 'Check customer details'): never {
   throw new BadRequestException({ code: 'INVALID_CUSTOMER_INPUT', message });
 }
@@ -82,13 +82,13 @@ export function customerInput(value: unknown, editing = false): CustomerInput {
   ]);
   if (
     !['person', 'business'].includes(String(b.customerKind)) ||
-    !['retail', 'wholesale', 'both'].includes(String(b.segment)) ||
+    (b.segment !== undefined && b.segment !== 'retail') ||
     typeof b.isActive !== 'boolean'
   )
     invalid();
   return {
     customerKind: b.customerKind as CustomerInput['customerKind'],
-    segment: b.segment as CustomerInput['segment'],
+    segment: 'retail',
     name: text(b.name, 140, true),
     contactName: text(b.contactName, 120),
     phone: phone(b.phone),
@@ -98,41 +98,6 @@ export function customerInput(value: unknown, editing = false): CustomerInput {
     notes: text(b.notes, 1000),
     isActive: b.isActive,
     ...(editing ? { expectedVersion: version(b.expectedVersion) } : {}),
-  };
-}
-export function creditInput(value: unknown): CreditInput {
-  const b = object(value, [
-    'expectedVersion',
-    'creditEnabled',
-    'creditLimit',
-    'paymentTermsDays',
-    'reason',
-  ]);
-  if (
-    typeof b.creditEnabled !== 'boolean' ||
-    typeof b.creditLimit !== 'string' ||
-    !/^(0|[1-9]\d{0,11})(\.\d{1,2})?$/.test(b.creditLimit) ||
-    !Number.isInteger(b.paymentTermsDays) ||
-    Number(b.paymentTermsDays) < 0 ||
-    Number(b.paymentTermsDays) > 365
-  )
-    invalid('Enter a valid BDT credit limit and payment terms of 0–365 days');
-  const [whole, fraction = ''] = b.creditLimit.split('.');
-  const minor = BigInt(whole!) * 100n + BigInt(fraction.padEnd(2, '0'));
-  if (
-    minor > 99999999999999n ||
-    (b.creditEnabled && minor === 0n) ||
-    (!b.creditEnabled && (minor !== 0n || b.paymentTermsDays !== 0))
-  )
-    invalid(
-      'Enabled credit needs a positive limit; disabled credit must have zero limit and terms',
-    );
-  return {
-    expectedVersion: version(b.expectedVersion),
-    creditEnabled: b.creditEnabled,
-    creditLimit: minor.toString(),
-    paymentTermsDays: b.paymentTermsDays as number,
-    reason: text(b.reason, 500, true),
   };
 }
 export function listQuery(value: unknown) {

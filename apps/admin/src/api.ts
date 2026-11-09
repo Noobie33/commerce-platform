@@ -16,7 +16,6 @@ import type {
   Customer,
   CustomerInput,
   CustomerPage,
-  CreditInput,
   CustomerResult,
   CreditHistory,
 } from './customers/types';
@@ -116,7 +115,11 @@ export class ApiError extends Error {
               SALES_NOT_FOUND: 'This sales order could not be found.',
               CUSTOMER_STALE:
                 'This customer changed. Close this form and refresh before editing again.',
-              CUSTOMER_INACTIVE: 'Activate this customer before enabling credit.',
+              CUSTOMER_RETAIL_ONLY:
+                'Historical trade profiles are read-only. Only retail profiles can be changed.',
+              SALES_RETAIL_ONLY: 'Only retail drafts at catalog prices can be changed.',
+              RESERVATION_RETAIL_ONLY:
+                'New stock holds are available only for retail drafts at catalog prices.',
               CUSTOMER_IDEMPOTENCY:
                 'This request key was already used for different details. Close and reopen the form.',
               CUSTOMER_NOT_FOUND: 'This customer could not be found.',
@@ -633,13 +636,7 @@ export class StaffApi {
       throw new Error('The workspace returned an unexpected export.');
     return response.blob();
   }
-  customers(query: {
-    search: string;
-    page: number;
-    status: string;
-    segment: string;
-    kind: string;
-  }) {
+  customers(query: { search: string; page: number; status: string; kind: string }) {
     return this.request<CustomerPage>(
       '/customers?' + new URLSearchParams({ ...query, page: String(query.page) }),
     );
@@ -660,13 +657,6 @@ export class StaffApi {
       { key, ...(id ? { method: 'PATCH' } : {}) },
     );
   }
-  customerCredit(id: string, body: CreditInput, key: string) {
-    return this.request<CustomerResult>(
-      '/customers/' + encodeURIComponent(id) + '/credit-policy',
-      body,
-      { key },
-    );
-  }
   customerCreditHistory(id: string, page: number) {
     return this.request<CreditHistory>(
       '/customers/' + encodeURIComponent(id) + '/credit-history?page=' + page,
@@ -684,7 +674,7 @@ export class StaffApi {
   salesVariant(id: string) {
     return this.request<SalesVariant>('/sales/variants/' + encodeURIComponent(id));
   }
-  salesOrders(query: { search: string; status: string; channel: string; page: number }) {
+  salesOrders(query: { search: string; status: string; page: number }) {
     return this.request<SalesPage>(
       '/sales/orders?' + new URLSearchParams({ ...query, page: String(query.page) }),
     );

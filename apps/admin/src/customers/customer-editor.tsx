@@ -111,17 +111,6 @@ export function CustomerEditor({
                   <option value="business">Business</option>
                 </select>
               </label>
-              <label>
-                Sales segment
-                <select
-                  value={value.segment}
-                  onChange={(e) => update('segment', e.target.value as CustomerInput['segment'])}
-                >
-                  <option value="retail">Retail</option>
-                  <option value="wholesale">Wholesale</option>
-                  <option value="both">Retail & wholesale</option>
-                </select>
-              </label>
             </div>
             <label>
               Contact person
@@ -221,7 +210,7 @@ export function CustomerEditor({
               />{' '}
               Active customer
             </label>
-            <p>Inactive customers remain in your records. Credit policy is managed separately.</p>
+            <p>Inactive customers remain in your records and cannot be selected for new sales.</p>
           </fieldset>
         </div>
         <footer className="dialog-footer customer-actions">

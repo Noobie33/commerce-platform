@@ -135,7 +135,7 @@ test('sales drafts: exact pricing, protected snapshots, safe retry and no financ
       );
     const input = customerInput({
       customerKind: 'business',
-      segment: 'both',
+      segment: 'retail',
       name: prefix + ' customer',
       phone: '01700000000',
       email: 'sample@example.invalid',
@@ -221,7 +221,7 @@ test('sales drafts: exact pricing, protected snapshots, safe retry and no financ
         const b = body();
         b.lines[0] = { ...b.lines[0]!, priceMode: 'override', unitPrice: '80.00' };
         b.priceReason = 'Trade price test';
-        assert.equal((await call('/orders', b, randomUUID(), 1)).status, 403);
+        assert.equal((await call('/orders', b, randomUUID(), 1)).status, 400);
         const h = headers();
         delete (h as Partial<typeof h>)['X-CSRF-Token'];
         const r = await fetch(base + '/api/v1/sales/orders', {
@@ -277,7 +277,7 @@ test('sales drafts: exact pricing, protected snapshots, safe retry and no financ
         try {
           assert.equal((await call('/orders', body())).status, 409);
         } finally {
-          await db.query("UPDATE customers SET segment='both' WHERE id=$1", [customerId]);
+          await db.query("UPDATE customers SET segment='retail' WHERE id=$1", [customerId]);
         }
       },
     );
@@ -332,29 +332,26 @@ test('sales drafts: exact pricing, protected snapshots, safe retry and no financ
       },
     );
     await t.test(
-      'authorized override freezes catalog comparison and reason; revoked permission blocks cached replay',
+      'retired price override is rejected even for the owner and legacy override permission',
       async () => {
-        await db.query(
-          "INSERT INTO role_permissions(role_id,permission_code) VALUES($1,'sales.price_override')",
-          [roles[0]],
-        );
         const b = body();
         b.lines[0] = { ...b.lines[0]!, unitPrice: '80.05', priceMode: 'override' };
-        b.priceReason = 'Approved trade quote';
-        const k = randomUUID(),
-          r = await call('/orders', b, k, 1);
-        assert.equal(r.status, 201);
-        const id = (await r.json()).id,
-          d = await (await call('/orders/' + id)).json();
-        assert.equal(d.total, '740.25');
-        assert.equal(d.lines[0].catalogPrice, '100.10');
-        assert.equal(d.lines[0].unitPrice, '80.05');
-        assert.equal(d.priceReason, b.priceReason);
-        await db.query(
-          "DELETE FROM role_permissions WHERE role_id=$1 AND permission_code='sales.price_override'",
-          [roles[0]],
+        b.priceReason = 'Old trade quote';
+        for (const who of [0, 1, 2])
+          assert.equal((await call('/orders', b, randomUUID(), who)).status, 400);
+        await assert.rejects(
+          runtime.query('SELECT sales_draft_save($1,$2,$3,$4::jsonb)', [
+            randomUUID(),
+            users[0],
+            randomUUID(),
+            JSON.stringify({
+              kind: 'create',
+              ...b,
+              lines: b.lines.map((l) => ({ ...l, unitPrice: '8005' })),
+            }),
+          ]),
+          /SALES_RETAIL_ONLY/,
         );
-        assert.equal((await call('/orders', b, k, 1)).status, 403);
       },
     );
     await t.test(

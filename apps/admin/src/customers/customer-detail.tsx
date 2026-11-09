@@ -7,25 +7,23 @@ export function CustomerDetail({
   api,
   customer: c,
   canManage,
-  canCredit,
+  canReadLegacyCredit,
   close,
   edit,
-  credit,
 }: {
   api: StaffApi;
   customer: Customer;
   canManage: boolean;
-  canCredit: boolean;
+  canReadLegacyCredit: boolean;
   close: () => void;
   edit: () => void;
-  credit: () => void;
 }) {
   const [history, setHistory] = useState<CreditHistory | null>(null),
     [page, setPage] = useState(1),
     [error, setError] = useState(''),
     [retry, setRetry] = useState(0);
   useEffect(() => {
-    if (!canCredit) return;
+    if (!canReadLegacyCredit) return;
     let live = true;
     setHistory(null);
     setError('');
@@ -40,15 +38,16 @@ export function CustomerDetail({
     return () => {
       live = false;
     };
-  }, [api, c.id, canCredit, page, retry]);
+  }, [api, c.id, canReadLegacyCredit, page, retry]);
   return (
     <Dialog title={c.name} subtitle={c.code + ' · Version ' + c.version} onClose={close} wide>
       <div className="customer-dialog-body">
         <div className="customer-facts">
           <div>
-            <span>Type & segment</span>
+            <span>Customer type</span>
             <strong>
-              {c.customerKind} · {c.segment}
+              {c.customerKind}
+              {c.segment !== 'retail' ? ' / Archived trade profile' : ''}
             </strong>
           </div>
           <div>
@@ -67,14 +66,16 @@ export function CustomerDetail({
             <span>Email</span>
             <strong>{c.email || 'Not provided'}</strong>
           </div>
-          <div>
-            <span>Credit policy</span>
-            <strong>
-              {c.creditEnabled
-                ? creditMoney(c.creditLimit) + ' · ' + c.paymentTermsDays + ' day terms'
-                : 'Disabled'}
-            </strong>
-          </div>
+          {canReadLegacyCredit && c.creditEnabled && (
+            <div>
+              <span>Archived trade policy (inactive)</span>
+              <strong>
+                {c.creditEnabled
+                  ? creditMoney(c.creditLimit) + ' · ' + c.paymentTermsDays + ' day terms'
+                  : 'Disabled'}
+              </strong>
+            </div>
+          )}
         </div>
         <div className="customer-address-grid">
           {(['billingAddress', 'deliveryAddress'] as const).map((key) => (
@@ -101,9 +102,10 @@ export function CustomerDetail({
             <p className="customer-prewrap">{c.notes}</p>
           </section>
         )}
-        {canCredit && (
+        {canReadLegacyCredit && (error || (history?.total ?? 0) > 0) && (
           <section>
-            <h3>Credit policy history</h3>
+            <h3>Archived trade policy history</h3>
+            <p>Read-only history. Customer trade credit is no longer offered.</p>
             {error ? (
               <p role="alert" className="form-error">
                 {error}{' '}
@@ -163,11 +165,6 @@ export function CustomerDetail({
         <button className="secondary-button" onClick={close}>
           Close
         </button>
-        {canCredit && (
-          <button className="secondary-button" onClick={credit}>
-            Credit policy
-          </button>
-        )}
         {canManage && (
           <button className="primary-button" onClick={edit}>
             Edit customer

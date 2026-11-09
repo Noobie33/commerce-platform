@@ -6,19 +6,10 @@ import { SalesDetail } from './sales-detail';
 import { CancelDraft } from './cancel-draft';
 import { money, problem } from './helpers';
 import './sales.css';
-export function SalesPage({
-  api,
-  canManage,
-  canOverride,
-}: {
-  api: StaffApi;
-  canManage: boolean;
-  canOverride: boolean;
-}) {
+export function SalesPage({ api, canManage }: { api: StaffApi; canManage: boolean }) {
   const [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
-    [channel, setChannel] = useState('all'),
     [page, setPage] = useState(1),
     [revision, refresh] = useState(0),
     [data, setData] = useState<Page | null>(null),
@@ -43,7 +34,7 @@ export function SalesPage({
     setLoading(true);
     setError('');
     void api
-      .salesOrders({ search: query, status, channel, page })
+      .salesOrders({ search: query, status, page })
       .then((r) => {
         if (live) {
           setData(r);
@@ -59,7 +50,7 @@ export function SalesPage({
     return () => {
       live = false;
     };
-  }, [api, query, status, channel, page, revision]);
+  }, [api, query, status, page, revision]);
   useEffect(() => {
     let live = true;
     setLocationError('');
@@ -96,7 +87,7 @@ export function SalesPage({
     <section className="sales-page">
       <div className="page-heading">
         <div>
-          <span className="eyebrow">RETAIL & WHOLESALE</span>
+          <span className="eyebrow">RETAIL SALES</span>
           <h1 id="page-title" tabIndex={-1}>
             Sales orders
           </h1>
@@ -165,20 +156,6 @@ export function SalesPage({
             <option value="cancelled">Cancelled</option>
           </select>
         </label>
-        <label>
-          Sales channel
-          <select
-            value={channel}
-            onChange={(e) => {
-              setChannel(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="all">All channels</option>
-            <option value="retail">Retail</option>
-            <option value="wholesale">Wholesale</option>
-          </select>
-        </label>
       </div>
       <div className="sales-panel" aria-busy={loading}>
         <div className="sales-panel-heading">
@@ -221,7 +198,7 @@ export function SalesPage({
                       <small>{o.customerSnapshot.code}</small>
                     </td>
                     <td>
-                      {o.channel === 'retail' ? 'Retail' : 'Wholesale'}
+                      {o.channel === 'retail' ? 'Retail' : 'Archived wholesale'}
                       <small>{o.locationName}</small>
                     </td>
                     <td>{money(o.total)}</td>
@@ -288,7 +265,6 @@ export function SalesPage({
           api={api}
           initial={editor === 'new' ? null : editor}
           locations={locations}
-          canOverride={canOverride}
           close={() => setEditor(null)}
           saved={(r) => saved(r, 'Sales draft saved.')}
         />

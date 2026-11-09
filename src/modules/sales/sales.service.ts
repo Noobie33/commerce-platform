@@ -20,7 +20,7 @@ export class SalesService {
   customers(search: string): Promise<SalesCustomer[]> {
     if (search.length < 2) return Promise.resolve([]);
     return this.db.query(
-      `SELECT id,code,name,version,segment FROM customers WHERE is_active AND(name ILIKE $1 OR code ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1) ORDER BY name,id LIMIT 20`,
+      `SELECT id,code,name,version,segment FROM customers WHERE is_active AND segment='retail' AND(name ILIKE $1 OR code ILIKE $1 OR phone ILIKE $1 OR email ILIKE $1) ORDER BY name,id LIMIT 20`,
       [escaped(search)],
     );
   }
@@ -111,6 +111,7 @@ export class SalesService {
         });
       if (
         [
+          'SALES_RETAIL_ONLY',
           'SALES_RESERVED',
           'SALES_STALE',
           'SALES_STATE',

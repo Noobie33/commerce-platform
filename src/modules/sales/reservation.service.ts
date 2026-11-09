@@ -119,6 +119,7 @@ export class ReservationService {
         });
       if (
         [
+          'RESERVATION_RETAIL_ONLY',
           'RESERVATION_STALE',
           'RESERVATION_IDEMPOTENCY',
           'RESERVATION_EXISTS',

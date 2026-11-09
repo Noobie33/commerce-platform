@@ -7,7 +7,7 @@
 }
 export interface CustomerInput {
   customerKind: 'person' | 'business';
-  segment: 'retail' | 'wholesale' | 'both';
+  segment: 'retail';
   name: string;
   contactName: string;
   phone: string;
@@ -18,7 +18,9 @@ export interface CustomerInput {
   isActive: boolean;
   expectedVersion?: number;
 }
-export interface Customer extends Omit<CustomerInput, 'expectedVersion'> {
+export interface Customer extends Omit<CustomerInput, 'expectedVersion' | 'segment'> {
+  // Historical records retain their original classification; new writes are retail-only.
+  segment: 'retail' | 'wholesale' | 'both';
   id: string;
   code: string;
   version: number;
@@ -33,13 +35,6 @@ export interface CustomerPage {
   page: number;
   total: number;
   pageSize: number;
-}
-export interface CreditInput {
-  expectedVersion: number;
-  creditEnabled: boolean;
-  creditLimit: string;
-  paymentTermsDays: number;
-  reason: string;
 }
 export interface CustomerResult {
   id: string;

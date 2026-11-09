@@ -14,14 +14,12 @@ export function SalesEditor({
   api,
   initial,
   locations,
-  canOverride,
   close,
   saved,
 }: {
   api: StaffApi;
   initial: SalesOrder | null;
   locations: SalesLocation[];
-  canOverride: boolean;
   close: () => void;
   saved: (r: { id: string }) => void;
 }) {
@@ -32,12 +30,10 @@ export function SalesEditor({
     [customers, setCustomers] = useState<SalesCustomer[]>([]),
     [customerError, setCustomerError] = useState(''),
     [findingCustomer, setFindingCustomer] = useState(false),
-    [channel, setChannel] = useState<'retail' | 'wholesale'>(initial?.channel ?? 'retail'),
     [locationId, setLocation] = useState(initial?.locationId ?? locations[0]?.id ?? ''),
     [fulfillOn, setDate] = useState(initial?.fulfillOn ?? ''),
     [reference, setReference] = useState(initial?.reference ?? ''),
     [notes, setNotes] = useState(initial?.notes ?? ''),
-    [priceReason, setPriceReason] = useState(initial?.priceReason ?? ''),
     [lines, setLines] = useState<SalesLine[]>(initial?.lines ?? []),
     [search, setSearch] = useState(''),
     [variants, setVariants] = useState<SalesVariant[]>([]),
@@ -141,8 +137,7 @@ export function SalesEditor({
     changed();
     setLines((old) => old.map((l) => (l.variantId === id ? { ...l, ...change } : l)));
   }
-  const overrides = lines.some((l) => l.priceMode === 'override'),
-    compatible = customer && (customer.segment === 'both' || customer.segment === channel);
+  const compatible = customer?.segment === 'retail';
   let total = 0n,
     valid = lines.length > 0;
   for (const l of lines) {
@@ -185,11 +180,9 @@ export function SalesEditor({
       !compatible ||
       !locationId ||
       !valid ||
-      (overrides && (!canOverride || !priceReason.trim()))
+      lines.some((l) => l.priceMode !== 'catalog')
     ) {
-      setError(
-        'Choose a compatible customer, active location and valid lines. Price overrides need permission and a reason.',
-      );
+      setError('Choose a retail customer, active location and valid catalog-priced lines.');
       return;
     }
     if (!review) {
@@ -200,16 +193,16 @@ export function SalesEditor({
       customerId: customer.id,
       customerVersion: customer.version,
       locationId,
-      channel,
+      channel: 'retail',
       fulfillOn: fulfillOn || null,
       reference,
       notes,
-      priceReason: overrides ? priceReason : '',
+      priceReason: '',
       lines: lines.map((l) => ({
         variantId: l.variantId,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
-        priceMode: l.priceMode,
+        priceMode: 'catalog',
       })),
       ...(initial ? { expectedVersion: initial.version } : {}),
     };
@@ -234,7 +227,7 @@ export function SalesEditor({
   return (
     <Dialog
       title={initial ? 'Edit sales draft' : 'New sales draft'}
-      subtitle={initial?.number ?? 'Prepare an order for a retail shopper or wholesale partner.'}
+      subtitle={initial?.number ?? 'Prepare an order at the current retail catalog prices.'}
       onClose={dismiss}
       wide
     >
@@ -296,7 +289,6 @@ export function SalesEditor({
                         onClick={() => {
                           setCustomer(c);
                           setCustomerSearch('');
-                          if (c.segment !== 'both') setChannel(c.segment);
                           changed();
                         }}
                       >
@@ -316,19 +308,6 @@ export function SalesEditor({
                 </>
               )}
               <div className="sales-grid">
-                <label>
-                  Sales channel
-                  <select
-                    value={channel}
-                    onChange={(e) => {
-                      setChannel(e.target.value as 'retail' | 'wholesale');
-                      changed();
-                    }}
-                  >
-                    <option value="retail">Retail</option>
-                    <option value="wholesale">Wholesale</option>
-                  </select>
-                </label>
                 <label>
                   Fulfillment location
                   <select
@@ -374,7 +353,7 @@ export function SalesEditor({
               </div>
               {customer && !compatible && (
                 <p className="sales-warning" role="status">
-                  This customer is enabled for {customer.segment}. Choose a matching sales channel.
+                  This archived customer profile cannot be used for a new retail draft.
                 </p>
               )}
             </section>
@@ -471,30 +450,12 @@ export function SalesEditor({
                         />
                       </label>
                       <label>
-                        Price mode · {l.sku}
-                        <select
-                          value={l.priceMode}
-                          onChange={(e) =>
-                            updateLine(l.variantId, {
-                              priceMode: e.target.value as 'catalog' | 'override',
-                              unitPrice:
-                                e.target.value === 'catalog' ? l.catalogPrice : l.unitPrice,
-                            })
-                          }
-                        >
-                          <option value="catalog">Catalog price</option>
-                          <option value="override" disabled={!canOverride}>
-                            Price override
-                          </option>
-                        </select>
-                      </label>
-                      <label>
                         Unit price (BDT) · {l.sku}
                         <input
                           required
                           inputMode="decimal"
                           pattern="(0|[1-9][0-9]{0,9})(\.[0-9]{1,2})?"
-                          readOnly={l.priceMode === 'catalog' || !canOverride}
+                          readOnly
                           value={l.unitPrice}
                           onChange={(e) => updateLine(l.variantId, { unitPrice: e.target.value })}
                         />
@@ -514,21 +475,6 @@ export function SalesEditor({
               </div>
               {!lines.length && (
                 <p className="sales-empty">Choose at least one active product variant.</p>
-              )}
-              {overrides && (
-                <label>
-                  Reason for price override *
-                  <textarea
-                    required
-                    maxLength={500}
-                    rows={2}
-                    value={priceReason}
-                    onChange={(e) => {
-                      setPriceReason(e.target.value);
-                      changed();
-                    }}
-                  />
-                </label>
               )}
             </section>
             <label>
@@ -558,16 +504,13 @@ export function SalesEditor({
                 Review sales draft
               </h3>
               <p>
-                {customer?.name} · {channel} · {locations.find((l) => l.id === locationId)?.name}
+                {customer?.name} · Retail · {locations.find((l) => l.id === locationId)?.name}
               </p>
               <p>
-                {lines.length} variants · {money(decimal(total))}
+                {lines.length} {lines.length === 1 ? 'variant' : 'variants'} ·{' '}
+                {money(decimal(total))}
               </p>
-              {overrides && <p>Price override reason: {priceReason}</p>}
-              <p>
-                Saving this draft will not reserve or deduct inventory, approve credit, or create an
-                invoice.
-              </p>
+              <p>Saving this draft will not reserve or deduct inventory or create an invoice.</p>
             </section>
           )}
         </div>

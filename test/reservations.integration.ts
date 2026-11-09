@@ -131,7 +131,7 @@ test('sales stock holds: scoped availability, expiry and all stock-decreasing bo
       );
     const input = customerInput({
       customerKind: 'business',
-      segment: 'both',
+      segment: 'retail',
       name: prefix + ' customer',
       phone: '01700000000',
       email: 'sample@example.invalid',
@@ -606,7 +606,10 @@ test('sales stock holds: scoped availability, expiry and all stock-decreasing bo
           await assert.rejects(next.down(r), /Cannot discard/);
           await r.query('CREATE SCHEMA ' + schema);
           await r.query('SET search_path TO ' + schema + ',public');
-          for (const migration of db.migrations) await migration.up(r);
+          for (const migration of db.migrations) {
+            await migration.up(r);
+            if (migration instanceof SalesReservations1794110000000) break;
+          }
           assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 12);
           await next.down(r);
           assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 11);

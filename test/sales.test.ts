@@ -6,7 +6,7 @@ const body = () => ({
   customerId: randomUUID(),
   customerVersion: 1,
   locationId: randomUUID(),
-  channel: 'wholesale',
+  channel: 'retail',
   fulfillOn: '2028-02-29',
   lines: [{ variantId: randomUUID(), quantity: '3', unitPrice: '0.10', priceMode: 'catalog' }],
 });
@@ -37,10 +37,14 @@ test('sales drafts strictly validate identifiers, quantities, overrides, mass as
   assert.throws(() => listQuery({ page: ['1'] }));
   assert.throws(() => listQuery({ status: 'confirmed' }));
   assert.throws(() => listQuery({ country: 'BD' }));
-  const input = salesInput({
-    ...b,
-    priceReason: ' Agreed trade price ',
-    lines: [{ ...b.lines[0], priceMode: 'override' }],
-  });
-  assert.equal(input.priceReason, 'Agreed trade price');
+  assert.throws(() => salesInput({ ...b, channel: 'wholesale' }));
+  assert.throws(() =>
+    salesInput({
+      ...b,
+      priceReason: 'Agreed trade price',
+      lines: [{ ...b.lines[0], priceMode: 'override' }],
+    }),
+  );
+  assert.throws(() => salesInput({ ...b, priceReason: 'Unapproved discount' }));
+  assert.equal(salesInput({ ...b, channel: undefined }).channel, 'retail');
 });

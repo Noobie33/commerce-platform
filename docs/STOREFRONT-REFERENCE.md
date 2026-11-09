@@ -1,6 +1,6 @@
 # Storefront reference and feature contract
 
-> **Scope update - 9 November 2026:** The [retail-only master plan](RETAIL-ONLY-MASTER-PLAN.md) is authoritative. Wholesale/B2B and customer trade credit are excluded from the target system. Existing implementation details below remain accurate until the planned forward migration; this documentation change does not remove features or alter business data.
+> **Retail-only update - 9 November 2026:** The [master plan](RETAIL-ONLY-MASTER-PLAN.md) is authoritative. [Schema 13 cutover](RETAIL-CUTOVER.md) retires wholesale, customer trade-credit writes and negotiated sales prices while preserving history.
 
 Owner direction recorded on 8 November 2026: use Aarong/Taaga as the primary reference for storefront composition, product presentation and shopping functionality; add Tabaya-inspired product video alongside photographs. Apply the shared clarity and visual language to staff screens, and extend the management system to supply all storefront content. Neutral code branding remains in force.
 

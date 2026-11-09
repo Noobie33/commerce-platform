@@ -27,7 +27,7 @@ export interface SalesInput {
   customerId: string;
   customerVersion: number;
   locationId: string;
-  channel: 'retail' | 'wholesale';
+  channel: 'retail';
   fulfillOn: string | null;
   reference: string;
   notes: string;
@@ -36,7 +36,7 @@ export interface SalesInput {
     variantId: string;
     quantity: string;
     unitPrice: string;
-    priceMode: 'catalog' | 'override';
+    priceMode: 'catalog';
   }[];
   expectedVersion?: number;
 }

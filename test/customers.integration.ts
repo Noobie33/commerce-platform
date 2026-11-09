@@ -12,7 +12,7 @@ import { PasswordService } from '../src/modules/identity/password.service.js';
 import { tokenHash } from '../src/modules/identity/identity.service.js';
 import { CustomerFoundation1794108000000 } from '../src/database/migrations/1794108000000-customer-foundation.js';
 import type { Customer, CustomerResult } from '../src/modules/customers/customer.types.js';
-test('customer records: protected profiles, contact matching and independently controlled credit', async (t) => {
+test('customer records: protected retail profiles, contact matching and retired trade credit', async (t) => {
   assert.equal(
     new URL(databaseUrl(process.env, 'MIGRATION_DATABASE_URL')).pathname,
     '/commerce_platform_test',
@@ -195,7 +195,7 @@ test('customer records: protected profiles, contact matching and independently c
           ...body(),
           name: prefix + ' shared contact',
           customerKind: 'business',
-          segment: 'wholesale',
+          segment: 'retail',
         });
         assert.equal(r.status, 201);
         const id = (await r.json()).id;
@@ -237,7 +237,7 @@ test('customer records: protected profiles, contact matching and independently c
               paymentTermsDays: 1.5,
             })
           ).status,
-          400,
+          404,
         );
         assert.equal((await call('?page=0')).status, 400);
       },
@@ -248,7 +248,7 @@ test('customer records: protected profiles, contact matching and independently c
         assert.equal((await call('', body(), randomUUID(), 2)).status, 403);
         assert.equal(
           (await call('/' + c.id + '/credit-policy', credit(c.version), randomUUID(), 1)).status,
-          403,
+          404,
         );
         assert.equal(
           (await call('/' + c.id + '/credit-history', undefined, randomUUID(), 1)).status,
@@ -291,29 +291,47 @@ test('customer records: protected profiles, contact matching and independently c
       },
     );
     await t.test(
-      'credit manager can record exact BDT policy with reason, immutable history and version conflict checks',
+      'retired credit endpoint rejects all staff without altering policy, version or request cache',
       async () => {
-        const k = randomUUID(),
-          b = credit(c.version);
-        const r = await call('/' + c.id + '/credit-policy', b, k, 2);
-        assert.equal(r.status, 201);
-        const saved = await r.json();
-        assert.deepEqual(await (await call('/' + c.id + '/credit-policy', b, k, 2)).json(), saved);
-        assert.equal((await call('/' + c.id + '/credit-policy', b)).status, 409);
-        c = await (await call('/' + c.id)).json();
-        assert.equal(c.creditLimit, '25000.15');
-        assert.equal(c.paymentTermsDays, 30);
+        const before = await db.query(
+          'SELECT version,credit_enabled,credit_limit_minor FROM customers WHERE id=$1',
+          [c.id],
+        );
+        for (const who of [0, 1, 2])
+          assert.equal(
+            (await call('/' + c.id + '/credit-policy', credit(c.version), randomUUID(), who))
+              .status,
+            404,
+          );
+        await assert.rejects(
+          runtime.query('SELECT customer_save($1,$2,$3,$4::jsonb)', [
+            randomUUID(),
+            users[0],
+            randomUUID(),
+            JSON.stringify({
+              kind: 'credit',
+              id: c.id,
+              ...credit(c.version),
+              creditLimit: '2500015',
+            }),
+          ]),
+          /CUSTOMER_RETAIL_ONLY/,
+        );
+        assert.deepEqual(
+          await db.query(
+            'SELECT version,credit_enabled,credit_limit_minor FROM customers WHERE id=$1',
+            [c.id],
+          ),
+          before,
+        );
         const h = await (
           await call('/' + c.id + '/credit-history', undefined, randomUUID(), 2)
         ).json();
-        assert.equal(h.total, 1);
-        assert.equal(h.items[0].currentPolicy.creditLimitMinor, '2500015');
-        assert.equal(h.items[0].previousPolicy.creditEnabled, false);
-        assert.equal(h.items[0].reason, b.reason);
+        assert.equal(h.total, 0);
       },
     );
     await t.test(
-      'inactive profiles preserve policy, cannot enable credit, and disabling clears configured limit and terms',
+      'retail profiles can be deactivated without changing financial history',
       async () => {
         assert.equal(
           (
@@ -328,22 +346,8 @@ test('customer records: protected profiles, contact matching and independently c
           200,
         );
         c = await (await call('/' + c.id)).json();
-        assert.equal(c.creditEnabled, true);
-        assert.equal((await call('/' + c.id + '/credit-policy', credit(c.version))).status, 409);
-        assert.equal(
-          (
-            await call('/' + c.id + '/credit-policy', {
-              expectedVersion: c.version,
-              creditEnabled: false,
-              creditLimit: '0.00',
-              paymentTermsDays: 0,
-              reason: 'Disabled inactive account',
-            })
-          ).status,
-          201,
-        );
-        c = await (await call('/' + c.id)).json();
-        assert.equal(c.creditLimit, '0.00');
+        assert.equal(c.isActive, false);
+        assert.equal(c.creditEnabled, false);
         assert.equal(
           (await call('?status=inactive&search=' + encodeURIComponent(c.code))).status,
           200,
@@ -351,28 +355,20 @@ test('customer records: protected profiles, contact matching and independently c
       },
     );
     await t.test(
-      'audit failure rolls back profile and credit history, version and retry key; same-key retry succeeds',
+      'audit failure rolls back profile create/update, version and retry key; same-key retry succeeds',
       async () => {
-        for (const operation of ['create', 'credit']) {
+        for (const operation of ['create', 'update']) {
           const name = 'customer_audit_' + prefix,
             k = randomUUID();
-          const input =
-            operation === 'create'
-              ? body()
-              : {
-                  expectedVersion: c.version,
-                  creditEnabled: false,
-                  creditLimit: '0',
-                  paymentTermsDays: 0,
-                  reason: 'Rollback fixture',
-                };
-          const path = operation === 'create' ? '' : '/' + c.id + '/credit-policy';
+          const input = operation === 'create' ? body() : { ...body(), expectedVersion: c.version };
+          const path = operation === 'create' ? '' : '/' + c.id;
+          const method = operation === 'create' ? 'POST' : 'PATCH';
           const before = await db.query('SELECT version FROM customers WHERE id=$1', [c.id]);
           await db.query(
             `CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $f$ BEGIN IF NEW.action LIKE 'customers.%' THEN RAISE EXCEPTION 'Intentional customer audit failure';END IF;RETURN NEW;END;$f$;CREATE TRIGGER ${name} BEFORE INSERT ON audit_events FOR EACH ROW EXECUTE FUNCTION ${name}()`,
           );
           try {
-            const r = await call(path, input, k);
+            const r = await call(path, input, k, 0, method);
             assert.equal(r.status, 500);
             assert.equal(JSON.stringify(await r.json()).includes('Intentional'), false);
             assert.equal(
@@ -388,7 +384,10 @@ test('customer records: protected profiles, contact matching and independently c
               'DROP TRIGGER ' + name + ' ON audit_events;DROP FUNCTION ' + name + '()',
             );
           }
-          assert.equal((await call(path, input, k)).status, 201);
+          assert.equal(
+            (await call(path, input, k, 0, method)).status,
+            operation === 'create' ? 201 : 200,
+          );
           c = await (await call('/' + c.id)).json();
         }
       },

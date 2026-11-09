@@ -1,8 +1,8 @@
 ﻿# Retail-only master plan
 
-Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; implementation of the pivot is pending. Neutral internal name: commerce-platform.
+Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy is implemented at schema 13. See [cutover evidence and limits](RETAIL-CUTOVER.md). Neutral internal name: commerce-platform.
 
-This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. This planning change does not remove existing features, run migrations, install dependencies or alter business data.
+This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. The original R0 planning change altered documentation only. The subsequent R1 implementation retires trade writes through a forward migration while preserving business history; later phases remain pending.
 
 ## 1. Fixed scope
 
@@ -24,7 +24,7 @@ Read-only source audit baseline: commit 59e2fed932b25d7c3a24b7c7a9bab472233b5a63
 | Inventory       | Multi-location ledger, receipts, adjustments, atomic transfers/reversals, stock holds and availability                    | Physical dispatch/in-transit/receipt workflow, quarantine/safety stock policy, firm order allocations and sales dispatch |
 | Purchasing      | Suppliers, PO issue/cancel, partial receiving, supplier invoices, recorded payments, allocations/reversals and statements | Supplier returns/credits, opening balances, valuation and complete accounting reconciliation                             |
 | Customers/sales | Contact/address records, drafts, snapshots and timed holds                                                                | Retail-only cutover, confirmed orders, fulfillment, retail invoices, payment/refund lifecycle                            |
-| Legacy scope    | Retail/wholesale segments and channels, customer credit settings and controlled price overrides exist                     | Remove active wholesale/credit behavior safely across UI, API and database                                               |
+| Legacy scope    | Retail/wholesale segments and channels, customer credit settings and controlled price overrides exist                     | Schema 13 retires active trade writes; historical contracts remain readable                                              |
 | Public website  | Reference contract and UI direction                                                                                       | Customer storefront, account, cart, checkout, gateway/courier integrations and service journeys                          |
 
 The staff interface is React/TypeScript with Vite; backend is NestJS/TypeScript with PostgreSQL. There is no completed public shopping website today. Recorded supplier payments do not transfer money. Immediate inventory transfers do not yet model trucks, goods in transit or receiving confirmation. No production-readiness claim follows from the test count.
@@ -101,7 +101,7 @@ Video needs its own actual file/container/codec/duration validation, processing 
 
 ## 7. Safe retail-only cutover
 
-This is the first implementation slice. Hiding dropdowns alone is insufficient.
+This is the completed R1 implementation checklist, retained for future upgrades and review. See [actual cutover behavior](RETAIL-CUTOVER.md). Hiding dropdowns alone is insufficient.
 
 1. Re-read this plan and inspect current data read-only: customer segments/credit settings, sales channels, overrides, live holds, stock and financial balances. Do not rely on the earlier empty-development-data observation. Prepare a verified backup and isolated restoration before a consequential data migration.
 2. Inventory customer segment and credit fields across validation, controller/service contracts, staff forms/detail/filter screens, SQL functions and permission definitions. Preserve normal contact/address/history and optional business billing identity; a company name does not confer wholesale privileges.
@@ -171,7 +171,7 @@ Local development currently uses existing tools. Hosting/domain, public storage/
 
 ## 13. Next-session checkpoint
 
-Start with R1's read-only data-impact audit and a small reviewed retail-only migration/API/UI slice. Do not resume the old customer-credit or B2B confirmation roadmap. Keep current operational history intact. Update this plan and the feature register after each accepted slice, and distinguish implemented behavior, tested evidence and remaining gaps.
+R1 retail-only policy is implemented at schema 13. Start R2 with a bounded structured-catalog and publication-contract slice, reviewing current code/data first. Do not resume the old customer-credit or B2B confirmation roadmap. Keep current operational history intact. Update this plan and the feature register after each accepted slice, and distinguish implemented behavior, tested evidence and remaining gaps.
 
 ## Sources
 

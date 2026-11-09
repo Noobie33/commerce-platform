@@ -1,3 +1,4 @@
+import { RetailOnly1794111000000 } from '../../database/migrations/1794111000000-retail-only.js';
 import { SalesReservations1794110000000 } from '../../database/migrations/1794110000000-sales-reservations.js';
 import { SalesDrafts1794109000000 } from '../../database/migrations/1794109000000-sales-drafts.js';
 import { CustomerFoundation1794108000000 } from '../../database/migrations/1794108000000-customer-foundation.js';
@@ -59,6 +60,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       CustomerFoundation1794108000000,
       SalesDrafts1794109000000,
       SalesReservations1794110000000,
+      RetailOnly1794111000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

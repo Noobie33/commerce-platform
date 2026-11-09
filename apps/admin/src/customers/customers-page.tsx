@@ -1,24 +1,22 @@
 import { useEffect, useState } from 'react';
 import { StaffApi } from '../api';
 import type { Customer, CustomerPage } from './types';
-import { creditMoney, errorText } from './helpers';
+import { errorText } from './helpers';
 import { CustomerDetail } from './customer-detail';
 import { CustomerEditor } from './customer-editor';
-import { CreditEditor } from './credit-editor';
 import './customers.css';
 export function CustomersPage({
   api,
   canManage,
-  canCredit,
+  canReadLegacyCredit,
 }: {
   api: StaffApi;
   canManage: boolean;
-  canCredit: boolean;
+  canReadLegacyCredit: boolean;
 }) {
   const [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [status, setStatus] = useState('active'),
-    [segment, setSegment] = useState('all'),
     [kind, setKind] = useState('all'),
     [page, setPage] = useState(1),
     [revision, refresh] = useState(0),
@@ -27,8 +25,7 @@ export function CustomersPage({
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
     [detail, setDetail] = useState<Customer | null>(null),
-    [editor, setEditor] = useState<Customer | 'new' | null>(null),
-    [credit, setCredit] = useState<Customer | null>(null);
+    [editor, setEditor] = useState<Customer | 'new' | null>(null);
   useEffect(() => {
     const t = setTimeout(() => {
       setQuery(search);
@@ -41,7 +38,7 @@ export function CustomersPage({
     setLoading(true);
     setError('');
     void api
-      .customers({ search: query, status, segment, kind, page })
+      .customers({ search: query, status, kind, page })
       .then((value) => {
         if (live) {
           setData(value);
@@ -57,7 +54,7 @@ export function CustomersPage({
     return () => {
       live = false;
     };
-  }, [api, query, status, segment, kind, page, revision]);
+  }, [api, query, status, kind, page, revision]);
   async function open(id: string) {
     setError('');
     try {
@@ -68,7 +65,6 @@ export function CustomersPage({
   }
   async function saved(result: { id: string }, message: string) {
     setEditor(null);
-    setCredit(null);
     setNotice(message);
     refresh((n) => n + 1);
     await open(result.id);
@@ -81,7 +77,7 @@ export function CustomersPage({
           <h1 id="page-title" tabIndex={-1}>
             Customers
           </h1>
-          <p>One record for retail shoppers and wholesale partners.</p>
+          <p>Customer contacts and addresses for your retail brand.</p>
         </div>
         <div className="customer-header-actions">
           <button
@@ -136,21 +132,6 @@ export function CustomersPage({
           </select>
         </label>
         <label>
-          Sales segment
-          <select
-            value={segment}
-            onChange={(e) => {
-              setSegment(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="all">All segments</option>
-            <option value="retail">Retail</option>
-            <option value="wholesale">Wholesale</option>
-            <option value="both">Retail & wholesale</option>
-          </select>
-        </label>
-        <label>
           Customer type
           <select
             value={kind}
@@ -185,9 +166,7 @@ export function CustomersPage({
               <thead>
                 <tr>
                   <th>Customer</th>
-                  <th>Segment</th>
                   <th>Contact</th>
-                  <th>Credit policy</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -203,21 +182,8 @@ export function CustomersPage({
                       </small>
                     </td>
                     <td>
-                      {c.segment === 'both'
-                        ? 'Retail & wholesale'
-                        : c.segment === 'retail'
-                          ? 'Retail'
-                          : 'Wholesale'}
-                    </td>
-                    <td>
                       {c.phone || c.email || 'Not provided'}
                       {c.phone && c.email && <small>{c.email}</small>}
-                    </td>
-                    <td>
-                      {c.creditEnabled ? creditMoney(c.creditLimit) : 'Disabled'}
-                      {c.creditEnabled && (
-                        <small>{c.paymentTermsDays} day terms · configured limit</small>
-                      )}
                     </td>
                     <td>
                       <span className={'customer-badge ' + (c.isActive ? 'active' : '')}>
@@ -252,23 +218,15 @@ export function CustomersPage({
           </div>
         </div>
       </div>
-      <p className="customer-footnote">
-        Credit limits are policy settings. Customer balances and available credit will appear when
-        sales and receivables are connected.
-      </p>
       {detail && (
         <CustomerDetail
           api={api}
           customer={detail}
-          canManage={canManage}
-          canCredit={canCredit}
+          canManage={canManage && detail.segment === 'retail'}
+          canReadLegacyCredit={canReadLegacyCredit}
           close={() => setDetail(null)}
           edit={() => {
             setEditor(detail);
-            setDetail(null);
-          }}
-          credit={() => {
-            setCredit(detail);
             setDetail(null);
           }}
         />
@@ -279,14 +237,6 @@ export function CustomersPage({
           initial={editor === 'new' ? null : editor}
           close={() => setEditor(null)}
           saved={(r) => void saved(r, 'Customer saved.')}
-        />
-      )}
-      {credit && (
-        <CreditEditor
-          api={api}
-          customer={credit}
-          close={() => setCredit(null)}
-          saved={(r) => void saved(r, 'Credit policy recorded.')}
         />
       )}
     </section>

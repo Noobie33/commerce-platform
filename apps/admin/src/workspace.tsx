@@ -356,17 +356,13 @@ export function Workspace({
             />
           )}
           {page === 'sales' && hasGlobal(user, 'sales.read') && (
-            <SalesPage
-              api={api}
-              canManage={hasGlobal(user, 'sales.manage')}
-              canOverride={hasGlobal(user, 'sales.price_override')}
-            />
+            <SalesPage api={api} canManage={hasGlobal(user, 'sales.manage')} />
           )}
           {page === 'customers' && hasGlobal(user, 'customers.read') && (
             <CustomersPage
               api={api}
               canManage={hasGlobal(user, 'customers.manage')}
-              canCredit={hasGlobal(user, 'customers.credit.manage')}
+              canReadLegacyCredit={hasGlobal(user, 'customers.credit.manage')}
             />
           )}
           {page === 'team' && <Team api={api} user={user} />}

@@ -1,6 +1,6 @@
 ﻿# Timed sales stock holds
 
-> **Scope update - 9 November 2026:** The [retail-only master plan](RETAIL-ONLY-MASTER-PLAN.md) is authoritative. Wholesale/B2B and customer trade credit are excluded from the target system. Existing implementation details below remain accurate until the planned forward migration; this documentation change does not remove features or alter business data.
+> **Retail-only update - 9 November 2026:** The [master plan](RETAIL-ONLY-MASTER-PLAN.md) is authoritative. [Schema 13 cutover](RETAIL-CUTOVER.md) retires wholesale, customer trade-credit writes and negotiated sales prices while preserving history.
 
 ## Scope and user decisions
 

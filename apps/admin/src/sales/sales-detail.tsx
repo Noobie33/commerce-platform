@@ -40,7 +40,7 @@ export function SalesDetail({
       <div className="sales-dialog-body">
         <p className="sales-scope">
           {o.stockReserved
-            ? 'Stock is reserved for this draft. No customer balance or credit approval has been created.'
+            ? 'Stock is reserved for this draft. No sale, invoice or payment has been posted.'
             : 'No stock is currently held for this draft. No customer balance has been created.'}
         </p>
         <div className="sales-facts">
@@ -52,7 +52,7 @@ export function SalesDetail({
           <div>
             <span>Channel & location</span>
             <strong>
-              {o.channel === 'retail' ? 'Retail' : 'Wholesale'} · {o.locationName}
+              {o.channel === 'retail' ? 'Retail' : 'Archived wholesale'} · {o.locationName}
             </strong>
           </div>
           <div>
@@ -140,7 +140,7 @@ export function SalesDetail({
         </div>
         {o.priceReason && (
           <section>
-            <h3>Price override reason</h3>
+            <h3>Archived price override reason</h3>
             <p className="sales-prewrap">{o.priceReason}</p>
           </section>
         )}
@@ -180,7 +180,13 @@ export function SalesDetail({
             <button className="secondary-button" onClick={() => action(cancel)} disabled={busy}>
               Cancel draft
             </button>
-            <button className="primary-button" onClick={() => action(edit)} disabled={busy}>
+            <button
+              className="primary-button"
+              disabled={
+                busy || o.channel !== 'retail' || o.lines.some((l) => l.priceMode !== 'catalog')
+              }
+              onClick={() => action(edit)}
+            >
               Edit draft
             </button>
           </>

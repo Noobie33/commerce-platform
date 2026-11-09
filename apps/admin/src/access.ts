@@ -42,13 +42,13 @@ Object.assign(permissionNames, {
 Object.assign(permissionNames, {
   'customers.read': 'View customers',
   'customers.manage': 'Manage customers',
-  'customers.credit.manage': 'Manage customer credit policy',
+  'customers.credit.manage': 'Read archived customer trade policy',
 });
 
 Object.assign(permissionNames, {
   'sales.read': 'View sales orders and sales customer lookup',
   'sales.manage': 'Manage sales drafts',
-  'sales.price_override': 'Override sales prices',
+  'sales.price_override': 'Retired sales price override (no write access)',
 });
 
 Object.assign(permissionNames, { 'sales.reserve': 'Manage sales stock holds' });

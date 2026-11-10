@@ -11,6 +11,7 @@ export function ProductDetail({
   onEdit,
   onManagePhotos,
   onContent,
+  onVideos,
   onPublication,
   inline = false,
 }: {
@@ -20,6 +21,7 @@ export function ProductDetail({
   onEdit?: (p: Product) => void;
   onManagePhotos?: (p: Product) => void;
   onContent?: (p: Product) => void;
+  onVideos?: (p: Product) => void;
   onPublication?: (p: Product) => void;
   inline?: boolean;
 }) {
@@ -76,6 +78,14 @@ export function ProductDetail({
           </button>
         )}
 
+        {onVideos && (
+          <button
+            className="secondary-button manage-photos-button"
+            onClick={() => onVideos(product)}
+          >
+            Product videos
+          </button>
+        )}
         {onContent && (
           <button
             className="secondary-button manage-photos-button"

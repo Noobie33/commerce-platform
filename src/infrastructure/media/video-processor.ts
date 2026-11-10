@@ -27,6 +27,15 @@ const probeEntries =
   'format=format_name,duration,size:stream=codec_type,codec_name,width,height,avg_frame_rate,r_frame_rate,pix_fmt,channels,sample_rate,duration,nb_frames,sample_aspect_ratio,color_transfer,color_primaries:stream_disposition=attached_pic:stream_side_data=rotation';
 let activeJobs = 0;
 export class VideoProcessor {
+  private readonly nativeEnv: NodeJS.ProcessEnv = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key, value]) =>
+        value !== undefined &&
+        ['PATH', 'Path', 'SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'HOME', 'LANG', 'LC_ALL'].includes(
+          key,
+        ),
+    ),
+  );
   constructor(
     readonly tools: VideoTools = readVideoTools(process.env),
     readonly policy: VideoPolicy = readVideoPolicy(process.env),
@@ -56,6 +65,7 @@ export class VideoProcessor {
       this.policy.probeTimeoutMs,
       262144,
       signal,
+      this.nativeEnv,
     );
     return parseVideoMetadata(JSON.parse(output), this.policy, bytes);
   }
@@ -177,6 +187,7 @@ export class VideoProcessor {
         this.policy.processingTimeoutMs,
         262144,
         signal,
+        this.nativeEnv,
       );
       const playbackBytes = (await stat(playbackFile)).size;
       if (playbackBytes > this.policy.maxPlaybackBytes) throw invalid();
@@ -242,6 +253,7 @@ export class VideoProcessor {
         this.policy.probeTimeoutMs,
         262144,
         signal,
+        this.nativeEnv,
       );
       if ((await stat(posterFile)).size > this.policy.maxPosterBytes) throw invalid();
       const poster = await readFile(posterFile),

@@ -11,6 +11,7 @@ export async function runMediaProcess(
   timeoutMs: number,
   maxOutputBytes = 262144,
   signal?: AbortSignal,
+  environment?: NodeJS.ProcessEnv,
 ): Promise<string> {
   if (
     !isAbsolute(executable) ||
@@ -26,6 +27,7 @@ export async function runMediaProcess(
       shell: false,
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
+      ...(environment ? { env: environment } : {}),
     });
     let stdoutBytes = 0,
       stderrBytes = 0;

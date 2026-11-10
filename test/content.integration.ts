@@ -576,11 +576,14 @@ test('product content: typed preparation, protected review, stale approvals and 
         const r = db.createQueryRunner();
         await r.connect();
         try {
+          await r.startTransaction();
+          await r.query('UPDATE app_schema_version SET version=22 WHERE singleton');
           await assert.rejects(
             new GuidedProductSpecifications1794120000000().down(r),
             /review history/,
           );
         } finally {
+          if (r.isTransactionActive) await r.rollbackTransaction();
           await r.release();
         }
       },

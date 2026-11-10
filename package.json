@@ -13,10 +13,10 @@
     "start": "node dist/src/main.js",
     "test": "npm run build && node --test dist/test/*.test.js",
     "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
-    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js dist/test/media.integration.js dist/test/inventory.integration.js dist/test/purchasing.integration.js dist/test/receipts.integration.js dist/test/invoices.integration.js dist/test/payments.integration.js dist/test/reports.integration.js dist/test/customers.integration.js dist/test/sales.integration.js dist/test/reservations.integration.js dist/test/retail.integration.js dist/test/content.integration.js dist/test/live-updates.integration.js dist/test/merch.integration.js dist/test/presentation.integration.js dist/test/publication.integration.js dist/test/staff-access.integration.js dist/test/staff-onboarding.integration.js",
+    "test:database": "npm run build && node --env-file=.env.test --test --test-concurrency=1 dist/test/database.integration.js dist/test/identity.integration.js dist/test/catalog.integration.js dist/test/media.integration.js dist/test/inventory.integration.js dist/test/purchasing.integration.js dist/test/receipts.integration.js dist/test/invoices.integration.js dist/test/payments.integration.js dist/test/reports.integration.js dist/test/customers.integration.js dist/test/sales.integration.js dist/test/reservations.integration.js dist/test/retail.integration.js dist/test/content.integration.js dist/test/live-updates.integration.js dist/test/merch.integration.js dist/test/presentation.integration.js dist/test/publication.integration.js dist/test/staff-access.integration.js dist/test/staff-onboarding.integration.js dist/test/video-intake.integration.js",
     "db:provision-local": "node --env-file=.env.setup src/scripts/provision-local.mjs",
     "db:verify-local": "node src/scripts/verify-local-databases.mjs",
-    "start:local": "node --env-file=.env dist/src/main.js",
+    "start:local": "node src/scripts/start-local.mjs",
     "db:migrate": "npm run build && node --env-file=.env dist/src/scripts/migrate.js",
     "staff:bootstrap-owner": "npm run build && node --env-file=.env dist/src/scripts/bootstrap-owner.js",
     "format": "prettier --write \"src/**/*.{ts,mjs}\" \"test/**/*.ts\" \"apps/**/*.{ts,tsx,css,html,json}\" \"docs/**/*.md\" \"*.json\" \"*.md\" \".github/**/*.{yml,yaml}\"",
@@ -40,7 +40,10 @@
     "onboarding:verify-local": "node --env-file=.env dist/src/scripts/verify-staff-onboarding.js",
     "video:verify-tools": "node --env-file=.env.video dist/src/scripts/verify-video-tools.js",
     "video:prepare-local": "node --env-file=.env.video dist/src/scripts/prepare-video.js",
-    "test:video": "node --env-file=.env.video --test --test-concurrency=1 dist/test/video-processing.integration.js"
+    "test:video": "node --env-file=.env.video --test --test-concurrency=1 dist/test/video-processing.integration.js",
+    "video:worker-local": "node --env-file=.env.video-worker dist/src/scripts/video-worker.js",
+    "video:reconcile-local": "node --env-file=.env.video-worker dist/src/scripts/video-worker.js --reconcile",
+    "video:verify-local": "node --env-file=.env dist/src/scripts/verify-video-intake.js"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",

@@ -20,7 +20,13 @@ if (denied.length)
 
 const sensitive = new Set();
 const assignments = new Set();
-for (const file of ['.env', '.env.test', '.env.setup']) {
+for (const file of [
+  '.env',
+  '.env.test',
+  '.env.setup',
+  '.env.video-worker',
+  '.env.video-worker.test',
+]) {
   let raw;
   try {
     raw = await readFile(file, 'utf8');

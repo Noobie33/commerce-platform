@@ -1,6 +1,6 @@
 ﻿# Retail-only master plan
 
-Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 22; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
+Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 23; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
 
 This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. The original R0 planning change altered documentation only. The subsequent R1 implementation retires trade writes through a forward migration while preserving business history; later phases remain pending.
 
@@ -227,3 +227,7 @@ This advances the R3 API foundation without starting the Next.js UI or declaring
 ## Video preparation checkpoint - 10 November 2026
 
 The [private video preparation engine](PRODUCT-VIDEO-PIPELINE.md) now has explicit local tools, actual MP4/MOV inspection, bounded conversion, original integrity, sanitized playback/poster and private handoff artifacts. Schema stays 22; no browser upload, staff video screen, durable processing queue, catalog video mutation or public playback is enabled. V2 intake/worker/metadata/UI and V3 reviewed mixed-media publication retain separate gates. This checkpoint does not complete video support or the Next.js storefront.
+
+## Schema 23 checkpoint - private video intake
+
+[Product video intake and private review](PRODUCT-VIDEO-INTAKE.md) add authenticated streaming upload, separate restricted background worker, durable fenced job states, variant/order metadata, retained original download, private range playback, reasoned review and history. The feature is explicitly loopback development-only and production intake is disabled. No existing product/content/photo release or stock/finance records are rewritten. Mixed photo/video public publication, captions/accessibility and Next.js gallery remain separate acceptance work.

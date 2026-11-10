@@ -15,3 +15,6 @@ export const ImageUpload = () => SetMetadata(IMAGE_UPLOAD, true);
 
 export const BACKGROUND_READ = 'staff.background_read';
 export const BackgroundRead = () => SetMetadata(BACKGROUND_READ, true);
+
+export const VIDEO_UPLOAD = 'staff.video_upload';
+export const VideoUpload = () => SetMetadata(VIDEO_UPLOAD, true);

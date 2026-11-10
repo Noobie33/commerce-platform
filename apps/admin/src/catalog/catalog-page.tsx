@@ -7,6 +7,9 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 const ProductPublication = lazy(() =>
   import('./product-publication').then((m) => ({ default: m.ProductPublication })),
 );
+const ProductVideos = lazy(() =>
+  import('./product-videos').then((m) => ({ default: m.ProductVideos })),
+);
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import { categoryName, money } from './helpers';
@@ -35,6 +38,7 @@ export function CatalogPage({
   canReviewMedia: boolean;
   canPublish: boolean;
 }) {
+  const [videoProduct, setVideoProduct] = useState<Product | null>(null);
   const [publicationProduct, setPublicationProduct] = useState<Product | null>(null);
   const [taxonomyOpen, setTaxonomyOpen] = useState(false);
   const [merchOpen, setMerchOpen] = useState(false);
@@ -92,6 +96,7 @@ export function CatalogPage({
         editor ||
         detail ||
         mediaProduct ||
+        videoProduct ||
         publicationProduct ||
         contentProduct ||
         categoryOpen ||
@@ -450,6 +455,10 @@ export function CatalogPage({
         </div>
         {detail && (
           <ProductDetail
+            onVideos={(p) => {
+              setVideoProduct(p);
+              setDetail(null);
+            }}
             onPublication={(p) => {
               setPublicationProduct(p);
               setDetail(null);
@@ -517,6 +526,20 @@ export function CatalogPage({
             void open(contentProduct.id);
           }}
         />
+      )}
+      {videoProduct && (
+        <Suspense fallback={<p role="status">Opening product videos...</p>}>
+          <ProductVideos
+            api={api}
+            product={videoProduct}
+            canManage={canManage}
+            canReview={canReviewMedia}
+            close={() => {
+              setVideoProduct(null);
+              void open(videoProduct.id);
+            }}
+          />
+        </Suspense>
       )}
       {mediaProduct && (
         <MediaManager

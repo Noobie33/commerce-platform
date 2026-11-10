@@ -51,3 +51,7 @@ References checked 10 November 2026: [official Windows download links](https://f
 ## Local acceptance evidence
 
 Strict types, complete build, formatting, all 71 database-free/interface tests and all 14 actual-video checks passed on Windows with FFmpeg/FFprobe 9.0.2. The existing API readiness and admin smoke checks remain required at handoff; schema stays 22. No browser UI changed and no database migration or test/production business fixture was introduced. CI additionally runs the complete existing PostgreSQL regression suite. No video tests are silently skipped when tools are missing.
+
+## Private intake extension - schema 23
+
+[Local staff intake, durable jobs and private review](PRODUCT-VIDEO-INTAKE.md) now build on this preparation engine. Native children use a sanitized environment; the separate worker has narrow database credentials. Production intake remains hard-disabled pending OS isolation and deployment gates. Public mixed-media publication and the Next.js gallery remain V3. Earlier V1-only scope above describes the original foundation increment.

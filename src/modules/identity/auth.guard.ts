@@ -7,6 +7,7 @@ import {
   AUTHENTICATED,
   BACKGROUND_READ,
   IMAGE_UPLOAD,
+  VIDEO_UPLOAD,
   PASSWORD_CHANGE_ALLOWED,
   PERMISSION,
   PUBLIC,
@@ -27,9 +28,12 @@ export class StaffGuard implements CanActivate {
     const writing = !['GET', 'HEAD', 'OPTIONS'].includes(req.method ?? '');
     const type = req.headers['content-type']?.split(';')[0]?.trim().toLowerCase();
     const imageUpload = this.reflector.getAllAndOverride<boolean>(IMAGE_UPLOAD, targets);
-    const validContentType = imageUpload
-      ? ['image/jpeg', 'image/png', 'image/webp'].includes(type ?? '')
-      : type === 'application/json';
+    const videoUpload = this.reflector.getAllAndOverride<boolean>(VIDEO_UPLOAD, targets);
+    const validContentType = videoUpload
+      ? ['video/mp4', 'video/quicktime'].includes(type ?? '')
+      : imageUpload
+        ? ['image/jpeg', 'image/png', 'image/webp'].includes(type ?? '')
+        : type === 'application/json';
     // Public login is also origin-checked. No wildcard CORS is enabled.
     if (
       writing &&

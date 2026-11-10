@@ -222,6 +222,25 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         role +
         '"',
     );
+    await manager.query(
+      'GRANT SELECT ON catalog_video_policy,catalog_product_videos,catalog_video_events,catalog_video_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.catalog_video_post(uuid,uuid,uuid,jsonb) TO "' + role + '"',
+    );
+    const worker =
+      'commerce_' + (migration.pathname.endsWith('_test') ? 'test' : 'dev') + '_video_worker';
+    if ((await manager.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [worker])).length) {
+      await manager.query('GRANT USAGE ON SCHEMA public TO "' + worker + '"');
+      await manager.query('GRANT SELECT ON app_schema_version TO "' + worker + '"');
+      await manager.query(
+        'GRANT EXECUTE ON FUNCTION public.catalog_video_storage_refs(),public.catalog_video_claim(uuid,uuid),public.catalog_video_heartbeat(uuid,uuid),public.catalog_video_finish(uuid,uuid,uuid,jsonb,text) TO "' +
+          worker +
+          '"',
+      );
+    }
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

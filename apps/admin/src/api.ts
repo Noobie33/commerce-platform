@@ -1,3 +1,4 @@
+import type { VideoPage, VideoHistory, VideoResult } from './catalog/video-types';
 import type {
   EnrollmentInput,
   EnrollmentPage,
@@ -189,6 +190,21 @@ export class ApiError extends Error {
               PUBLICATION_MEDIA_UNAVAILABLE:
                 'A display photo is missing or changed. Restore and verify it before publishing.',
               PUBLICATION_INVALID: 'Check the reason, alternative text and current revisions.',
+              VIDEO_STALE: 'This video changed. Reload its current details before continuing.',
+              VIDEO_INVALID:
+                'Check the video details, reason, rights confirmation and supported format.',
+              VIDEO_STATE: 'This action is no longer available for the current video status.',
+              VIDEO_IDEMPOTENCY:
+                'This request key belongs to different video details. Reload before retrying.',
+              VIDEO_LIMIT: 'The configured product or pending-processing limit has been reached.',
+              VIDEO_FILES_UNAVAILABLE:
+                'Prepared video files are missing or changed. Ask the owner to verify storage.',
+              VIDEO_INTAKE_DISABLED: 'Video uploads are not enabled in this environment.',
+              VIDEO_BUSY: 'Video processing or delivery is busy. Try again shortly.',
+              VIDEO_TOO_LARGE: 'This video exceeds the configured upload size.',
+              VIDEO_UPLOAD_INCOMPLETE:
+                'The video upload did not complete. Check the connection and retry.',
+              VIDEO_UPLOAD_TIMEOUT: 'The video upload timed out. Check the connection and retry.',
               CONTENT_STALE: 'This product or content changed. Reload before continuing.',
               CONTENT_CHANGED:
                 'The catalog or photos changed after submission. Request changes and submit a fresh version.',
@@ -481,6 +497,91 @@ export class StaffApi {
       payload,
       { method: id ? 'PATCH' : 'POST', key },
     );
+  }
+  productVideos(id: string, page = 1, removed = false, read?: ReadOptions) {
+    return this.request<VideoPage>(
+      '/catalog/products/' + id + '/videos?page=' + page + (removed ? '&removed=1' : ''),
+      undefined,
+      read,
+    );
+  }
+  videoHistory(id: string, page = 1) {
+    return this.request<VideoHistory>('/catalog/videos/' + id + '/history?page=' + page);
+  }
+  videoAction(id: string, body: Record<string, unknown>, key: string) {
+    return this.request<VideoResult>(
+      '/catalog/videos/' +
+        id +
+        (['approve', 'revoke'].includes(String(body.action)) ? '/review' : ''),
+      body,
+      { key },
+    );
+  }
+  uploadVideo(
+    id: string,
+    version: number,
+    file: File,
+    key: string,
+    onProgress: (n: number) => void,
+    signal: AbortSignal,
+  ) {
+    return new Promise<VideoResult>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/v1/catalog/products/' + id + '/videos');
+      xhr.withCredentials = true;
+      const type = file.type || (/\.mov$/i.test(file.name) ? 'video/quicktime' : 'video/mp4');
+      for (const [k, v] of Object.entries({
+        'Content-Type': type,
+        'X-Product-Version': String(version),
+        'X-Idempotency-Key': key,
+        'X-Requested-With': 'commerce-staff',
+        'X-CSRF-Token': this.csrf,
+      }))
+        xhr.setRequestHeader(k, v);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.min(100, Math.round((e.loaded / e.total) * 100)));
+      };
+      const abort = () => xhr.abort(),
+        cleanup = () => signal.removeEventListener('abort', abort);
+      xhr.onload = () => {
+        cleanup();
+        let value: unknown;
+        try {
+          value = JSON.parse(xhr.responseText);
+        } catch {
+          value = null;
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(value as VideoResult);
+          return;
+        }
+        const code =
+          value && typeof value === 'object' && 'code' in value && typeof value.code === 'string'
+            ? value.code
+            : undefined;
+        if (xhr.status === 401 && this.authenticated) {
+          this.forget();
+          this.onSessionExpired?.();
+        }
+        if (code === 'PASSWORD_CHANGE_REQUIRED') this.onPasswordChangeRequired?.();
+        reject(new ApiError(xhr.status, code));
+      };
+      xhr.onerror = () => {
+        cleanup();
+        reject(new Error('Video upload connection failed. Retry keeps the same request key.'));
+      };
+      xhr.onabort = () => {
+        cleanup();
+        reject(new Error('Upload cancelled. Check the list before retrying.'));
+      };
+      signal.addEventListener('abort', abort, { once: true });
+      if (signal.aborted) {
+        cleanup();
+        reject(new Error('Upload cancelled.'));
+        return;
+      }
+      xhr.send(file);
+    });
   }
   mediaPolicy() {
     return this.request<MediaPolicy>('/catalog/media-policy');

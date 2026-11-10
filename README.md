@@ -81,7 +81,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification - 10 November 2026
 
-Strict type checking, clean build, formatting check, 71 database-free/interface tests, 14 actual-video processing checks and 282 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 74 database-free/interface tests, 14 actual-video processing checks and 298 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 
@@ -92,3 +92,5 @@ Source publication excludes all private local credential/setup files. The GitHub
 Guided product types now add controlled material-group and optional occasion dropdowns with public browse facets, while preserving legacy content and exact composition. See [guided specifications](docs/GUIDED-PRODUCT-SPECIFICATIONS.md). The staff stack remains NestJS + React/Vite; customer pages are required to use Next.js.
 
 Private product-video preparation is now implemented and tested with generated clips: unchanged originals, validated MP4/MOV processing, separate playback/poster and private hashed artifacts. See [video pipeline and remaining upload/publication gates](docs/PRODUCT-VIDEO-PIPELINE.md). No browser video upload or public video has been enabled.
+
+[Private product video intake](docs/PRODUCT-VIDEO-INTAKE.md) now adds a staff upload/status/retry/review interface backed by durable jobs and a separate restricted worker. start:local starts both local processes when configured. Public video and production intake remain disabled.

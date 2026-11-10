@@ -60,3 +60,4 @@ jobs:
       - run: node --env-file=.env.test dist/src/scripts/verify-presentation.js
       - run: node --env-file=.env.test dist/src/scripts/verify-publication.js
       - run: node --env-file=.env.test dist/src/scripts/verify-staff-access.js
+      - run: node --env-file=.env.test dist/src/scripts/verify-staff-onboarding.js

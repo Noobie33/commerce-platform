@@ -1,3 +1,5 @@
+import { StaffOnboardingController } from './onboarding.controller.js';
+import { StaffOnboardingService } from './onboarding.service.js';
 import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
 import { APP_GUARD, Reflector } from '@nestjs/core';
@@ -17,9 +19,19 @@ export class IdentityModule {
     return {
       module: IdentityModule,
       imports: [databaseModule],
-      controllers: [IdentityController],
+      controllers: [IdentityController, StaffOnboardingController],
       exports: [IdentityService, AUTH_CONFIG],
       providers: [
+        {
+          provide: StaffOnboardingService,
+          useFactory: (
+            source: DataSource,
+            passwords: PasswordService,
+            identity: IdentityService,
+            config: AuthConfig,
+          ) => new StaffOnboardingService(source, passwords, identity, config),
+          inject: [DATABASE_SOURCE, PasswordService, IdentityService, AUTH_CONFIG],
+        },
         { provide: AUTH_CONFIG, useValue: readAuthConfig(env) },
         { provide: PasswordService, useFactory: () => new PasswordService() },
         { provide: AuditService, useFactory: () => new AuditService() },

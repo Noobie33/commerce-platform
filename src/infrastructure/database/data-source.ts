@@ -1,3 +1,4 @@
+import { StaffOnboarding1794119000000 } from '../../database/migrations/1794119000000-staff-onboarding.js';
 import { StaffAccess1794118000000 } from '../../database/migrations/1794118000000-staff-access.js';
 import { CatalogPublication1794117000000 } from '../../database/migrations/1794117000000-catalog-publication.js';
 import { CatalogPresentation1794116000000 } from '../../database/migrations/1794116000000-catalog-presentation.js';
@@ -75,6 +76,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       CatalogPresentation1794116000000,
       CatalogPublication1794117000000,
       StaffAccess1794118000000,
+      StaffOnboarding1794119000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

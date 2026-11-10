@@ -1,0 +1,82 @@
+﻿.employee-onboarding > label,
+.activation-fields > label {
+  display: grid;
+  gap: 8px;
+}
+.employee-onboarding input:not([type='checkbox']),
+.employee-onboarding textarea,
+.activation-fields > label > input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfe1e5;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: inherit;
+  background: #fff;
+}
+.enrollment-record {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  margin-top: 10px;
+  text-align: left;
+  border: 1px solid #e2e4e7;
+  border-radius: 10px;
+  background: #fff;
+  color: #25282d;
+}
+.enrollment-record span {
+  font-size: 13px;
+  color: #697079;
+}
+.activation-fields {
+  display: grid;
+  gap: 18px;
+  border: 0;
+  min-width: 0;
+  margin: 20px 0;
+  padding: 0;
+}
+.employee-onboarding .activation-code {
+  overflow-wrap: anywhere;
+  background: #f8f9fa;
+  padding: 14px;
+  border-radius: 8px;
+}
+.employee-onboarding .merch-actions {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.employee-onboarding details {
+  padding: 14px 0;
+  border-top: 1px solid #e5e7eb;
+}
+.employee-onboarding p {
+  line-height: 1.55;
+}
+.employee-onboarding .content-fields {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.employee-onboarding .password-input input {
+  padding-right: 48px;
+}
+.employee-onboarding .enrollment-secret {
+  border-color: #f1bb8a;
+}
+.onboarding-card > p {
+  line-height: 1.6;
+}
+
+.employee-activation .onboarding-card {
+  box-sizing: border-box;
+  padding: 24px;
+}
+@media (max-width: 560px) {
+  .employee-activation .onboarding-card {
+    padding: 20px;
+  }
+}

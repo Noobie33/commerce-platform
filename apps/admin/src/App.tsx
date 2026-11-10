@@ -1,5 +1,8 @@
 import { startStaffUpdates } from './data/live-channel';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+const EmployeeActivation = lazy(() =>
+  import('./pages/employee-activation').then((m) => ({ default: m.EmployeeActivation })),
+);
 import { StaffApi } from './api';
 import { SignIn, ChangePassword } from './auth';
 import { Brand } from './icons';
@@ -7,6 +10,12 @@ import { Workspace } from './workspace';
 import type { Profile } from './types';
 
 export default function App() {
+  const [activationMode, setActivationMode] = useState(() => window.location.hash === '#activate');
+  useEffect(() => {
+    const changed = () => setActivationMode(window.location.hash === '#activate');
+    window.addEventListener('hashchange', changed);
+    return () => window.removeEventListener('hashchange', changed);
+  }, []);
   const [api] = useState(() => new StaffApi());
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,6 +94,50 @@ export default function App() {
         </button>
       </main>
     );
+  if (activationMode) {
+    if (user)
+      return (
+        <main className="centered-screen">
+          <Brand />
+          <h1>Activate a different staff account</h1>
+          <p>You are signed in. Sign out before activating another account.</p>
+          <button
+            className="button button-primary"
+            disabled={signingOut}
+            onClick={() => void logoutForced()}
+          >
+            Sign out to continue
+          </button>
+          <button
+            className="text-button"
+            onClick={() => {
+              window.location.hash = '';
+              setActivationMode(false);
+            }}
+          >
+            Back to workspace
+          </button>
+        </main>
+      );
+    return (
+      <Suspense
+        fallback={
+          <main className="centered-screen">
+            <p>Opening activation...</p>
+          </main>
+        }
+      >
+        <EmployeeActivation
+          api={api}
+          onSignIn={(message) => {
+            setNotice(message ?? '');
+            window.location.hash = '';
+            setActivationMode(false);
+          }}
+        />
+      </Suspense>
+    );
+  }
   if (!user)
     return (
       <SignIn

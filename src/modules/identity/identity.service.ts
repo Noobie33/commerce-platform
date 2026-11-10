@@ -37,6 +37,13 @@ export class IdentityService {
       throw new HttpException('Too many login attempts; try later', 429);
   }
 
+  async limitOnboardingOwner(id: string) {
+    await this.rateLimit('onboarding-owner:' + id, 10);
+  }
+  async limitStaffActivation(username: string, ip: string) {
+    await this.rateLimit('activation-ip:' + ip, 30);
+    await this.rateLimit('activation-user:' + username, 15);
+  }
   async login(username: string, password: string, ip: string, requestId: string) {
     await this.rateLimit('ip:' + ip, 30);
     await this.rateLimit('user:' + username, 15);
@@ -171,7 +178,7 @@ export class IdentityService {
 
   async listStaff() {
     return this.source.query(
-      'SELECT id,username,display_name AS "displayName",is_active AS "isActive" FROM staff_users ORDER BY username LIMIT 100',
+      `SELECT u.id,u.username,u.display_name AS "displayName",u.is_active AS "isActive",CASE WHEN o.staff_id IS NULL THEN NULL WHEN o.state='pending' AND o.expires_at<=clock_timestamp() THEN 'expired' ELSE o.state END AS "onboardingState" FROM staff_users u LEFT JOIN staff_onboarding o ON o.staff_id=u.id ORDER BY u.username LIMIT 100`,
     );
   }
 

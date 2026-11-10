@@ -197,3 +197,9 @@ Remaining R2 work includes staff/access administration, controlled attributes/fa
 R2 remains in progress. [Owner-controlled roles, existing staff status and location assignments](STAFF-ACCESS-ADMINISTRATION.md) are now implemented with versioned history, protected owner access, explicit scope policies and transactional session revocation. Existing credentials and role grants are unchanged by the migration. No real employee account is created automatically.
 
 The next bounded identity slice is secure employee onboarding and first-login activation. Invitation/credential delivery, password recovery, MFA/recent reauthentication and owner-transfer controls retain their launch gates. Controlled attributes/facets, mixed video and the public storefront/transaction phases remain on the roadmap.
+
+## Schema 21 checkpoint - 10 November 2026
+
+[Owner-created employee onboarding and personal first activation](EMPLOYEE-ONBOARDING.md) are implemented with owner password confirmation, single-use expiring codes, private history, rate limits, no shared initial password and no automatic business roles. Existing access editing remains separate and deactivation revokes pending codes atomically. No real employee account is seeded by the upgrade.
+
+R2 still needs controlled attribute/facet and mixed-media/video work. Recovery, MFA/step-up policy, owner transfer and production delivery/abuse/monitoring controls remain launch gates. Customer storefront templates, search indexing, retail order/fulfillment and online transactions retain their phased acceptance criteria.

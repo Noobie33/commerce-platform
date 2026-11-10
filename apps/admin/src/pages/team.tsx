@@ -7,14 +7,18 @@ const AccessManagement = lazy(() =>
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import type { Profile } from '../types';
+const EmployeeOnboarding = lazy(() =>
+  import('./employee-onboarding').then((m) => ({ default: m.EmployeeOnboarding })),
+);
 export function Team({ api, user }: { api: StaffApi; user: Profile }) {
   const [query, setQuery] = useState('');
   const [manage, setManage] = useState(false);
+  const [onboarding, setOnboarding] = useState(false);
 
   const [revision, setRevision] = useState(0);
   const read = useLiveRead(
     useCallback((options) => api.team(options), [api]),
-    { topics: ['team'], revision, paused: manage },
+    { topics: ['team'], revision, paused: manage || onboarding },
   );
   const rows = read.data,
     error = read.error;
@@ -40,6 +44,22 @@ export function Team({ api, user }: { api: StaffApi; user: Profile }) {
         <button className="button button-primary" onClick={() => setManage(true)}>
           Manage team access
         </button>
+      )}
+      {user.grants.some((g) => g.code === 'staff.manage' && g.locationId === null) && (
+        <button className="button button-secondary" onClick={() => setOnboarding(true)}>
+          Employee onboarding
+        </button>
+      )}
+      {onboarding && (
+        <Suspense fallback={<p role="status">Opening employee onboarding...</p>}>
+          <EmployeeOnboarding
+            api={api}
+            close={() => {
+              setOnboarding(false);
+              setRevision((n) => n + 1);
+            }}
+          />
+        </Suspense>
       )}
       {manage && (
         <Suspense fallback={<p>Opening access management...</p>}>
@@ -113,7 +133,15 @@ export function Team({ api, user }: { api: StaffApi; user: Profile }) {
                     <td>{row.username}</td>
                     <td>
                       <span className={'badge ' + (row.isActive ? 'badge-green' : 'badge-neutral')}>
-                        {row.isActive ? 'Active' : 'Inactive'}
+                        {!row.isActive
+                          ? 'Inactive'
+                          : row.onboardingState === 'pending'
+                            ? 'Awaiting activation'
+                            : row.onboardingState === 'expired'
+                              ? 'Code expired'
+                              : row.onboardingState === 'revoked'
+                                ? 'Activation revoked'
+                                : 'Active'}
                       </span>
                     </td>
                   </tr>

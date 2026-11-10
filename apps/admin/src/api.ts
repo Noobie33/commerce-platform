@@ -1,3 +1,9 @@
+import type {
+  EnrollmentInput,
+  EnrollmentPage,
+  EnrollmentView,
+  EnrollmentResult,
+} from './pages/onboarding-types';
 import type { AccessInput, AccessPage, AccessView, AccessChoice } from './pages/access-types';
 import type { PublicationInput, PublicationView } from './catalog/publication-types';
 import type { TaxonomyInput, TaxonomyItem, TaxonomyPage } from './catalog/presentation-types';
@@ -145,6 +151,21 @@ export class ApiError extends Error {
               SALES_NOT_FOUND: 'This sales order could not be found.',
               CUSTOMER_STALE:
                 'This customer changed. Close this form and refresh before editing again.',
+              ENROLLMENT_REAUTH_REQUIRED:
+                'Your owner password was not accepted. Re-enter it to confirm this action.',
+              ENROLLMENT_PERMISSION: 'Your owner access or session changed. Sign in again.',
+              ENROLLMENT_USERNAME_EXISTS: 'This username or account identifier is already in use.',
+              ENROLLMENT_STALE: 'The activation record changed. Reopen it before continuing.',
+              ENROLLMENT_IDEMPOTENCY:
+                'This retry key belongs to another action. Reopen the record.',
+              ENROLLMENT_STATE:
+                'Only accounts that have not activated can receive or revoke an activation code.',
+              ENROLLMENT_DISABLED:
+                'This account is disabled. Review and reactivate it before issuing a new code.',
+              ENROLLMENT_INVALID: 'Check the username, name, revision and required reason.',
+              ENROLLMENT_ACTIVATION_INVALID:
+                'The activation details are invalid or expired. Ask your owner for a new code, or sign in if you already activated.',
+              ACTIVATION_PASSWORD_POLICY: 'Choose a password containing 15 to 128 characters.',
               ACCESS_OWNER_ONLY: 'Only an active owner can manage staff access.',
               ACCESS_PERMISSION:
                 'Your access to this action changed. Sign in again or contact the owner.',
@@ -379,6 +400,30 @@ export class StaffApi {
   async changePassword(currentPassword: string, newPassword: string) {
     await this.request('/auth/password', { currentPassword, newPassword });
     this.forget();
+  }
+  enrollments(search: string, page: number, read?: ReadOptions) {
+    return this.request<EnrollmentPage>(
+      '/staff-onboarding?' + new URLSearchParams({ search, page: String(page) }),
+      undefined,
+      read,
+    );
+  }
+  enrollment(id: string, page = 1) {
+    return this.request<EnrollmentView>('/staff-onboarding/' + id + '?page=' + page);
+  }
+  saveEnrollment(input: EnrollmentInput, ownerPassword: string, key: string) {
+    return this.request<EnrollmentResult>(
+      '/staff-onboarding',
+      { ...input, ownerPassword },
+      { key },
+    );
+  }
+  activateEmployee(username: string, code: string, newPassword: string) {
+    return this.request<{ activated: boolean; loginRequired: boolean }>('/auth/activate', {
+      username,
+      code,
+      newPassword,
+    });
   }
   accessPolicy() {
     return this.request<{ code: string; locationScope: boolean }[]>('/access/policy');

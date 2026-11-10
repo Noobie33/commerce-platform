@@ -49,3 +49,7 @@ A disposable browser flow verified protected owner access, custom warehouse-role
 A schema-19 database backup was restored to an isolated loopback PostgreSQL instance with all 67 table/sequence fingerprints matching. Development advanced once to schema 20 with all 59 prior data-table fingerprints and existing permission metadata unchanged; repeat migration was a no-op. No real account, password, session, role grant or location assignment was altered by the cutover. Main readiness, /admin and linked/lazy team/access assets returned 200.
 
 No dependency, email service, hosting purchase or real employee account is required for this slice. Secure employee activation/invitation, password recovery, MFA/step-up policy, owner-transfer controls and operational access review remain launch work. This is a verified local development increment, not production readiness.
+
+## Schema 21 follow-up
+
+[Secure employee creation and first activation](EMPLOYEE-ONBOARDING.md) now complement these access controls. New employees start without roles or a shared password. Disabling a pending employee also revokes the pending activation atomically; a cached access retry cannot invalidate a newer invitation. Recovery, MFA and owner transfer remain separate gates.

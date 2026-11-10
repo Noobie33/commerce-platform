@@ -207,6 +207,21 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         role +
         '"',
     );
+    await manager.query(
+      'GRANT SELECT ON staff_onboarding,staff_onboarding_events,staff_onboarding_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.staff_onboarding_owner_post(uuid,uuid,uuid,uuid,text,text,jsonb),public.staff_onboarding_activate(text,text,text,uuid) TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'REVOKE ALL ON FUNCTION public.staff_access_post_v20(uuid,uuid,uuid,jsonb) FROM "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

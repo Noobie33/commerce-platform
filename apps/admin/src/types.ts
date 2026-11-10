@@ -11,6 +11,7 @@ export interface Profile {
   csrfToken: string;
 }
 export interface TeamMember {
+  onboardingState?: string | null;
   id: string;
   username: string;
   displayName: string;

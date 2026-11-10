@@ -197,6 +197,16 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         role +
         '"',
     );
+    await manager.query(
+      'GRANT SELECT ON access_permission_policy,staff_access_versions,role_access_profiles,staff_access_events,staff_access_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.staff_access_owner(uuid),public.staff_access_snapshot(text,uuid),public.staff_access_post(uuid,uuid,uuid,jsonb) TO "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

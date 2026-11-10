@@ -191,3 +191,9 @@ The next bounded slice is public-media approval and explicit versioned publicati
 R2 remains in progress. [Explicit media approval, alternative text, versioned publication/withdrawal and safe public reads](WEBSITE-PUBLICATION.md) now complement content review and category preparation. Original media, drafts and private operational fields remain protected. No existing product is automatically published and no customer storefront or checkout is deployed. Current-release eligibility is checked on each anonymous product/image request; changed data or revoked approval suppresses the old release.
 
 Remaining R2 work includes staff/access administration, controlled attributes/facets, mixed video and the remaining launch media/operational gates. R3 can now consume released product DTOs, but Aarong-aligned navigation/listing/detail templates, search indexing and customer functionality retain their separate acceptance gates.
+
+## Schema 20 checkpoint - 10 November 2026
+
+R2 remains in progress. [Owner-controlled roles, existing staff status and location assignments](STAFF-ACCESS-ADMINISTRATION.md) are now implemented with versioned history, protected owner access, explicit scope policies and transactional session revocation. Existing credentials and role grants are unchanged by the migration. No real employee account is created automatically.
+
+The next bounded identity slice is secure employee onboarding and first-login activation. Invitation/credential delivery, password recovery, MFA/recent reauthentication and owner-transfer controls retain their launch gates. Controlled attributes/facets, mixed video and the public storefront/transaction phases remain on the roadmap.

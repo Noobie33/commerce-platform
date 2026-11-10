@@ -1,3 +1,4 @@
+import type { AccessInput, AccessPage, AccessView, AccessChoice } from './pages/access-types';
 import type { PublicationInput, PublicationView } from './catalog/publication-types';
 import type { TaxonomyInput, TaxonomyItem, TaxonomyPage } from './catalog/presentation-types';
 import type { MerchInput, MerchItem, MerchPage, MerchDefinition } from './catalog/merch-types';
@@ -144,6 +145,18 @@ export class ApiError extends Error {
               SALES_NOT_FOUND: 'This sales order could not be found.',
               CUSTOMER_STALE:
                 'This customer changed. Close this form and refresh before editing again.',
+              ACCESS_OWNER_ONLY: 'Only an active owner can manage staff access.',
+              ACCESS_PERMISSION:
+                'Your access to this action changed. Sign in again or contact the owner.',
+              ACCESS_PROTECTED:
+                'Owner access and reserved administrative roles are protected in this screen.',
+              ACCESS_STALE: 'This record changed. Reopen it before saving.',
+              ACCESS_IDEMPOTENCY: 'This retry key belongs to another change. Reopen the record.',
+              ACCESS_SCOPE:
+                'Choose an active location and a role containing only location-compatible permissions.',
+              ACCESS_ROLE_IN_USE: 'Remove this role from all staff assignments before retiring it.',
+              ACCESS_INVALID: 'Check the names, selected permissions, assignments and reason.',
+              ACCESS_CODE_EXISTS: 'This role code is already in use.',
               PUBLICATION_STALE:
                 'This product or decision changed. Reopen the publication panel before continuing.',
               PUBLICATION_IDEMPOTENCY:
@@ -366,6 +379,31 @@ export class StaffApi {
   async changePassword(currentPassword: string, newPassword: string) {
     await this.request('/auth/password', { currentPassword, newPassword });
     this.forget();
+  }
+  accessPolicy() {
+    return this.request<{ code: string; locationScope: boolean }[]>('/access/policy');
+  }
+  accessList(kind: string, search: string, page: number, read?: ReadOptions) {
+    return this.request<AccessPage>(
+      '/access/' + kind + '?' + new URLSearchParams({ search, page: String(page) }),
+      undefined,
+      read,
+    );
+  }
+  accessRead(kind: string, id: string, page = 1) {
+    return this.request<AccessView>('/access/' + kind + '/' + id + '?page=' + page);
+  }
+  accessChoices(kind: string, search: string, page: number) {
+    return this.request<{ items: AccessChoice[]; total: number; page: number }>(
+      '/access/choices/' + kind + '?' + new URLSearchParams({ search, page: String(page) }),
+    );
+  }
+  saveAccess(input: AccessInput, key: string) {
+    return this.request<{ id: string; version: number; revokedSessions: number }>(
+      '/access',
+      input,
+      { key },
+    );
   }
   team(read?: ReadOptions) {
     return this.request<TeamMember[]>('/staff', undefined, read);

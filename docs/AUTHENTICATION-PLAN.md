@@ -1,6 +1,6 @@
 # Staff identity, permissions and audit: implementation rationale
 
-Implementation is now covered by IDENTITY-API.md. This file preserves the design/acceptance rationale; staff/role management screens and production gates remain future work.
+Implementation is now covered by IDENTITY-API.md. This file preserves the design/acceptance rationale; [Owner-controlled role and existing-staff access screens](STAFF-ACCESS-ADMINISTRATION.md) are now implemented in schema 20. Secure onboarding, recovery, MFA and production gates remain future work.
 
 ## Decisions and reasons
 

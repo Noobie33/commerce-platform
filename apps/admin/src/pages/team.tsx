@@ -1,16 +1,20 @@
 import { useLiveRead } from '../data/use-live-read';
 import { ReadStatus } from '../data/read-status';
-import { useCallback, useState } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
+const AccessManagement = lazy(() =>
+  import('./access-management').then((m) => ({ default: m.AccessManagement })),
+);
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import type { Profile } from '../types';
 export function Team({ api, user }: { api: StaffApi; user: Profile }) {
   const [query, setQuery] = useState('');
+  const [manage, setManage] = useState(false);
 
   const [revision, setRevision] = useState(0);
   const read = useLiveRead(
     useCallback((options) => api.team(options), [api]),
-    { topics: ['team'], revision },
+    { topics: ['team'], revision, paused: manage },
   );
   const rows = read.data,
     error = read.error;
@@ -32,6 +36,22 @@ export function Team({ api, user }: { api: StaffApi; user: Profile }) {
           Refresh team
         </button>
       </header>
+      {user.grants.some((g) => g.code === 'staff.manage' && g.locationId === null) && (
+        <button className="button button-primary" onClick={() => setManage(true)}>
+          Manage team access
+        </button>
+      )}
+      {manage && (
+        <Suspense fallback={<p>Opening access management...</p>}>
+          <AccessManagement
+            api={api}
+            close={() => {
+              setManage(false);
+              setRevision((n) => n + 1);
+            }}
+          />
+        </Suspense>
+      )}
       <ReadStatus read={read} />
 
       <section className="panel team-panel">

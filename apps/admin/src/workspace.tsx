@@ -1,13 +1,13 @@
 import { SalesPage } from './sales/sales-page';
 import { CustomersPage } from './customers/customers-page';
 import { PurchasingPage } from './purchasing/purchasing-page';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { StaffApi } from './api';
 import { Brand, Icon } from './icons';
 import type { Profile, WorkspacePage as Page } from './types';
 import { canSeeTeam, canSeeCatalog, canSeeInventory, canSeePurchasing, hasGlobal } from './access';
 import { Overview } from './pages/overview';
-import { Team } from './pages/team';
+const Team = lazy(() => import('./pages/team').then((m) => ({ default: m.Team })));
 import { ProfilePage } from './pages/profile';
 import { InventoryPage } from './inventory/inventory-page';
 import { CatalogPage } from './catalog/catalog-page';
@@ -374,7 +374,11 @@ export function Workspace({
               canReadLegacyCredit={hasGlobal(user, 'customers.credit.manage')}
             />
           )}
-          {page === 'team' && <Team api={api} user={user} />}
+          {page === 'team' && (
+            <Suspense fallback={<p role="status">Opening team...</p>}>
+              <Team api={api} user={user} />
+            </Suspense>
+          )}
           {page === 'profile' && (
             <ProfilePage
               api={api}

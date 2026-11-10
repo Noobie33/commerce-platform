@@ -35,7 +35,7 @@ Keep the current modular NestJS backend and PostgreSQL. Catalog, inventory, proc
 
 Keep the staff React/Vite app. It serves authenticated workflows and does not need replacing to deliver the public visual direction. Use feature-based modules, thin HTTP controllers, transaction-owning services and explicit database migrations as required by [engineering standards](ENGINEERING-STANDARDS.md).
 
-Plan a separate server-rendered React storefront, with Next.js App Router as the preferred candidate. Server rendering suits discoverable product/category pages, metadata and first-load content; interactive filters/cart/gallery can use client components. Validate the supported stable release, Node/React compatibility and security maintenance when this slice starts; no exact version or dependency installation is authorized by this document alone. The backend remains the authority for prices, authorization, stock and orders; the storefront must not create a second business-rule implementation.
+The owner requires a separate Next.js storefront, planned with App Router. This is a confirmed framework decision, not an optional candidate. Server rendering suits discoverable product/category pages, metadata and first-load content; interactive filters/cart/gallery can use client components. Validate the supported stable release, Node/React compatibility and security maintenance when this slice starts; no exact version or dependency installation is authorized by this document alone. The backend remains the authority for prices, authorization, stock and orders; the storefront must not create a second business-rule implementation.
 
 Suggested incremental structure, without moving existing files just for appearance:
 
@@ -203,3 +203,19 @@ The next bounded identity slice is secure employee onboarding and first-login ac
 [Owner-created employee onboarding and personal first activation](EMPLOYEE-ONBOARDING.md) are implemented with owner password confirmation, single-use expiring codes, private history, rate limits, no shared initial password and no automatic business roles. Existing access editing remains separate and deactivation revokes pending codes atomically. No real employee account is seeded by the upgrade.
 
 R2 still needs controlled attribute/facet and mixed-media/video work. Recovery, MFA/step-up policy, owner transfer and production delivery/abuse/monitoring controls remain launch gates. Customer storefront templates, search indexing, retail order/fulfillment and online transactions retain their phased acceptance criteria.
+
+## Frontend framework decision - 10 November 2026
+
+The owner explicitly requires Next.js for the customer website after the current software work. Keep the existing React/Vite staff app for the current delivery; record the owner-requested later migration of the staff frontend to Next.js as a separate follow-up after the agreed software scope is complete. That migration needs a bounded plan, functional parity, preserved authentication/CSRF/live updates, measured performance and a rollback path. It does not replace the NestJS backend or PostgreSQL. Next.js uses React; a framework change alone is not evidence of better performance.
+
+Use the storefront phase to install project-local, pinned Next.js/React dependencies with TypeScript and the necessary quality checks. Do not install Next.js globally or add it to the existing staff app now. Recheck supported stable releases, security fixes, Node/npm/React/TypeScript compatibility and deployment requirements at that time. The PC currently reports Node v24.16.0 and npm 11.13.0; this observation is not a future compatibility guarantee. No new runtime, database, Docker, paid hosting or cloud account is required by this decision alone.
+
+Next.js rendering, metadata and image delivery should support the Aarong-aligned public experience; interactive filters/gallery/cart remain deliberately scoped client components. Public caching must respect publication withdrawal and must never become the authority for stock, price, authorization or orders. Staff/customer sessions and private/public contracts remain separate.
+
+Installation reference: [official Next.js installation documentation](https://nextjs.org/docs/app/getting-started/installation), checked 10 November 2026. No dependencies or runtime behavior changed for this planning update.
+
+## Published catalog browse checkpoint - 10 November 2026
+
+The [read-only published-product browse API](STORE-BROWSE.md) now supports literal name/style search, category-path filtering, existing size/color and controlled fit filters, exact price ranges, stable sorting, pagination and distinct-product facets. Size/color/price must match one real SKU. Public cards, counts and facets all use the existing eligibility gate; no staff data, stock quantities or drafts are exposed. Schema remains 21; no existing records were rewritten.
+
+This advances the R3 API foundation without starting the Next.js UI or declaring R2 complete. Managed material/occasion vocabularies and category profiles, controlled SKU labels, mixed media/video, storefront pages and production search/load/abuse controls remain pending.

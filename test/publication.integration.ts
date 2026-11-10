@@ -36,8 +36,11 @@ test('publication: private drafts, explicit media consent, safe public releases 
     product = randomUUID(),
     category = randomUUID(),
     variant = randomUUID(),
+    secondVariant = randomUUID(),
     photo = randomUUID(),
     secondPhoto = randomUUID(),
+    sortingProducts = [randomUUID(), randomUUID()],
+    sortingPhotos = [randomUUID(), randomUUID()],
     suffix = randomBytes(4).toString('hex'),
     slug = 'release-shirt-' + suffix,
     origin = 'http://publication.test',
@@ -107,6 +110,13 @@ test('publication: private drafts, explicit media consent, safe public releases 
     });
   }
   const publicProduct = () => fetch(base + '/api/v1/store/products/' + slug);
+  const browse = (params: Record<string, string> = {}) =>
+    fetch(base + '/api/v1/store/products?' + new URLSearchParams({ q: 'PUB' + suffix, ...params }));
+  const browseTotal = async () => {
+    const r = await browse();
+    assert.equal(r.status, 200);
+    return (await r.json()).total as number;
+  };
   const publicPhoto = (size = 'image') =>
     fetch(base + '/api/v1/store/photos/' + photo + '/' + size);
   try {
@@ -151,8 +161,18 @@ test('publication: private drafts, explicit media consent, safe public releases 
       [product, 'PUB' + suffix.toUpperCase(), category],
     );
     await db.query(
-      'INSERT INTO catalog_variants(id,product_id,sku,options_key,price_minor,attributes) VALUES($1,$2,$3,$4,129000,\'{"size":"M"}\')',
+      'INSERT INTO catalog_variants(id,product_id,sku,options_key,price_minor,attributes) VALUES($1,$2,$3,$4,129000,\'{"size":"M","color":"Red"}\')',
       [variant, product, 'PUB-' + suffix.toUpperCase(), 'e'.repeat(64)],
+    );
+    await db.query(
+      'INSERT INTO catalog_variants(id,product_id,sku,options_key,price_minor,attributes) VALUES($1,$2,$3,$4,149000,$5::jsonb)',
+      [
+        secondVariant,
+        product,
+        'PUB-' + suffix.toUpperCase() + '-Z',
+        'f'.repeat(64),
+        JSON.stringify({ size: 'L', color: 'Blue' }),
+      ],
     );
     const png = await sharp({
         create: { width: 48, height: 64, channels: 3, background: '#323b40' },
@@ -173,6 +193,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
       'anonymous and ordinary staff cannot publish or approve images; original downloads stay private',
       async () => {
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await publicPhoto()).status, 404);
         assert.equal(
           (await fetch(base + '/api/v1/catalog/products/' + product + '/publication')).status,
@@ -234,6 +255,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
           assert.equal((await content(op)).status, 200);
         assert.equal((await action('publish')).status, 409);
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
       },
     );
     let approvalKey = randomUUID(),
@@ -326,6 +348,210 @@ test('publication: private drafts, explicit media consent, safe public releases 
       assert.equal((await publicPhoto('thumbnail')).status, 200);
     });
     await t.test(
+      'public browse returns only approved cards and distinct-product facet counts',
+      async () => {
+        const r = await browse();
+        assert.equal(r.status, 200);
+        assert.equal(r.headers.get('cache-control'), 'no-store');
+        assert.equal(r.headers.get('set-cookie'), null);
+        const b = await r.json();
+        assert.equal(b.total, 1);
+        assert.equal(b.items.length, 1);
+        assert.equal(b.currency, 'BDT');
+        assert.equal(b.items[0].productId, product);
+        assert.equal(b.items[0].matchingVariantCount, 2);
+        assert.equal(b.items[0].matchingPriceMinMinor, '129000');
+        assert.equal(b.items[0].matchingPriceMaxMinor, '149000');
+        assert.deepEqual(b.facets.fit, {
+          items: [{ value: 'regular', count: 1 }],
+          truncated: false,
+        });
+        assert.deepEqual(b.facets.color.items, [
+          { value: 'blue', count: 1 },
+          { value: 'red', count: 1 },
+        ]);
+        assert.equal(b.items[0].photo.alt, 'Charcoal shirt front view');
+        assert.equal(b.items[0].photo.thumbnailUrl, '/api/v1/store/photos/' + photo + '/thumbnail');
+        assert.deepEqual(
+          Object.keys(b.items[0]).sort(),
+          [
+            'productId',
+            'slug',
+            'name',
+            'styleCode',
+            'currency',
+            'releaseVersion',
+            'matchingVariantCount',
+            'matchingPriceMinMinor',
+            'matchingPriceMaxMinor',
+            'photo',
+          ].sort(),
+        );
+        for (const privateValue of [
+          'INTERNAL',
+          'hash',
+          'original',
+          'supplier',
+          'stock',
+          'description',
+          'specifications',
+        ])
+          assert.equal(JSON.stringify(b).includes(privateValue), false);
+      },
+    );
+    await t.test('size, color and price must match the same actual published SKU', async () => {
+      for (const params of [
+        { size: 'M', color: 'Blue' },
+        { size: 'L', maxPriceMinor: '129000' },
+        { size: 'M', minPriceMinor: '140000' },
+        { fit: 'slim' },
+        { category: 'missing-' + suffix },
+        { q: '%' + suffix },
+        { q: "' OR 1=1 --" },
+      ]) {
+        const r = await browse(params);
+        assert.equal(r.status, 200);
+        const b = await r.json();
+        assert.equal(b.total, 0);
+        assert.deepEqual(b.items, []);
+      }
+      const r = await browse({
+        size: '\uff2d ',
+        color: ' RED ',
+        fit: 'regular',
+        category: 'publication-shirts-' + suffix,
+        minPriceMinor: '129000',
+        maxPriceMinor: '129000',
+      });
+      assert.equal(r.status, 200);
+      const b = await r.json();
+      assert.equal(b.total, 1);
+      assert.equal(b.items[0].matchingVariantCount, 1);
+      assert.equal(b.items[0].matchingPriceMaxMinor, '129000');
+      assert.deepEqual(b.facets.color.items, [{ value: 'red', count: 1 }]);
+    });
+    await t.test(
+      'multiple published products sort by matching price with stable page order',
+      async () => {
+        for (let i = 0; i < sortingProducts.length; i++) {
+          const pid = sortingProducts[i]!,
+            ph = sortingPhotos[i]!,
+            code = 'PUB' + suffix.toUpperCase() + '-SORT' + i;
+          await db.query(
+            "INSERT INTO catalog_products(id,style_code,name,category_id,status) VALUES($1,$2,$3,$4,'active')",
+            [pid, code, i === 0 ? 'Aardvark sorted shirt' : 'Zebra sorted shirt', category],
+          );
+          await db.query(
+            'INSERT INTO catalog_variants(id,product_id,sku,options_key,price_minor,attributes) VALUES($1,$2,$3,$4,$5,$6::jsonb)',
+            [
+              randomUUID(),
+              pid,
+              code,
+              'a'.repeat(64),
+              i === 0 ? 209000 : 99000,
+              JSON.stringify({ size: 'M', color: 'Red' }),
+            ],
+          );
+          await store.put(ph, image);
+          await db.query(
+            'INSERT INTO catalog_product_photos(id,product_id,width,height,byte_size,content_hash,is_primary) VALUES($1,$2,$3,$4,$5,$6,true)',
+            [ph, pid, image.width, image.height, image.image.length, imageHash],
+          );
+          for (const [version, op] of ['save', 'submit', 'approve'].entries()) {
+            const r = await call('products/' + pid + '/content', {
+              action: op,
+              expectedVersion: version,
+              expectedProductVersion: 1,
+              ...(op === 'save'
+                ? {
+                    profile: 'clothing-v1',
+                    slug: 'sort-shirt-' + suffix + '-' + i,
+                    description: 'A sorting QA shirt.',
+                    specifications: { material: 'Cotton', care: 'Gentle wash', fit: 'regular' },
+                  }
+                : {}),
+              ...(op === 'approve' ? { reason: 'Review sorting fixture' } : {}),
+            });
+            assert.equal(r.status, 200);
+          }
+          assert.equal(
+            (
+              await call('products/' + pid + '/publication/photos/' + ph, {
+                action: 'approve',
+                expectedVersion: 0,
+                reason: 'Approve sorting display image',
+                alt: 'Sorting shirt front view',
+              })
+            ).status,
+            200,
+          );
+          assert.equal(
+            (
+              await call('products/' + pid + '/publication', {
+                action: 'publish',
+                expectedVersion: 0,
+                expectedProductVersion: 1,
+                expectedContentVersion: 3,
+                reason: 'Publish sorting fixture',
+              })
+            ).status,
+            200,
+          );
+        }
+        try {
+          for (const [sort, expected] of [
+            ['name', [sortingProducts[0], product, sortingProducts[1]]],
+            ['price_asc', [sortingProducts[1], product, sortingProducts[0]]],
+            ['price_desc', [sortingProducts[0], product, sortingProducts[1]]],
+          ] as const) {
+            const r = await browse({ sort });
+            assert.equal(r.status, 200);
+            const b = await r.json();
+            assert.equal(b.total, 3);
+            assert.deepEqual(
+              b.items.map((p: { productId: string }) => p.productId),
+              expected,
+            );
+            assert.deepEqual(b.facets.fit.items, [{ value: 'regular', count: 3 }]);
+          }
+        } finally {
+          // Keep subsequent withdrawal/history tests scoped to the original single product.
+          for (const pid of sortingProducts) {
+            const r = await call('products/' + pid + '/publication', {
+              action: 'unpublish',
+              expectedVersion: 1,
+              reason: 'End isolated sorting fixture',
+            });
+            assert.equal(r.status, 200);
+          }
+        }
+      },
+    );
+    await t.test('browse pagination keeps total and facets even beyond the last page', async () => {
+      for (const sort of ['name', 'price_asc', 'price_desc']) {
+        const r = await browse({ page: '2', pageSize: '12', sort });
+        assert.equal(r.status, 200);
+        const b = await r.json();
+        assert.equal(b.total, 1);
+        assert.deepEqual(b.items, []);
+        assert.equal(b.hasMore, false);
+        assert.equal(b.page, 2);
+        assert.equal(b.facets.fit.items[0].count, 1);
+      }
+    });
+    await t.test('anonymous browse rejects duplicate, unknown and oversized filters', async () => {
+      for (const qs of [
+        'size=M&size=L',
+        'page=1001',
+        'includeDrafts=true',
+        'sort=random',
+        'pageSize=500',
+        'minPriceMinor=10&maxPriceMinor=1',
+        'q=' + 'x'.repeat(81),
+      ])
+        assert.equal((await fetch(base + '/api/v1/store/products?' + qs)).status, 400);
+    });
+    await t.test(
       'changed live prices block the released DTO and image without overwriting release history',
       async () => {
         const [before] = await db.query(
@@ -334,6 +560,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
         );
         await db.query('UPDATE catalog_variants SET price_minor=139000 WHERE id=$1', [variant]);
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await publicPhoto()).status, 404);
         assert.equal((await view()).effectivePublic, false);
         assert.deepEqual(
@@ -351,9 +578,11 @@ test('publication: private drafts, explicit media consent, safe public releases 
       async () => {
         assert.equal((await action('revoke')).status, 200);
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await publicPhoto()).status, 404);
         assert.equal((await action('approve')).status, 200);
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await action('publish')).status, 200);
         assert.equal((await publicProduct()).status, 200);
       },
@@ -366,6 +595,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
         assert.ok([200, 409].includes(publishing.status));
         assert.equal(revoking.status, 200);
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await publicPhoto()).status, 404);
         assert.equal((await action('approve')).status, 200);
         assert.equal((await action('publish')).status, 200);
@@ -399,6 +629,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
           };
         assert.equal((await call(path, body, 0, key)).status, 200);
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await publicPhoto()).status, 404);
         assert.equal((await publicPhoto('thumbnail')).status, 404);
         assert.equal((await call(path, body, 0, key)).status, 200);
@@ -424,6 +655,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
           [category, suffix],
         );
         assert.equal((await publicProduct()).status, 404);
+        assert.equal(await browseTotal(), 0);
         assert.equal((await action('unpublish')).status, 200);
       },
     );
@@ -477,6 +709,26 @@ test('publication: private drafts, explicit media consent, safe public releases 
     await app?.close();
     await runtime.destroy();
     await db.transaction(async (m) => {
+      for (const pid of sortingProducts) {
+        await m.query('DELETE FROM catalog_publication_events WHERE product_id=$1', [pid]);
+        await m.query('DELETE FROM catalog_releases WHERE product_id=$1', [pid]);
+        await m.query(
+          'DELETE FROM catalog_media_reviews WHERE photo_id IN(SELECT id FROM catalog_product_photos WHERE product_id=$1)',
+          [pid],
+        );
+        for (const table of [
+          'catalog_content_requests',
+          'catalog_content_events',
+          'catalog_product_content',
+          'catalog_merch_links',
+          'catalog_media_requests',
+          'catalog_product_seo',
+        ])
+          await m.query('DELETE FROM ' + table + ' WHERE product_id=$1', [pid]);
+        await m.query('DELETE FROM catalog_product_photos WHERE product_id=$1', [pid]);
+        await m.query('DELETE FROM catalog_variants WHERE product_id=$1', [pid]);
+        await m.query('DELETE FROM catalog_products WHERE id=$1', [pid]);
+      }
       await m.query('DELETE FROM catalog_publication_requests WHERE actor_id=ANY($1::uuid[])', [
         users,
       ]);
@@ -517,6 +769,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
     });
     await store.discard(photo);
     await store.discard(secondPhoto);
+    for (const id of sortingPhotos) await store.discard(id);
     await db.destroy();
   }
 });

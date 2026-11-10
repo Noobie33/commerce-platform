@@ -31,7 +31,7 @@ Reusable size guides and collections now have independent library management, im
 
 Category hierarchy, preserved URL names, category/product search previews and private website-preparation checks are now implemented. See [category SEO and preparation](docs/CATEGORY-SEO-AND-PREPARATION.md).
 
-Explicit display-photo approval, alternative text and versioned product publish/unpublish now protect a separate read-only public product API. Originals and drafts remain private. See [website publication and revocation](docs/WEBSITE-PUBLICATION.md). The customer storefront and checkout remain future work.
+Explicit display-photo approval, alternative text and versioned product publish/unpublish now protect a separate read-only public product API. Originals and drafts remain private. See [website publication and revocation](docs/WEBSITE-PUBLICATION.md). The [published catalog browse API](docs/STORE-BROWSE.md) now adds strict same-SKU filtering, stable sorting and distinct-product facets. The required Next.js customer storefront and checkout remain future work.
 
 Owner-controlled custom roles and existing-staff access/status editing now preserve protected owner access and revoke affected sessions. See [staff access administration and onboarding boundaries](docs/STAFF-ACCESS-ADMINISTRATION.md).
 
@@ -81,7 +81,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification - 10 November 2026
 
-Strict type checking, clean build, formatting check, 62 database-free/interface tests and 274 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 65 database-free/interface tests and 279 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

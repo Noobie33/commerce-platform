@@ -1,3 +1,5 @@
+import { StoreBrowseController } from './store-browse.controller.js';
+import { StoreBrowseService } from './store-browse.service.js';
 import { PublicationController, StoreProductController } from './publication.controller.js';
 import { PublicationService } from './publication.service.js';
 import { TaxonomyService } from './presentation.service.js';
@@ -36,8 +38,14 @@ export class CatalogModule {
         TaxonomyController,
         PublicationController,
         StoreProductController,
+        StoreBrowseController,
       ],
       providers: [
+        {
+          provide: StoreBrowseService,
+          useFactory: (source: DataSource) => new StoreBrowseService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: PublicationService,
           useFactory: (source: DataSource) =>

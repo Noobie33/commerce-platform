@@ -89,3 +89,7 @@ Evidence: **Observed** means visible in sampled public pages; **Entry only** mea
 The retail-only R0-R7 phases in [the master plan](RETAIL-ONLY-MASTER-PLAN.md#10-delivery-phases-and-gates) replace the earlier B2C/B2B delivery order. This reference register remains the complete SF-01-SF-23 feature contract, subject to the explicit single-brand/Bangladesh/retail-only exclusions.
 
 Visual approval and functional acceptance are distinct. Each SF item needs tracked implementation status and acceptance evidence before claiming complete delivery; unverified account, checkout or policy behavior must remain marked pending.
+
+## Schema 18 foundation update
+
+Staff category hierarchy, preserved category URL ownership, optional category/product SEO and private preparation checks are implemented; see [evidence and boundaries](CATEGORY-SEO-AND-PREPARATION.md). This advances the data foundation for SF-02/SF-22/SF-23. Public navigation, redirects, crawlable rendering/metadata, public-media approval and explicit publication remain acceptance work; the SF requirements are not marked complete.

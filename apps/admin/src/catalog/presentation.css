@@ -1,0 +1,75 @@
+﻿@import './merch.css';
+.search-preview {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 18px;
+  margin: 16px 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  background: #fff;
+}
+.search-preview > span {
+  font-size: 12px;
+  color: #52615a;
+}
+.search-preview h4 {
+  font-size: 18px;
+  line-height: 1.4;
+  color: #294ea7;
+  margin: 7px 0;
+}
+.search-preview p {
+  line-height: 1.6;
+  color: #525252;
+  margin: 0 0 8px;
+}
+.search-preview small,
+.taxonomy-parent > small {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #737373;
+}
+.taxonomy-parent {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 14px;
+}
+.taxonomy-parent h3,
+.taxonomy-parent p {
+  margin: 0;
+}
+.taxonomy-parent-option {
+  padding: 10px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  color: #262626;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+.website-preparation {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 18px;
+  min-width: 0;
+}
+.website-preparation li {
+  line-height: 1.7;
+  margin: 7px 0;
+}
+.website-preparation .prepared {
+  color: #23664c;
+}
+.website-preparation .needs-work {
+  color: #8a511f;
+}
+.search-preview p {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

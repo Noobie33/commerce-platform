@@ -44,6 +44,8 @@ export class CatalogService {
                 : 'CATALOG_CONFLICT';
       throw new ConflictException({ code, message: 'This catalog identifier is already in use' });
     }
+    if (error instanceof Error && error.message.startsWith('TAXONOMY_'))
+      invalid('Choose an active parent and keep the category hierarchy within twelve levels.');
     throw error;
   }
 
@@ -60,6 +62,9 @@ export class CatalogService {
   ): Promise<Category> {
     try {
       return await this.source.transaction(async (manager) => {
+        await manager.query(
+          "SELECT pg_advisory_xact_lock(hashtextextended('catalog-taxonomy',18))",
+        );
         if (input.parentId) await this.checkCategory(manager, input.parentId);
         const rows: Category[] = await manager.query(
           'INSERT INTO catalog_categories(name,name_key,parent_id) VALUES ($1,$2,$3) RETURNING id,name,parent_id AS "parentId"',
@@ -79,11 +84,11 @@ export class CatalogService {
   }
 
   private async checkCategory(sql: Sql, id: string): Promise<void> {
-    const rows: { id: string }[] = await sql.query(
-      'SELECT id FROM catalog_categories WHERE id=$1 AND is_active',
+    const rows: { valid: boolean }[] = await sql.query(
+      'SELECT public.catalog_category_active($1) AS valid',
       [id],
     );
-    if (!rows.length) invalid('Choose an active category');
+    if (!rows[0]?.valid) invalid('Choose an active category');
   }
 
   read(id: string): Promise<Product> {

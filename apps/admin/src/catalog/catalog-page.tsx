@@ -1,3 +1,4 @@
+import { TaxonomyManager } from './taxonomy-manager';
 import { MerchLibrary } from './merch-library';
 import { useLiveRead } from '../data/use-live-read';
 import { ReadStatus } from '../data/read-status';
@@ -18,13 +19,16 @@ export function CatalogPage({
   canManageContent,
   canReviewContent,
   canManageMerch,
+  canManageTaxonomy,
 }: {
   api: StaffApi;
   canManage: boolean;
   canManageContent: boolean;
   canReviewContent: boolean;
   canManageMerch: boolean;
+  canManageTaxonomy: boolean;
 }) {
+  const [taxonomyOpen, setTaxonomyOpen] = useState(false);
   const [merchOpen, setMerchOpen] = useState(false);
   const [contentProduct, setContentProduct] = useState<Product | null>(null);
   const [mediaProduct, setMediaProduct] = useState<Product | null>(null);
@@ -76,7 +80,15 @@ export function CatalogPage({
     {
       topics: ['catalog'],
       revision,
-      paused: !!(editor || detail || mediaProduct || contentProduct || categoryOpen || merchOpen),
+      paused: !!(
+        editor ||
+        detail ||
+        mediaProduct ||
+        contentProduct ||
+        categoryOpen ||
+        merchOpen ||
+        taxonomyOpen
+      ),
     },
   );
   const data = read.data?.[0] ?? null,
@@ -146,6 +158,9 @@ export function CatalogPage({
         )}
       </div>
       <div className="merch-actions">
+        <button className="secondary-button" onClick={() => setTaxonomyOpen(true)}>
+          Categories & SEO
+        </button>
         <button className="secondary-button" onClick={() => setMerchOpen(true)}>
           Size guides & collections
         </button>
@@ -514,6 +529,16 @@ export function CatalogPage({
       )}
       {merchOpen && (
         <MerchLibrary api={api} canManage={canManageMerch} close={() => setMerchOpen(false)} />
+      )}
+      {taxonomyOpen && (
+        <TaxonomyManager
+          api={api}
+          canManage={canManageTaxonomy}
+          close={() => {
+            setTaxonomyOpen(false);
+            setRevision((n) => n + 1);
+          }}
+        />
       )}
     </section>
   );

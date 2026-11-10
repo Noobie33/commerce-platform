@@ -29,6 +29,8 @@ Catalog now includes typed Clothing/Accessories/Lifestyle specifications, a sepa
 
 Reusable size guides and collections now have independent library management, immutable revisions and product-content assignments with safe previews/review. See [size guides and collections](docs/SIZE-GUIDES-AND-COLLECTIONS.md).
 
+Category hierarchy, preserved URL names, category/product search previews and private website-preparation checks are now implemented. See [category SEO and preparation](docs/CATEGORY-SEO-AND-PREPARATION.md).
+
 ## Storefront direction
 
 The owner selected Aarong/Taaga for storefront layout, product presentation and feature coverage, with Tabaya-inspired product video alongside images. See the [source-backed feature matrix and architecture impact](docs/STOREFRONT-REFERENCE.md). The current storefront scope is Bangladesh only (BDT), with one brand across all departments: no country selector or sub-brand/brand switcher. Rich specifications/filters, collections/size guides, mixed media and publication rules must be supplied by the ERP. These are recorded requirements; the current app remains the staff workspace, with no public checkout or video upload yet.
@@ -53,6 +55,7 @@ npm run payments:verify-local
 npm run customers:verify-local
 npm run sales:verify-local
 npm run reservations:verify-local
+npm run presentation:verify-local
 npm run build
 npm run start:local
 ```
@@ -69,7 +72,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification - 10 November 2026
 
-Strict type checking, clean build, formatting check, 52 database-free/interface tests and 214 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 55 database-free/interface tests and 230 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

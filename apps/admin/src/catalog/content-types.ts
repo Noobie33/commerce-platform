@@ -1,3 +1,4 @@
+import type { SeoInput, WebsitePreparation } from './presentation-types';
 import type { MerchAssignments, MerchProjection } from './merch-types';
 export type ContentState = 'draft' | 'in_review' | 'approved' | 'changes_requested';
 export interface SpecificationField {
@@ -13,6 +14,7 @@ export interface ContentProfile {
   fields: Record<string, SpecificationField>;
 }
 export interface ContentSnapshot {
+  seo?: SeoInput;
   merchandising?: MerchProjection;
   productId: string;
   productVersion: number;
@@ -48,6 +50,7 @@ export interface ContentEvent {
   snapshot: ContentSnapshot;
 }
 export interface ContentView {
+  preparation: WebsitePreparation;
   productId: string;
   productVersion: number;
   record: ContentRecord | null;
@@ -67,6 +70,7 @@ export interface ContentInput {
   specifications?: Record<string, string>;
   reason?: string;
   merchandising?: MerchAssignments;
+  seo?: SeoInput;
 }
 export interface ContentResult {
   productId: string;

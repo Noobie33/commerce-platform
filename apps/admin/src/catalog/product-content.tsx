@@ -1,3 +1,6 @@
+import { SeoFields, SearchPreview } from './search-preview';
+import type { SeoInput } from './presentation-types';
+import './presentation.css';
 import { MerchAssignmentsEditor } from './merch-assignments';
 import { MerchDetails } from './merch-details';
 import type { MerchAssignments } from './merch-types';
@@ -28,6 +31,7 @@ function orderedEntries<T>(fields: Record<string, T>): [string, T][] {
   });
 }
 type Draft = {
+  seo: SeoInput;
   merchandising: MerchAssignments;
   profile: string;
   slug: string;
@@ -81,6 +85,7 @@ export function ProductContent({
           description: value.record.description,
           specifications: value.record.specifications,
           merchandising: toAssignments(value),
+          seo: value.preview.seo ?? { title: '', description: '' },
         }
       : {
           profile: 'clothing-v1',
@@ -88,6 +93,7 @@ export function ProductContent({
           description: '',
           specifications: {},
           merchandising: toAssignments(value),
+          seo: value.preview.seo ?? { title: '', description: '' },
         };
     setView(value);
     setForm(draft);
@@ -108,6 +114,7 @@ export function ProductContent({
               description: value.record.description,
               specifications: value.record.specifications,
               merchandising: toAssignments(value),
+              seo: value.preview.seo ?? { title: '', description: '' },
             }
           : {
               profile: 'clothing-v1',
@@ -115,6 +122,7 @@ export function ProductContent({
               description: '',
               specifications: {},
               merchandising: toAssignments(value),
+              seo: value.preview.seo ?? { title: '', description: '' },
             };
         setView(value);
         setForm(draft);
@@ -205,6 +213,7 @@ export function ProductContent({
     view && form
       ? {
           ...view.preview,
+          seo: form.seo,
           profile: form.profile,
           slug: form.slug,
           description: form.description,
@@ -359,6 +368,14 @@ export function ProductContent({
                     ? 'The selected chart states its own unit and garment/body measurement basis.'
                     : 'Select a size guide to add size-specific garment or body measurements.'}
                 </p>
+                {snapshot && (
+                  <SearchPreview
+                    name={snapshot.name}
+                    path={'/products/' + (snapshot.slug || 'product-url')}
+                    description={snapshot.description ?? ''}
+                    seo={snapshot.seo ?? { title: '', description: '' }}
+                  />
+                )}
               </section>
             ) : (
               <fieldset disabled={busy || !editable} className="content-fields">
@@ -402,6 +419,7 @@ export function ProductContent({
                     onChange={(e) => update({ description: e.target.value })}
                   />
                 </label>
+                <SeoFields value={form.seo} onChange={(seo) => update({ seo })} />
                 <MerchAssignmentsEditor
                   api={api}
                   value={form.merchandising}
@@ -455,6 +473,23 @@ export function ProductContent({
                   </label>
                 ))}
               </fieldset>
+            )}
+            {view.preparation && (
+              <section className="website-preparation">
+                <h3>Current website preparation</h3>
+                <ul>
+                  {view.preparation.checks.map((check) => (
+                    <li key={check.code} className={check.passed ? 'prepared' : 'needs-work'}>
+                      {check.passed ? 'Ready: ' : 'To prepare: '}
+                      {check.message}
+                    </li>
+                  ))}
+                </ul>
+                <p className="catalog-note">
+                  These checks do not publish the product. Publishing and public-media approval are
+                  separate steps.
+                </p>
+              </section>
             )}
             <section className="content-readiness">
               <h3>Review checklist</h3>

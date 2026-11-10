@@ -1,4 +1,5 @@
-﻿import {
+import { websitePreparation } from './presentation.service.js';
+import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -43,6 +44,11 @@ export class ProductContentService {
         record: (record as ContentRecord | undefined) ?? null,
         profiles,
         ...projection,
+        preparation: await websitePreparation(
+          m,
+          projection.preview,
+          !!projection.current && record?.state === 'approved',
+        ),
         history,
       };
     });

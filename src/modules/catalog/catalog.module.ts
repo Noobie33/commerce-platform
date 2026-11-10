@@ -1,3 +1,5 @@
+import { TaxonomyService } from './presentation.service.js';
+import { TaxonomyController } from './presentation.controller.js';
 import { MerchController } from './merch.controller.js';
 import { MerchService } from './merch.service.js';
 import { ProductContentController } from './content.controller.js';
@@ -29,8 +31,14 @@ export class CatalogModule {
         ProductMediaController,
         ProductContentController,
         MerchController,
+        TaxonomyController,
       ],
       providers: [
+        {
+          provide: TaxonomyService,
+          useFactory: (source: DataSource) => new TaxonomyService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: MerchService,
           useFactory: (source: DataSource) => new MerchService(source),

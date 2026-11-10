@@ -179,3 +179,9 @@ R1 and R2a are implemented; schema 16 adds authenticated live updates (see [data
 - [Tabaya mixed-media reference](https://tabaya.com/), retained owner requirement and earlier observations; no assertion of private implementation.
 - [Next.js server/client component documentation](https://nextjs.org/docs/app/getting-started/server-and-client-components), checked 9 November 2026; architecture rationale, not a pinned-version selection.
 - [Detailed reference evidence and SF-01-SF-23 contract](STOREFRONT-REFERENCE.md), including earlier observation limits.
+
+## Schema 18 checkpoint - 10 November 2026
+
+R2 remains in progress. [Category hierarchy, category/product SEO and private preparation checks](CATEGORY-SEO-AND-PREPARATION.md) now complement content review and schema-17 guides/collections. Category IDs and existing operational records are preserved; URL ownership is retained across renames. Verification: 55 database-free/interface plus 230 PostgreSQL checks, restore-verified backup, unchanged fingerprints of 50 existing development data tables, and disposable desktop/390px browser checks. No public route or publication action is enabled.
+
+The next bounded slice is public-media approval and explicit versioned publication with safe public projection and revocation gates. Staff/role administration, controlled attribute vocabularies/facets, video, and the remaining R2 acceptance work are still pending; the R3 storefront and transaction phases retain their existing gates.

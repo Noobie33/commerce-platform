@@ -349,6 +349,7 @@ export function Workspace({
               canManageContent={hasGlobal(user, 'catalog.content.manage')}
               canReviewContent={hasGlobal(user, 'catalog.content.review')}
               canManageMerch={hasGlobal(user, 'catalog.merch.manage')}
+              canManageTaxonomy={hasGlobal(user, 'catalog.taxonomy.manage')}
             />
           )}
           {page === 'inventory' && canSeeInventory(user) && (

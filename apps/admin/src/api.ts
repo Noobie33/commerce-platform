@@ -1,3 +1,4 @@
+import type { TaxonomyInput, TaxonomyItem, TaxonomyPage } from './catalog/presentation-types';
 import type { MerchInput, MerchItem, MerchPage, MerchDefinition } from './catalog/merch-types';
 import type { ReadOptions } from './data/live-read';
 import type { ContentView, ContentInput, ContentResult } from './catalog/content-types';
@@ -84,6 +85,21 @@ export class ApiError extends Error {
                 'Check title, unique size labels, measurement columns and positive decimal values.',
               MERCH_IDENTIFIER_EXISTS:
                 'This permanent URL name is already used for this record type.',
+              INVALID_PRESENTATION_INPUT:
+                'Check category name, URL name, search fields and revision.',
+              TAXONOMY_INVALID: 'Check the category and SEO field values.',
+              TAXONOMY_PARENT: 'Choose an existing parent category.',
+              TAXONOMY_GRAPH:
+                'Keep categories under active parents, without loops, within twelve levels.',
+              TAXONOMY_IN_USE:
+                'Move active products and child categories before retiring this category.',
+              TAXONOMY_URL_REQUIRED:
+                'A category URL name cannot be cleared after it has been assigned.',
+              TAXONOMY_SLUG_EXISTS: 'This URL name is reserved for another category.',
+              TAXONOMY_STALE: 'This category changed. Reopen it before saving.',
+              TAXONOMY_IDEMPOTENCY:
+                'This save attempt belongs to different category details. Reopen and review.',
+              CATEGORY_NOT_FOUND: 'The category could not be found.',
               MERCH_STALE:
                 'Another version was saved. Reopen this guide or collection before saving.',
               MERCH_IDEMPOTENCY:
@@ -804,6 +820,30 @@ export class StaffApi {
   }
   saveMerch(body: MerchInput, key: string) {
     return this.request<{ id: string; version: number }>('/catalog/merchandising', body, { key });
+  }
+  taxonomy(query: { search?: string; status?: string; page?: number }, read?: ReadOptions) {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) if (v !== undefined) params.set(k, String(v));
+    return this.request<TaxonomyPage>('/catalog/taxonomy?' + params, undefined, read);
+  }
+  taxonomyItem(id: string, page = 1) {
+    return this.request<{
+      item: TaxonomyItem;
+      history: {
+        version: number;
+        reason: string;
+        snapshot: Omit<TaxonomyItem, 'path' | 'activeProducts'>;
+        createdAt: string;
+      }[];
+      routes: string[];
+      routeTotal: number;
+      total: number;
+      page: number;
+      pageSize: number;
+    }>('/catalog/taxonomy/' + encodeURIComponent(id) + '?page=' + page);
+  }
+  saveTaxonomy(body: TaxonomyInput, key: string) {
+    return this.request<{ id: string; version: number }>('/catalog/taxonomy', body, { key });
   }
   async ready() {
     try {

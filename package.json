@@ -37,7 +37,10 @@
     "presentation:verify-local": "node --env-file=.env dist/src/scripts/verify-presentation.js",
     "publication:verify-local": "node --env-file=.env dist/src/scripts/verify-publication.js",
     "access:verify-local": "node --env-file=.env dist/src/scripts/verify-staff-access.js",
-    "onboarding:verify-local": "node --env-file=.env dist/src/scripts/verify-staff-onboarding.js"
+    "onboarding:verify-local": "node --env-file=.env dist/src/scripts/verify-staff-onboarding.js",
+    "video:verify-tools": "node --env-file=.env.video dist/src/scripts/verify-video-tools.js",
+    "video:prepare-local": "node --env-file=.env.video dist/src/scripts/prepare-video.js",
+    "test:video": "node --env-file=.env.video --test --test-concurrency=1 dist/test/video-processing.integration.js"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",

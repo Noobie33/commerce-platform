@@ -223,3 +223,7 @@ This advances the R3 API foundation without starting the Next.js UI or declaring
 ## Schema 22 checkpoint - guided specifications
 
 [Versioned guided material groups and primary occasions](GUIDED-PRODUCT-SPECIFICATIONS.md) are now implemented with staff dropdowns, legacy history preservation, SQL-enforced choices and approved-publication browse facets. This is a migration-owned initial vocabulary, not an owner-editable dictionary. Category/profile assignment, normalized SKU labels, mixed-media/video and Next.js storefront controls remain pending. The latest owner clarification keeps NestJS + React/Vite for current staff workflows and requires Next.js for public customer pages; no blanket admin migration is scheduled.
+
+## Video preparation checkpoint - 10 November 2026
+
+The [private video preparation engine](PRODUCT-VIDEO-PIPELINE.md) now has explicit local tools, actual MP4/MOV inspection, bounded conversion, original integrity, sanitized playback/poster and private handoff artifacts. Schema stays 22; no browser upload, staff video screen, durable processing queue, catalog video mutation or public playback is enabled. V2 intake/worker/metadata/UI and V3 reviewed mixed-media publication retain separate gates. This checkpoint does not complete video support or the Next.js storefront.

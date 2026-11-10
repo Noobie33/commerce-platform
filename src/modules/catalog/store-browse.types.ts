@@ -21,5 +21,5 @@ export interface StoreBrowseResult {
   pageSize: number;
   hasMore: boolean;
   currency: 'BDT';
-  facets: Record<'size' | 'color' | 'fit', StoreFacet>;
+  facets: Record<'size' | 'color' | 'fit' | 'materialGroup' | 'occasion', StoreFacet>;
 }

@@ -100,10 +100,16 @@ test('publication: private drafts, explicit media consent, safe public releases 
       expectedProductVersion: v.productVersion,
       ...(op === 'save'
         ? {
-            profile: 'clothing-v1',
+            profile: 'clothing-v2',
             slug,
             description: 'A soft cotton shirt.',
-            specifications: { material: 'Cotton', care: 'Gentle wash', fit: 'regular' },
+            specifications: {
+              material: 'Cotton',
+              care: 'Gentle wash',
+              fit: 'regular',
+              materialGroup: 'cotton',
+              occasion: 'everyday',
+            },
           }
         : {}),
       ...(op === 'approve' ? { reason: 'Owner explicit test review' } : {}),
@@ -362,6 +368,14 @@ test('publication: private drafts, explicit media consent, safe public releases 
         assert.equal(b.items[0].matchingVariantCount, 2);
         assert.equal(b.items[0].matchingPriceMinMinor, '129000');
         assert.equal(b.items[0].matchingPriceMaxMinor, '149000');
+        assert.deepEqual(b.facets.materialGroup, {
+          items: [{ value: 'cotton', count: 1 }],
+          truncated: false,
+        });
+        assert.deepEqual(b.facets.occasion, {
+          items: [{ value: 'everyday', count: 1 }],
+          truncated: false,
+        });
         assert.deepEqual(b.facets.fit, {
           items: [{ value: 'regular', count: 1 }],
           truncated: false,
@@ -405,6 +419,8 @@ test('publication: private drafts, explicit media consent, safe public releases 
         { size: 'L', maxPriceMinor: '129000' },
         { size: 'M', minPriceMinor: '140000' },
         { fit: 'slim' },
+        { materialGroup: 'linen' },
+        { occasion: 'work' },
         { category: 'missing-' + suffix },
         { q: '%' + suffix },
         { q: "' OR 1=1 --" },
@@ -513,6 +529,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
               expected,
             );
             assert.deepEqual(b.facets.fit.items, [{ value: 'regular', count: 3 }]);
+            assert.deepEqual(b.facets.materialGroup.items, [{ value: 'cotton', count: 1 }]);
           }
         } finally {
           // Keep subsequent withdrawal/history tests scoped to the original single product.

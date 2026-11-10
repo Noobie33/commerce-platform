@@ -1,3 +1,4 @@
+import { GuidedProductSpecifications1794120000000 } from '../src/database/migrations/1794120000000-guided-product-specifications.js';
 import { ContentIntegrity1794113000000 } from '../src/database/migrations/1794113000000-content-integrity.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -190,7 +191,7 @@ test('product content: typed preparation, protected review, stale approvals and 
         assert.equal((await call(undefined, 5)).status, 403);
         const v = await view();
         assert.equal(v.record, null);
-        assert.equal(v.profiles.length, 3);
+        assert.equal(v.profiles.length, 6);
         assert.deepEqual(v.issues, ['Save product content first']);
         assert.equal((await call(await body('save'), 3)).status, 403);
         assert.equal((await call(await body('save'), 2)).status, 403);
@@ -485,6 +486,147 @@ test('product content: typed preparation, protected review, stale approvals and 
         const history = await call(undefined, 0, randomUUID(), '?page=2');
         assert.equal(history.status, 200);
         assert((await history.json()).history.items.length > 0);
+      },
+    );
+    await t.test(
+      'guided profiles require verified groups and reject arbitrary material or occasion codes',
+      async () => {
+        const base = fields();
+        await success('save', 1, { ...base, profile: 'clothing-v2' });
+        assert.ok((await view()).issues.some((x) => x.includes('Material group')));
+        assert.equal((await call(await body('submit'), 1)).status, 409);
+        for (const bad of [
+          { materialGroup: 'Cotton' },
+          { materialGroup: 'cotton', occasion: 'invented' },
+          { materialGroup: 'metal' },
+        ]) {
+          const before = await rows();
+          assert.equal(
+            (
+              await call(
+                await body('save', {
+                  ...base,
+                  profile: 'clothing-v2',
+                  specifications: { ...base.specifications, ...bad },
+                }),
+                1,
+              )
+            ).status,
+            400,
+          );
+          assert.deepEqual(await rows(), before);
+        }
+        const v = await view();
+        await assert.rejects(
+          runtime.query('SELECT public.catalog_content_post($1,$2,$3,$4::jsonb)', [
+            randomUUID(),
+            users[0],
+            randomUUID(),
+            JSON.stringify({
+              action: 'save',
+              productId: product,
+              expectedVersion: v.record!.version,
+              expectedProductVersion: v.productVersion,
+              ...base,
+              profile: 'clothing-v2',
+              specifications: {
+                ...base.specifications,
+                materialGroup: 'unverified',
+                occasion: 'work',
+              },
+            }),
+          ]),
+          /CONTENT_INVALID/,
+        );
+      },
+    );
+    await t.test(
+      'guided approval retains exact composition and legacy history without automatic mapping',
+      async () => {
+        const old = await db.query(
+          "SELECT version,fingerprint,snapshot FROM catalog_content_events WHERE product_id=$1 AND snapshot->>'profile'='clothing-v1' ORDER BY version",
+          [product],
+        );
+        const base = fields();
+        await success('save', 1, {
+          ...base,
+          profile: 'clothing-v2',
+          specifications: {
+            ...base.specifications,
+            materialGroup: 'cotton',
+            occasion: 'work',
+            material: '100% cotton',
+          },
+        });
+        await success('submit');
+        await success('approve', 2);
+        const v = await view();
+        assert.equal(v.current, true);
+        assert.equal(v.record!.profile, 'clothing-v2');
+        assert.equal(v.preview.specifications!.material, '100% cotton');
+        assert.equal(v.preview.specifications!.materialGroup, 'cotton');
+        assert.deepEqual(
+          await db.query(
+            "SELECT version,fingerprint,snapshot FROM catalog_content_events WHERE product_id=$1 AND snapshot->>'profile'='clothing-v1' ORDER BY version",
+            [product],
+          ),
+          old,
+        );
+        await success('save', 1); // Explicitly return to legacy draft; retained v2 history still protects downgrade.
+        const r = db.createQueryRunner();
+        await r.connect();
+        try {
+          await assert.rejects(
+            new GuidedProductSpecifications1794120000000().down(r),
+            /review history/,
+          );
+        } finally {
+          await r.release();
+        }
+      },
+    );
+    await t.test(
+      'guided migration is additive, preserves legacy metadata and reverts only unused profiles',
+      async () => {
+        const r = db.createQueryRunner();
+        await r.connect();
+        await r.startTransaction();
+        try {
+          const schema = 'guided_scratch_' + prefix.toLowerCase();
+          await r.query('CREATE SCHEMA ' + schema);
+          await r.query('SET LOCAL search_path TO ' + schema + ',public');
+          for (const prior of db.migrations) {
+            if (prior instanceof GuidedProductSpecifications1794120000000) break;
+            await prior.up(r);
+          }
+          const before = await r.query(
+            'SELECT code,label,fields FROM catalog_content_profiles ORDER BY code',
+          );
+          const next = new GuidedProductSpecifications1794120000000();
+          await next.up(r);
+          assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 22);
+          assert.deepEqual(
+            await r.query(
+              "SELECT code,label,fields FROM catalog_content_profiles WHERE code LIKE '%-v1' ORDER BY code",
+            ),
+            before,
+          );
+          assert.equal(
+            (await r.query('SELECT count(*)::int AS n FROM catalog_content_profiles'))[0].n,
+            6,
+          );
+          await next.down(r);
+          assert.equal((await r.query('SELECT version FROM app_schema_version'))[0].version, 21);
+          assert.deepEqual(
+            await r.query('SELECT code,label,fields FROM catalog_content_profiles ORDER BY code'),
+            before,
+          );
+          await next.up(r);
+          await r.rollbackTransaction();
+        } finally {
+          if (r.isTransactionActive) await r.rollbackTransaction();
+          await r.release();
+        }
       },
     );
     await t.test(

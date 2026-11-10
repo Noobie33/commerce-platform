@@ -1,3 +1,4 @@
+import { materialGroupsV1, occasionCodesV1 } from '../../database/catalog-vocabularies-v1.js';
 import { BadRequestException } from '@nestjs/common';
 import { fold } from './catalog.validation.js';
 export interface StoreBrowseQuery {
@@ -6,6 +7,8 @@ export interface StoreBrowseQuery {
   size: string | null;
   color: string | null;
   fit: string | null;
+  materialGroup: string | null;
+  occasion: string | null;
   minPriceMinor: string | null;
   maxPriceMinor: string | null;
   sort: 'name' | 'price_asc' | 'price_desc';
@@ -25,6 +28,8 @@ export function storeBrowseQuery(value: unknown): StoreBrowseQuery {
     'size',
     'color',
     'fit',
+    'materialGroup',
+    'occasion',
     'minPriceMinor',
     'maxPriceMinor',
     'sort',
@@ -55,6 +60,10 @@ export function storeBrowseQuery(value: unknown): StoreBrowseQuery {
   if (category && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(category)) invalid();
   if (fit && !['regular', 'slim', 'relaxed', 'oversized', 'not_applicable'].includes(fit))
     invalid();
+  const materialGroup = text('materialGroup', 40),
+    occasion = text('occasion', 40);
+  if (materialGroup && !(materialGroupsV1 as readonly string[]).includes(materialGroup)) invalid();
+  if (occasion && !occasionCodesV1.includes(occasion)) invalid();
   const minPriceMinor = amount('minPriceMinor'),
     maxPriceMinor = amount('maxPriceMinor');
   if (
@@ -73,6 +82,8 @@ export function storeBrowseQuery(value: unknown): StoreBrowseQuery {
     size: text('size', 60),
     color: text('color', 60),
     fit,
+    materialGroup,
+    occasion,
     minPriceMinor,
     maxPriceMinor,
     sort: (b.sort ?? 'name') as StoreBrowseQuery['sort'],

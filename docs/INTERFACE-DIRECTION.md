@@ -24,7 +24,7 @@ See the [recorded feature matrix, system changes and acceptance gates](STOREFRON
 | CSS               | Local shared tokens and component styles | Consistent spacing, contrast and responsive layouts with no new UI dependency |
 | API access        | Native fetch                             | Same-origin HttpOnly sessions and the existing CSRF flow                      |
 
-Versions are pinned in the lockfile. No application dependencies were added for this redesign. The owner confirmed Next.js for the future customer storefront on 10 November 2026. Keep React/Vite for the current staff delivery and track the requested later staff migration separately; see the [authoritative framework decision and migration gates](RETAIL-ONLY-MASTER-PLAN.md#frontend-framework-decision---10-november-2026). Next.js uses React; performance must be measured against the actual workflows.
+Versions are pinned in the lockfile. No application dependencies were added for this redesign. The owner confirmed Next.js for the future customer storefront on 10 November 2026. Latest owner clarification keeps React/Vite for staff delivery unless a measured need justifies migration; no blanket migration is scheduled. See the [authoritative framework decision and migration gates](RETAIL-ONLY-MASTER-PLAN.md#frontend-framework-decision---10-november-2026). Next.js uses React; performance must be measured against the actual workflows.
 
 ## Design rules
 

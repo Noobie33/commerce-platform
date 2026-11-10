@@ -1,4 +1,6 @@
-﻿import { createRuntimeDataSource, databaseUrl } from '../infrastructure/database/data-source.js';
+import { isDeepStrictEqual } from 'node:util';
+import { guidedContentProfilesV1 } from '../database/catalog-vocabularies-v1.js';
+import { createRuntimeDataSource, databaseUrl } from '../infrastructure/database/data-source.js';
 if (
   !['/commerce_platform_dev', '/commerce_platform_test'].includes(
     new URL(databaseUrl(process.env, 'DATABASE_URL')).pathname,
@@ -9,6 +11,17 @@ const db = createRuntimeDataSource();
 try {
   await db.initialize();
   const result = await db.transaction('REPEATABLE READ', async (m) => {
+    const profiles = await m.query(
+      'SELECT code,label,fields FROM catalog_content_profiles WHERE code=ANY($1::text[])',
+      [guidedContentProfilesV1.map((p) => p.code)],
+    );
+    const profileDefinitionMismatches = guidedContentProfilesV1.filter(
+      (p) =>
+        !profiles.some(
+          (row: { code: string; label: string; fields: unknown }) =>
+            row.code === p.code && row.label === p.label && isDeepStrictEqual(row.fields, p.fields),
+        ),
+    ).length;
     const [counts] = await m.query(
       `SELECT count(*)::int AS content_records,count(*) FILTER(WHERE state='in_review')::int AS in_review,count(*) FILTER(WHERE state='approved')::int AS approved,count(*) FILTER(WHERE state IN('in_review','approved') AND fingerprint IS DISTINCT FROM encode(sha256(convert_to(public.catalog_content_snapshot(product_id)::text,'UTF8')),'hex'))::int AS stale_review_copies FROM catalog_product_content`,
     );
@@ -21,10 +34,14 @@ try {
     const [cache] = await m.query(
       `SELECT count(*)::int AS n FROM catalog_content_requests r JOIN catalog_product_content c ON c.product_id=r.product_id WHERE (SELECT count(*) FROM jsonb_object_keys(r.response))<>3 OR NOT(r.response ?& ARRAY['productId','version','state']) OR r.response->>'productId'<>r.product_id::text OR(r.response->>'version')::integer NOT BETWEEN 1 AND c.version OR r.response->>'state' NOT IN('draft','in_review','approved','changes_requested')`,
     );
-    return { ...counts, invalidContentRecords: records.n + history.n + cache.n };
+    return {
+      ...counts,
+      profileDefinitionMismatches,
+      invalidContentRecords: records.n + history.n + cache.n,
+    };
   });
   console.log(JSON.stringify(result));
-  if (result.invalidContentRecords) process.exitCode = 1;
+  if (result.invalidContentRecords || result.profileDefinitionMismatches) process.exitCode = 1;
 } catch {
   console.error(
     'Product content verification failed. Private content and credentials are withheld.',

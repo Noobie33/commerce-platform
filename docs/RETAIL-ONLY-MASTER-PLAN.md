@@ -1,6 +1,6 @@
 ﻿# Retail-only master plan
 
-Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 17; live updates and versioned guides/collections added). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
+Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 22; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
 
 This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. The original R0 planning change altered documentation only. The subsequent R1 implementation retires trade writes through a forward migration while preserving business history; later phases remain pending.
 
@@ -132,7 +132,7 @@ Invoice numbering, tax treatment, revenue recognition, discounts, delivery charg
 
 Separate content preparation from publishing/price approval. Warehouse and fulfillment staff need location-scoped actions; finance controls recorded receipts, settlements and refund approval. Customer support gets only necessary customer/order information. The owner retains controlled emergency administration, without sharing an owner password for routine work.
 
-Staff/role administration, recovery and MFA are pending features. Test revocation, default-deny behavior, location boundaries, duplicate requests and audit completeness when adding them. Public customer sessions are separate from staff sessions. Include abuse limits, safe account recovery, consent and retention/access/deletion policy for personal data.
+Staff roles/access and onboarding are implemented in schemas 20-21. Recovery and MFA remain pending features. Test revocation, default-deny behavior, location boundaries, duplicate requests and audit completeness when adding them. Public customer sessions are separate from staff sessions. Include abuse limits, safe account recovery, consent and retention/access/deletion policy for personal data.
 
 ## 10. Delivery phases and gates
 
@@ -206,7 +206,7 @@ R2 still needs controlled attribute/facet and mixed-media/video work. Recovery, 
 
 ## Frontend framework decision - 10 November 2026
 
-The owner explicitly requires Next.js for the customer website after the current software work. Keep the existing React/Vite staff app for the current delivery; record the owner-requested later migration of the staff frontend to Next.js as a separate follow-up after the agreed software scope is complete. That migration needs a bounded plan, functional parity, preserved authentication/CSRF/live updates, measured performance and a rollback path. It does not replace the NestJS backend or PostgreSQL. Next.js uses React; a framework change alone is not evidence of better performance.
+The owner requires Next.js for the customer website after the current software work. Latest clarification: keep the NestJS backend and React/Vite staff frontend where they meet measured needs; the earlier blanket future admin migration request is superseded. No automatic migration is scheduled. A later framework change needs a concrete benefit, functional parity, preserved authentication/CSRF/live updates, measured performance and a rollback path. NestJS/PostgreSQL remain the business authority. Next.js uses React; a framework change alone is not evidence of better performance.
 
 Use the storefront phase to install project-local, pinned Next.js/React dependencies with TypeScript and the necessary quality checks. Do not install Next.js globally or add it to the existing staff app now. Recheck supported stable releases, security fixes, Node/npm/React/TypeScript compatibility and deployment requirements at that time. The PC currently reports Node v24.16.0 and npm 11.13.0; this observation is not a future compatibility guarantee. No new runtime, database, Docker, paid hosting or cloud account is required by this decision alone.
 
@@ -219,3 +219,7 @@ Installation reference: [official Next.js installation documentation](https://ne
 The [read-only published-product browse API](STORE-BROWSE.md) now supports literal name/style search, category-path filtering, existing size/color and controlled fit filters, exact price ranges, stable sorting, pagination and distinct-product facets. Size/color/price must match one real SKU. Public cards, counts and facets all use the existing eligibility gate; no staff data, stock quantities or drafts are exposed. Schema remains 21; no existing records were rewritten.
 
 This advances the R3 API foundation without starting the Next.js UI or declaring R2 complete. Managed material/occasion vocabularies and category profiles, controlled SKU labels, mixed media/video, storefront pages and production search/load/abuse controls remain pending.
+
+## Schema 22 checkpoint - guided specifications
+
+[Versioned guided material groups and primary occasions](GUIDED-PRODUCT-SPECIFICATIONS.md) are now implemented with staff dropdowns, legacy history preservation, SQL-enforced choices and approved-publication browse facets. This is a migration-owned initial vocabulary, not an owner-editable dictionary. Category/profile assignment, normalized SKU labels, mixed-media/video and Next.js storefront controls remain pending. The latest owner clarification keeps NestJS + React/Vite for current staff workflows and requires Next.js for public customer pages; no blanket admin migration is scheduled.

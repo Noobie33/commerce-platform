@@ -35,6 +35,8 @@ WITH eligible AS MATERIALIZED (
  AND ($5::text IS NULL OR s->'specifications'->>'fit'=$5)
  AND ($6::bigint IS NULL OR (v->>'priceMinor')::bigint >= $6)
  AND ($7::bigint IS NULL OR (v->>'priceMinor')::bigint <= $7)
+ AND ($10::text IS NULL OR s->'specifications'->>'materialGroup'=$10)
+ AND ($11::text IS NULL OR s->'specifications'->>'occasion'=$11)
 ), products AS MATERIALIZED (
  SELECT s,version,s->>'name' AS name,s->>'slug' AS slug,min(price) AS min_price,max(price) AS max_price,count(*)::int AS matches
  FROM matching GROUP BY s,version
@@ -48,6 +50,8 @@ WITH eligible AS MATERIALIZED (
  SELECT 'size' AS kind,size AS value,s->>'productId' AS pid FROM matching WHERE size IS NOT NULL
  UNION ALL SELECT 'color',color,s->>'productId' FROM matching WHERE color IS NOT NULL
  UNION ALL SELECT 'fit',s->'specifications'->>'fit',s->>'productId' FROM matching WHERE s->'specifications'->>'fit' IS NOT NULL
+ UNION ALL SELECT 'materialGroup',s->'specifications'->>'materialGroup',s->>'productId' FROM matching WHERE nullif(s->'specifications'->>'materialGroup','') IS NOT NULL
+ UNION ALL SELECT 'occasion',s->'specifications'->>'occasion',s->>'productId' FROM matching WHERE nullif(s->'specifications'->>'occasion','') IS NOT NULL
 ), facet_counts AS (
  SELECT kind,value,count(DISTINCT pid)::int AS count FROM facet_values GROUP BY kind,value
 ), ranked_facets AS (
@@ -67,14 +71,18 @@ SELECT coalesce((SELECT jsonb_agg(card ORDER BY ordinal) FROM cards),'[]'::jsonb
             q.maxPriceMinor,
             q.pageSize,
             (q.page - 1) * q.pageSize,
+            q.materialGroup,
+            q.occasion,
           ],
         );
         const facets: StoreBrowseResult['facets'] = {
           size: { items: [], truncated: false },
           color: { items: [], truncated: false },
           fit: { items: [], truncated: false },
+          materialGroup: { items: [], truncated: false },
+          occasion: { items: [], truncated: false },
         };
-        for (const kind of ['size', 'color', 'fit'] as const) {
+        for (const kind of ['size', 'color', 'fit', 'materialGroup', 'occasion'] as const) {
           const values = (result.facets as { kind: string; value: string; count: number }[]).filter(
             (v) => v.kind === kind,
           );

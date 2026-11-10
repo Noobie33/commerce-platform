@@ -11,7 +11,9 @@ import type { Product } from './types';
 import type { ContentInput, ContentSnapshot, ContentView } from './content-types';
 import './content.css';
 const contentFieldOrder = [
+  'materialGroup',
   'material',
+  'occasion',
   'fit',
   'neckline',
   'sleeves',
@@ -88,7 +90,7 @@ export function ProductContent({
           seo: value.preview.seo ?? { title: '', description: '' },
         }
       : {
-          profile: 'clothing-v1',
+          profile: 'clothing-v2',
           slug: '',
           description: '',
           specifications: {},
@@ -117,7 +119,7 @@ export function ProductContent({
               seo: value.preview.seo ?? { title: '', description: '' },
             }
           : {
-              profile: 'clothing-v1',
+              profile: 'clothing-v2',
               slug: '',
               description: '',
               specifications: {},
@@ -396,10 +398,18 @@ export function ProductContent({
                     {view.profiles.map((p) => (
                       <option key={p.code} value={p.code}>
                         {p.label}
+                        {p.code.endsWith('-v1') ? ' (legacy v1)' : ''}
                       </option>
                     ))}
                   </select>
                 </label>
+                {form.profile.endsWith('-v2') && (
+                  <p className="catalog-note content-full">
+                    Choose a material group for consistent website filters. Keep exact composition
+                    below; the group does not imply fibre percentages. Occasion is optional. Changes
+                    need content review before publication.
+                  </p>
+                )}
                 <label>
                   Product URL name
                   <input

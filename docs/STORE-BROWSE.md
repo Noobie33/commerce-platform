@@ -41,3 +41,7 @@ Public thumbnail requests still use the existing approved derivative/hash check;
 Database-free tests cover Unicode/case/whitespace matching input, exact money, forbidden/duplicate/unbounded fields and strict query policy. The existing real-HTTP publication fixture now has M/Red and L/Blue SKUs with different prices. It covers same-SKU combinations, exact inclusive range, category/fit and literal search, distinct facets, privacy/no-cookie/no-store, multiple real products in all sort orders, pagination, invalid anonymous requests and exclusion after publication/price/category/media changes. Test-only products/photos/history/sessions are cleaned after the fixture. Existing publication/migration tests remain active.
 
 No visual admin controls or customer pages were added. Website UI, URL filter controls, accessible loading/error/empty states, proper vocabularies, video processing, availability eligibility, checkout and order flows retain their own acceptance gates. Current operational data is unchanged.
+
+## Schema 22 extension
+
+[Guided product profiles](GUIDED-PRODUCT-SPECIFICATIONS.md) now provide materialGroup and occasion query keys and facets. The groups use canonical versioned codes; they never infer a value from free-text material/composition. Legacy v1 products remain publishable but do not enter these new facets without explicit preparation. Other scope/limits above remain in force.

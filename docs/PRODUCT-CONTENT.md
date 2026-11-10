@@ -47,3 +47,7 @@ At 390px, page and dialog widths were both 390px and mobile re-review completed 
 ## Remaining scope
 
 Versioned size guides and collection assignments are now implemented in schema 17; see [workflow and safety rules](SIZE-GUIDES-AND-COLLECTIONS.md). [Category hierarchy, SEO and preparation checks](CATEGORY-SEO-AND-PREPARATION.md) are now implemented in schema 18. [Explicit publication and display-photo approval](WEBSITE-PUBLICATION.md) are now implemented in schema 19. Next: controlled attribute vocabularies, video processing, search/facet projection and the Aarong-aligned storefront templates. Content approval alone does not activate a public product. Retail confirmation, firm stock allocations, payments/COD/courier settlement, return/refund controls and customer-facing account/checkout remain later phases.
+
+## Guided profile extension - schema 22
+
+[Guided material groups and occasions](GUIDED-PRODUCT-SPECIFICATIONS.md) add three v2 profile choices. New drafts use clothing-v2; existing records retain their exact v1/v2 type. Review, privacy, revision and audit rules above still apply. Category-to-profile defaults and configurable dictionary administration remain separate work.

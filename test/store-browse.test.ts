@@ -64,3 +64,16 @@ test('store browse accepts exact minor-unit ranges and rejects misleading prices
     'mens-shirts',
   );
 });
+
+test('guided store facets accept canonical codes and never infer composition', () => {
+  assert.equal(
+    storeBrowseQuery({ materialGroup: ' COTTON_BLEND ', occasion: ' WORK ' }).materialGroup,
+    'cotton_blend',
+  );
+  for (const q of [
+    { materialGroup: '100% cotton' },
+    { materialGroup: 'invented' },
+    { occasion: 'partytime' },
+  ])
+    assert.throws(() => storeBrowseQuery(q));
+});

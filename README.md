@@ -81,10 +81,12 @@ The saved pgAdmin connection was used for initial database/role provisioning. Di
 
 ## Verification - 10 November 2026
 
-Strict type checking, clean build, formatting check, 65 database-free/interface tests and 279 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 67 database-free/interface tests and 282 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 
 The original Documents copy is an earlier snapshot blocked by Windows Controlled Folder Access. Continue only in this D: workspace.
 
 Source publication excludes all private local credential/setup files. The GitHub CI workflow runs isolated PostgreSQL and interface/security checks; database backup/restore remains separate from code backup.
+
+Guided product types now add controlled material-group and optional occasion dropdowns with public browse facets, while preserving legacy content and exact composition. See [guided specifications](docs/GUIDED-PRODUCT-SPECIFICATIONS.md). The staff stack remains NestJS + React/Vite; customer pages are required to use Next.js.

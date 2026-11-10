@@ -1,3 +1,4 @@
+import type { PublicationInput, PublicationView } from './catalog/publication-types';
 import type { TaxonomyInput, TaxonomyItem, TaxonomyPage } from './catalog/presentation-types';
 import type { MerchInput, MerchItem, MerchPage, MerchDefinition } from './catalog/merch-types';
 import type { ReadOptions } from './data/live-read';
@@ -143,6 +144,17 @@ export class ApiError extends Error {
               SALES_NOT_FOUND: 'This sales order could not be found.',
               CUSTOMER_STALE:
                 'This customer changed. Close this form and refresh before editing again.',
+              PUBLICATION_STALE:
+                'This product or decision changed. Reopen the publication panel before continuing.',
+              PUBLICATION_IDEMPOTENCY:
+                'This retry key belongs to another decision. Reopen the panel.',
+              PUBLICATION_INCOMPLETE:
+                'Complete content, category and photo approval before publishing.',
+              PUBLICATION_STATE:
+                'This action is unavailable in the current state. Reopen the panel.',
+              PUBLICATION_MEDIA_UNAVAILABLE:
+                'A display photo is missing or changed. Restore and verify it before publishing.',
+              PUBLICATION_INVALID: 'Check the reason, alternative text and current revisions.',
               CONTENT_STALE: 'This product or content changed. Reload before continuing.',
               CONTENT_CHANGED:
                 'The catalog or photos changed after submission. Request changes and submit a fresh version.',
@@ -702,6 +714,23 @@ export class StaffApi {
     if (!response.headers.get('content-type')?.startsWith('text/csv'))
       throw new Error('The workspace returned an unexpected export.');
     return response.blob();
+  }
+  publication(id: string, page = 1, read?: ReadOptions) {
+    return this.request<PublicationView>(
+      '/catalog/products/' + encodeURIComponent(id) + '/publication?page=' + page,
+      undefined,
+      read,
+    );
+  }
+  savePublication(id: string, input: PublicationInput, key: string, photoId?: string) {
+    return this.request<{ version: number }>(
+      '/catalog/products/' +
+        encodeURIComponent(id) +
+        '/publication' +
+        (photoId ? '/photos/' + encodeURIComponent(photoId) : ''),
+      input,
+      { key },
+    );
   }
   productContent(id: string, page = 1) {
     return this.request<ContentView>(

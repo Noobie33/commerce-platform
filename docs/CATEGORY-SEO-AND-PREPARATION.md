@@ -30,7 +30,7 @@ Category SEO has its own revisions; a search-description change does not rewrite
 
 Product content & review displays three checks based on the same consistent read: current content approval, active category/ancestor URL preparation, and product URL preparation. Saving a draft does not satisfy approval. Staff preview includes the search preview. These checks are deliberately preparation checks, not a complete publish policy. No anonymous content API, public photo route, original download or publish button is introduced.
 
-Public-media approval, explicit versioned publication/unpublication, a safe public projection, server-rendered storefront routes/metadata, sitemap, controlled facets, video and the remaining retail phases are still required. No country or sub-brand selector is added.
+Schema 19 now provides [public-media approval, versioned publication/withdrawal and a safe public product projection](WEBSITE-PUBLICATION.md). Server-rendered storefront routes/metadata, sitemap, controlled facets, video and the remaining retail phases are still required. No country or sub-brand selector is added.
 
 ## Verification and local operations
 

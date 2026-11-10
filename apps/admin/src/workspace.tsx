@@ -348,6 +348,8 @@ export function Workspace({
               canManage={hasGlobal(user, 'catalog.manage')}
               canManageContent={hasGlobal(user, 'catalog.content.manage')}
               canReviewContent={hasGlobal(user, 'catalog.content.review')}
+              canReviewMedia={hasGlobal(user, 'catalog.media.review')}
+              canPublish={hasGlobal(user, 'catalog.publish')}
               canManageMerch={hasGlobal(user, 'catalog.merch.manage')}
               canManageTaxonomy={hasGlobal(user, 'catalog.taxonomy.manage')}
             />

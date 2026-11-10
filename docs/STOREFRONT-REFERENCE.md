@@ -93,3 +93,7 @@ Visual approval and functional acceptance are distinct. Each SF item needs track
 ## Schema 18 foundation update
 
 Staff category hierarchy, preserved category URL ownership, optional category/product SEO and private preparation checks are implemented; see [evidence and boundaries](CATEGORY-SEO-AND-PREPARATION.md). This advances the data foundation for SF-02/SF-22/SF-23. Public navigation, redirects, crawlable rendering/metadata, public-media approval and explicit publication remain acceptance work; the SF requirements are not marked complete.
+
+## Schema 19 publication update
+
+[Separate photo approval and product publication](WEBSITE-PUBLICATION.md) now provide an allowlisted read-only product DTO and verified public display images only for eligible explicit releases. Originals, supplier/stock/customer/staff data and drafts remain private. This advances SF-23 and the data boundary for product galleries; public storefront templates, lists/facets, video, SEO rendering/redirects and transaction acceptance remain pending.

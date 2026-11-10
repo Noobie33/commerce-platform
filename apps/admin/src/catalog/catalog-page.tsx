@@ -3,7 +3,10 @@ import { MerchLibrary } from './merch-library';
 import { useLiveRead } from '../data/use-live-read';
 import { ReadStatus } from '../data/read-status';
 import { ProductContent } from './product-content';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+const ProductPublication = lazy(() =>
+  import('./product-publication').then((m) => ({ default: m.ProductPublication })),
+);
 import { StaffApi } from '../api';
 import { Icon } from '../icons';
 import { categoryName, money } from './helpers';
@@ -20,6 +23,8 @@ export function CatalogPage({
   canReviewContent,
   canManageMerch,
   canManageTaxonomy,
+  canReviewMedia,
+  canPublish,
 }: {
   api: StaffApi;
   canManage: boolean;
@@ -27,7 +32,10 @@ export function CatalogPage({
   canReviewContent: boolean;
   canManageMerch: boolean;
   canManageTaxonomy: boolean;
+  canReviewMedia: boolean;
+  canPublish: boolean;
 }) {
+  const [publicationProduct, setPublicationProduct] = useState<Product | null>(null);
   const [taxonomyOpen, setTaxonomyOpen] = useState(false);
   const [merchOpen, setMerchOpen] = useState(false);
   const [contentProduct, setContentProduct] = useState<Product | null>(null);
@@ -84,6 +92,7 @@ export function CatalogPage({
         editor ||
         detail ||
         mediaProduct ||
+        publicationProduct ||
         contentProduct ||
         categoryOpen ||
         merchOpen ||
@@ -441,6 +450,10 @@ export function CatalogPage({
         </div>
         {detail && (
           <ProductDetail
+            onPublication={(p) => {
+              setPublicationProduct(p);
+              setDetail(null);
+            }}
             onContent={(p) => {
               setContentProduct(p);
               setDetail(null);
@@ -478,6 +491,20 @@ export function CatalogPage({
             setNotice('Category created.');
           }}
         />
+      )}
+      {publicationProduct && (
+        <Suspense fallback={<p role="status">Opening publication...</p>}>
+          <ProductPublication
+            api={api}
+            product={publicationProduct}
+            canReviewMedia={canReviewMedia}
+            canPublish={canPublish}
+            close={() => {
+              setPublicationProduct(null);
+              void open(publicationProduct.id);
+            }}
+          />
+        </Suspense>
       )}
       {contentProduct && (
         <ProductContent

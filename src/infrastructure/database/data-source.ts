@@ -1,3 +1,4 @@
+import { CatalogPublication1794117000000 } from '../../database/migrations/1794117000000-catalog-publication.js';
 import { CatalogPresentation1794116000000 } from '../../database/migrations/1794116000000-catalog-presentation.js';
 import { CatalogMerchandising1794115000000 } from '../../database/migrations/1794115000000-catalog-merchandising.js';
 import { LiveUpdates1794114000000 } from '../../database/migrations/1794114000000-live-updates.js';
@@ -71,6 +72,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       LiveUpdates1794114000000,
       CatalogMerchandising1794115000000,
       CatalogPresentation1794116000000,
+      CatalogPublication1794117000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

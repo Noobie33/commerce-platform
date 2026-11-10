@@ -185,3 +185,9 @@ R1 and R2a are implemented; schema 16 adds authenticated live updates (see [data
 R2 remains in progress. [Category hierarchy, category/product SEO and private preparation checks](CATEGORY-SEO-AND-PREPARATION.md) now complement content review and schema-17 guides/collections. Category IDs and existing operational records are preserved; URL ownership is retained across renames. Verification: 55 database-free/interface plus 230 PostgreSQL checks, restore-verified backup, unchanged fingerprints of 50 existing development data tables, and disposable desktop/390px browser checks. No public route or publication action is enabled.
 
 The next bounded slice is public-media approval and explicit versioned publication with safe public projection and revocation gates. Staff/role administration, controlled attribute vocabularies/facets, video, and the remaining R2 acceptance work are still pending; the R3 storefront and transaction phases retain their existing gates.
+
+## Schema 19 checkpoint - 10 November 2026
+
+R2 remains in progress. [Explicit media approval, alternative text, versioned publication/withdrawal and safe public reads](WEBSITE-PUBLICATION.md) now complement content review and category preparation. Original media, drafts and private operational fields remain protected. No existing product is automatically published and no customer storefront or checkout is deployed. Current-release eligibility is checked on each anonymous product/image request; changed data or revoked approval suppresses the old release.
+
+Remaining R2 work includes staff/access administration, controlled attributes/facets, mixed video and the remaining launch media/operational gates. R3 can now consume released product DTOs, but Aarong-aligned navigation/listing/detail templates, search indexing and customer functionality retain their separate acceptance gates.

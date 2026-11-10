@@ -183,3 +183,38 @@
 .content-warning {
   overflow-wrap: anywhere;
 }
+
+.publication-photo {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  align-items: flex-start;
+}
+.publication-photo img {
+  object-fit: contain;
+  background: #f5f4f2;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.publication-photo > div {
+  min-width: 0;
+  flex: 1;
+}
+.publication-photo input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.publication-photo label {
+  display: block;
+  margin-bottom: 8px;
+}
+@media (max-width: 560px) {
+  .publication-photo {
+    flex-direction: column;
+  }
+  .publication-photo > div {
+    width: 100%;
+  }
+}

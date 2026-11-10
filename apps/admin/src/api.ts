@@ -1,3 +1,4 @@
+import type { GalleryView, GalleryInput } from './catalog/gallery-types';
 import type { VideoPage, VideoHistory, VideoResult } from './catalog/video-types';
 import type {
   EnrollmentInput,
@@ -190,6 +191,14 @@ export class ApiError extends Error {
               PUBLICATION_MEDIA_UNAVAILABLE:
                 'A display photo is missing or changed. Restore and verify it before publishing.',
               PUBLICATION_INVALID: 'Check the reason, alternative text and current revisions.',
+              GALLERY_STALE:
+                'Product media or gallery order changed. Keep a note of your edits, then reopen the gallery to use current information.',
+              GALLERY_MEDIA_CHANGED:
+                'A selected photo or video is no longer available for this product.',
+              GALLERY_IDEMPOTENCY:
+                'This save request was already used for a different gallery change.',
+              GALLERY_INVALID: 'Check the gallery order, current revision and reason.',
+              GALLERY_NOT_FOUND: 'This product is unavailable or archived.',
               VIDEO_STALE: 'This video changed. Reload its current details before continuing.',
               VIDEO_INVALID:
                 'Check the video details, reason, rights confirmation and supported format.',
@@ -898,6 +907,20 @@ export class StaffApi {
     if (!response.headers.get('content-type')?.startsWith('text/csv'))
       throw new Error('The workspace returned an unexpected export.');
     return response.blob();
+  }
+  gallery(id: string, page = 1, read?: ReadOptions) {
+    return this.request<GalleryView>(
+      '/catalog/products/' + encodeURIComponent(id) + '/gallery?page=' + page,
+      undefined,
+      read,
+    );
+  }
+  saveGallery(id: string, input: GalleryInput, key: string) {
+    return this.request<{ version: number }>(
+      '/catalog/products/' + encodeURIComponent(id) + '/gallery',
+      input,
+      { key },
+    );
   }
   publication(id: string, page = 1, read?: ReadOptions) {
     return this.request<PublicationView>(

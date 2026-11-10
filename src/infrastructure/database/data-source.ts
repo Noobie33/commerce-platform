@@ -1,3 +1,4 @@
+import { CatalogGalleryDrafts1794122000000 } from '../../database/migrations/1794122000000-catalog-gallery-drafts.js';
 import { CatalogVideoIntake1794121000000 } from '../../database/migrations/1794121000000-catalog-video-intake.js';
 import { GuidedProductSpecifications1794120000000 } from '../../database/migrations/1794120000000-guided-product-specifications.js';
 import { StaffOnboarding1794119000000 } from '../../database/migrations/1794119000000-staff-onboarding.js';
@@ -81,6 +82,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       StaffOnboarding1794119000000,
       GuidedProductSpecifications1794120000000,
       CatalogVideoIntake1794121000000,
+      CatalogGalleryDrafts1794122000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

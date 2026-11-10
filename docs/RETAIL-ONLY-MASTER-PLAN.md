@@ -1,6 +1,6 @@
 ﻿# Retail-only master plan
 
-Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 23; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
+Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 24; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
 
 This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. The original R0 planning change altered documentation only. The subsequent R1 implementation retires trade writes through a forward migration while preserving business history; later phases remain pending.
 
@@ -231,3 +231,7 @@ The [private video preparation engine](PRODUCT-VIDEO-PIPELINE.md) now has explic
 ## Schema 23 checkpoint - private video intake
 
 [Product video intake and private review](PRODUCT-VIDEO-INTAKE.md) add authenticated streaming upload, separate restricted background worker, durable fenced job states, variant/order metadata, retained original download, private range playback, reasoned review and history. The feature is explicitly loopback development-only and production intake is disabled. No existing product/content/photo release or stock/finance records are rewritten. Mixed photo/video public publication, captions/accessibility and Next.js gallery remain separate acceptance work.
+
+## 10 November 2026: private mixed-media gallery preparation
+
+Schema 24 adds a versioned photo/video gallery draft, private preview, keyboard-accessible ordering, descriptive/review/accessibility checks and retained editorial history. It preserves current product/public release data and adds no public video route. See [gallery draft contract](PRODUCT-GALLERY-DRAFTS.md). Explicit mixed-media publication and the Next.js customer gallery remain the next delivery boundary.

@@ -77,11 +77,11 @@ Local API: http://127.0.0.1:4000. Health endpoints: /api/v1/health/live and /api
 
 The development owner exists. Its username and one-time password are in .local-setup/owner-access.json, protected by explicit Windows ACLs for the current user and SYSTEM. Do not share that file or paste its contents in chat. The API enforces a password change before business access. The browser login screen is available at /admin.
 
-The saved pgAdmin connection was used for initial database/role provisioning. Direct administrator password authentication remains unresolved and is not needed for routine application/test access. Do not rerun setup SQL, automatic provisioning or owner bootstrap against the completed setup.
+The saved pgAdmin connection was used for initial database/role provisioning. Administrator credentials were subsequently verified locally for restricted video-worker provisioning; routine application/test access continues to use separate limited accounts. Do not rerun setup SQL, automatic provisioning or owner bootstrap against the completed setup.
 
 ## Verification - 10 November 2026
 
-Strict type checking, clean build, formatting check, 74 database-free/interface tests, 14 actual-video processing checks and 298 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 76 database-free/interface tests, 14 actual-video processing checks and 309 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 
@@ -94,3 +94,5 @@ Guided product types now add controlled material-group and optional occasion dro
 Private product-video preparation is now implemented and tested with generated clips: unchanged originals, validated MP4/MOV processing, separate playback/poster and private hashed artifacts. See [video pipeline and remaining upload/publication gates](docs/PRODUCT-VIDEO-PIPELINE.md). No browser video upload or public video has been enabled.
 
 [Private product video intake](docs/PRODUCT-VIDEO-INTAKE.md) now adds a staff upload/status/retry/review interface backed by durable jobs and a separate restricted worker. start:local starts both local processes when configured. Public video and production intake remain disabled.
+
+Private mixed photo/video ordering: see [product gallery drafts](docs/PRODUCT-GALLERY-DRAFTS.md). Catalog > product > Product gallery prepares a private order with preview and retained history; customer publication remains separate.

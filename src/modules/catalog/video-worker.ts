@@ -1,3 +1,4 @@
+import { APPLICATION_SCHEMA_VERSION } from '../../database/schema-version.js';
 import { DataSource } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { rm, readdir } from 'node:fs/promises';
@@ -39,7 +40,7 @@ export async function assertVideoWorker(db: DataSource) {
   const [r] = await db.query(
     "SELECT (SELECT version FROM app_schema_version) AS version,rolsuper OR rolcreatedb OR rolcreaterole OR rolbypassrls AS elevated,has_table_privilege(current_user,'staff_users','SELECT') AS staff_read,has_table_privilege(current_user,'catalog_product_videos','UPDATE') AS direct_write FROM pg_roles WHERE rolname=current_user",
   );
-  if (r.version !== 23 || r.elevated || r.staff_read || r.direct_write)
+  if (r.version !== APPLICATION_SCHEMA_VERSION || r.elevated || r.staff_read || r.direct_write)
     throw Error('Worker must have only scoped video-job privileges');
 }
 export class VideoWorker {

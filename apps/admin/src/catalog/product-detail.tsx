@@ -12,6 +12,7 @@ export function ProductDetail({
   onManagePhotos,
   onContent,
   onVideos,
+  onGallery,
   onPublication,
   inline = false,
 }: {
@@ -21,6 +22,7 @@ export function ProductDetail({
   onEdit?: (p: Product) => void;
   onManagePhotos?: (p: Product) => void;
   onContent?: (p: Product) => void;
+  onGallery?: (p: Product) => void;
   onVideos?: (p: Product) => void;
   onPublication?: (p: Product) => void;
   inline?: boolean;
@@ -78,6 +80,14 @@ export function ProductDetail({
           </button>
         )}
 
+        {onGallery && (
+          <button
+            className="secondary-button manage-photos-button"
+            onClick={() => onGallery(product)}
+          >
+            Product gallery
+          </button>
+        )}
         {onVideos && (
           <button
             className="secondary-button manage-photos-button"

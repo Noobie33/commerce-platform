@@ -1,3 +1,5 @@
+import { GalleryController } from './gallery.controller.js';
+import { GalleryService } from './gallery.service.js';
 import { CatalogVideoController } from './video.controller.js';
 import { CatalogVideoService } from './video.service.js';
 import { StoreBrowseController } from './store-browse.controller.js';
@@ -42,8 +44,14 @@ export class CatalogModule {
         StoreProductController,
         StoreBrowseController,
         CatalogVideoController,
+        GalleryController,
       ],
       providers: [
+        {
+          provide: GalleryService,
+          useFactory: (source: DataSource) => new GalleryService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: CatalogVideoService,
           useFactory: (source: DataSource) => new CatalogVideoService(source, env),

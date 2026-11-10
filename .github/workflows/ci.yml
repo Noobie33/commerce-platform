@@ -77,3 +77,4 @@ jobs:
       - run: node --env-file=.env.test dist/src/scripts/verify-staff-access.js
       - run: node --env-file=.env.test dist/src/scripts/verify-staff-onboarding.js
       - run: node --env-file=.env.test dist/src/scripts/verify-video-intake.js
+      - run: node --env-file=.env.test dist/src/scripts/verify-gallery.js

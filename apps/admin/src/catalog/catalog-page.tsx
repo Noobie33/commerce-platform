@@ -7,6 +7,9 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 const ProductPublication = lazy(() =>
   import('./product-publication').then((m) => ({ default: m.ProductPublication })),
 );
+const ProductGallery = lazy(() =>
+  import('./product-gallery').then((m) => ({ default: m.ProductGallery })),
+);
 const ProductVideos = lazy(() =>
   import('./product-videos').then((m) => ({ default: m.ProductVideos })),
 );
@@ -38,6 +41,7 @@ export function CatalogPage({
   canReviewMedia: boolean;
   canPublish: boolean;
 }) {
+  const [galleryProduct, setGalleryProduct] = useState<Product | null>(null);
   const [videoProduct, setVideoProduct] = useState<Product | null>(null);
   const [publicationProduct, setPublicationProduct] = useState<Product | null>(null);
   const [taxonomyOpen, setTaxonomyOpen] = useState(false);
@@ -97,6 +101,7 @@ export function CatalogPage({
         detail ||
         mediaProduct ||
         videoProduct ||
+        galleryProduct ||
         publicationProduct ||
         contentProduct ||
         categoryOpen ||
@@ -455,6 +460,10 @@ export function CatalogPage({
         </div>
         {detail && (
           <ProductDetail
+            onGallery={(p) => {
+              setGalleryProduct(p);
+              setDetail(null);
+            }}
             onVideos={(p) => {
               setVideoProduct(p);
               setDetail(null);
@@ -526,6 +535,19 @@ export function CatalogPage({
             void open(contentProduct.id);
           }}
         />
+      )}
+      {galleryProduct && (
+        <Suspense fallback={<p role="status">Opening gallery...</p>}>
+          <ProductGallery
+            api={api}
+            product={galleryProduct}
+            canManage={canManage}
+            close={() => {
+              setGalleryProduct(null);
+              void open(galleryProduct.id);
+            }}
+          />
+        </Suspense>
       )}
       {videoProduct && (
         <Suspense fallback={<p role="status">Opening product videos...</p>}>

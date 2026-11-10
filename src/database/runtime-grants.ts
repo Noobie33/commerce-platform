@@ -230,6 +230,16 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
     await manager.query(
       'GRANT EXECUTE ON FUNCTION public.catalog_video_post(uuid,uuid,uuid,jsonb) TO "' + role + '"',
     );
+    await manager.query(
+      'GRANT SELECT ON catalog_gallery_drafts,catalog_gallery_events,catalog_gallery_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.catalog_gallery_basis(uuid),public.catalog_gallery_post(uuid,uuid,uuid,jsonb) TO "' +
+        role +
+        '"',
+    );
     const worker =
       'commerce_' + (migration.pathname.endsWith('_test') ? 'test' : 'dev') + '_video_worker';
     if ((await manager.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [worker])).length) {

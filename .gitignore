@@ -8,3 +8,8 @@ coverage/
 .local-setup/
 
 .local-media/
+
+# Local Next.js outputs
+.next/
+*.tsbuildinfo
+apps/storefront/next-env.d.ts

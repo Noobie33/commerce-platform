@@ -6,6 +6,10 @@ Neutral ERP foundation and staff interface for a fashion/lifestyle ERP and futur
 
 Active workspace: D:\Business Software\commerce-platform. See [architecture and initial audit](ENGINEERING-PLAN.md), [engineering standards](docs/ENGINEERING-STANDARDS.md), [database decisions](docs/DATABASE-DECISION.md) and [staff identity API](docs/IDENTITY-API.md).
 
+## Customer website preview
+
+The actual Next.js storefront now provides a home, searchable/filterable collection and mixed photo/video product pages using eligible published releases. Open http://127.0.0.1:3000 with start:local after a full build. It is a read-only local preview; accounts, cart and checkout remain pending. See [storefront decisions and operation](docs/STOREFRONT.md).
+
 ## Staff interface
 
 Open http://127.0.0.1:4000/admin while start:local is running. Login, first-use password change, overview, product catalog/variants, multi-location inventory, suppliers/purchase orders/partial receiving/supplier invoices, searchable read-only team directory and profile/access screens are implemented. See [interface guide](docs/ADMIN-INTERFACE.md) and [visual direction / frontend decisions](docs/INTERFACE-DIRECTION.md).
@@ -81,7 +85,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Ad
 
 ## Verification - 11 November 2026
 
-Strict type checking, clean build, formatting check, 77 database-free/interface tests, 14 actual-video processing checks and 323 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 83 database-free/interface tests, 14 actual-video processing checks and 328 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

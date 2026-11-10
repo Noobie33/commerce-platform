@@ -8,8 +8,8 @@
   },
   "packageManager": "npm@11.13.0",
   "scripts": {
-    "build": "npm run build:api && npm run build:admin",
-    "check": "tsc -p tsconfig.json --noEmit && npm run check --workspace=@commerce/admin",
+    "build": "npm run build:api && npm run build:admin && npm run build:storefront",
+    "check": "tsc -p tsconfig.json --noEmit && npm run check --workspace=@commerce/admin && npm run check:storefront",
     "start": "node dist/src/main.js",
     "test": "npm run build && node --test dist/test/*.test.js",
     "db:check-admin": "npm run build && node --env-file=.env.setup dist/src/scripts/database-check.js",
@@ -45,7 +45,10 @@
     "video:reconcile-local": "node --env-file=.env.video-worker dist/src/scripts/video-worker.js --reconcile",
     "video:verify-local": "node --env-file=.env dist/src/scripts/verify-video-intake.js",
     "gallery:verify-local": "node --env-file=.env dist/src/scripts/verify-gallery.js",
-    "gallery:verify-publication": "node --env-file=.env dist/src/scripts/verify-gallery-release.js"
+    "gallery:verify-publication": "node --env-file=.env dist/src/scripts/verify-gallery-release.js",
+    "build:storefront": "npm run build --workspace=@commerce/storefront",
+    "check:storefront": "npm run check --workspace=@commerce/storefront",
+    "store:local": "node src/scripts/start-storefront.mjs"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",
@@ -64,6 +67,7 @@
     "typescript": "6.0.3"
   },
   "workspaces": [
-    "apps/admin"
+    "apps/admin",
+    "apps/storefront"
   ]
 }

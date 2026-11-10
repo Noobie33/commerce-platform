@@ -1,3 +1,5 @@
+import { verifyStorefront } from './storefront.acceptance.js';
+import type { PublicRequest } from './storefront.acceptance.js';
 import type { TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -21,6 +23,7 @@ export async function verifyGalleryRelease(c: {
   photo: string;
   slug: string;
   actor: string;
+  publicRequests: PublicRequest[];
   call: (
     path: string,
     body?: unknown,
@@ -211,6 +214,16 @@ export async function verifyGalleryRelease(c: {
       assert.equal(e.snapshot.gallery.items[1].id, video);
     },
   );
+  const storefront = await verifyStorefront({
+    t,
+    api: base,
+    slug,
+    name: (await ok(await publicProduct())).name,
+    videoUrl: url,
+    playback: prepared.playback,
+    privateHashes: [prepared.originalHash, prepared.playbackHash, prepared.posterHash],
+    requests: c.publicRequests,
+  });
   await t.test(
     'public video bytes support safe ranges while originals and foreign scopes remain closed',
     async () => {
@@ -282,6 +295,7 @@ export async function verifyGalleryRelease(c: {
     'revocation closes old URLs and subsequent explicit photo-only release excludes videos',
     async () => {
       await ok(await review('revoke'));
+      await storefront.verifyWithdrawn();
       assert.equal((await fetch(base + url)).status, 404);
       assert.equal((await publicProduct()).status, 404);
       await ok(await publish());

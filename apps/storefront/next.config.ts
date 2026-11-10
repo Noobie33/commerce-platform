@@ -1,0 +1,23 @@
+import type { NextConfig } from 'next';
+import { fileURLToPath } from 'node:url';
+const config: NextConfig = {
+  poweredByHeader: false,
+  turbopack: { root: fileURLToPath(new URL('../..', import.meta.url)) },
+  images: { unoptimized: true },
+  reactStrictMode: true,
+  allowedDevOrigins: ['localhost', '127.0.0.1'],
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+    ];
+  },
+};
+export default config;

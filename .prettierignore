@@ -4,3 +4,7 @@ coverage/
 .local-setup/
 .env
 .env.*
+
+.next/
+*.tsbuildinfo
+apps/storefront/next-env.d.ts

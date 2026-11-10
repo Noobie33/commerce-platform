@@ -1,3 +1,4 @@
+import type { PublicRequest } from './storefront.acceptance.js';
 import { verifyGalleryRelease } from './gallery-release.acceptance.js';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -26,6 +27,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
     new URL(databaseUrl(process.env, 'MIGRATION_DATABASE_URL')).pathname,
     '/commerce_platform_test',
   );
+  const publicRequests: PublicRequest[] = [];
   const videoRoot = await mkdtemp(join(tmpdir(), 'commerce-gallery-release-'));
   const db = createDataSource(),
     runtime = createRuntimeDataSource();
@@ -203,6 +205,16 @@ test('publication: private drafts, explicit media consent, safe public releases 
       VIDEO_ARTIFACT_DIR: join(videoRoot, 'prepared'),
       STAFF_ORIGIN: origin,
     });
+    app
+      .getHttpServer()
+      .prependListener('request', (req: { url?: string; headers: Record<string, unknown> }) => {
+        if (req.url?.startsWith('/api/v1/'))
+          publicRequests.push({
+            path: req.url,
+            cookie: !!req.headers.cookie,
+            authorization: !!req.headers.authorization,
+          });
+      });
     await app.listen(0, '127.0.0.1');
     base = await app.getUrl();
     await t.test(
@@ -352,6 +364,20 @@ test('publication: private drafts, explicit media consent, safe public releases 
       },
     );
 
+    await t.test(
+      'public navigation contains only categories with an eligible published release',
+      async () => {
+        const r = await fetch(base + '/api/v1/store/navigation');
+        assert.equal(r.status, 200);
+        const data = await r.json();
+        assert.ok(data.items.some((x: { id: string }) => x.id === category));
+        assert.ok(
+          data.items.every((x: Record<string, unknown>) =>
+            Object.keys(x).every((k) => ['id', 'slug', 'name', 'parentSlug'].includes(k)),
+          ),
+        );
+      },
+    );
     await verifyGalleryRelease({
       t,
       db,
@@ -362,6 +388,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
       photo,
       slug,
       actor: users[0]!,
+      publicRequests,
       call,
       publish: () => action('publish'),
       publicProduct,

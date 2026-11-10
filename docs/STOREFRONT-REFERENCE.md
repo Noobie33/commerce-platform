@@ -97,3 +97,7 @@ Staff category hierarchy, preserved category URL ownership, optional category/pr
 ## Schema 19 publication update
 
 [Separate photo approval and product publication](WEBSITE-PUBLICATION.md) now provide an allowlisted read-only product DTO and verified public display images only for eligible explicit releases. Originals, supplier/stock/customer/staff data and drafts remain private. This advances SF-23 and the data boundary for product galleries; public storefront templates, lists/facets, video, SEO rendering/redirects and transaction acceptance remain pending.
+
+## 11 November 2026: first Next.js customer preview
+
+The [actual Next.js storefront](STOREFRONT.md) now implements read-only home, published-category navigation, collection search/facets/sorting/pagination and variant-aware mixed photo/video product pages with native media ratios. It advances the R3/SF browsing and presentation gates on unchanged schema 25. It does not complete the full Aarong reference contract: customer accounts, cart, checkout, confirmed-order availability, payment, delivery, redirects, complete content/policies and production deployment remain pending.

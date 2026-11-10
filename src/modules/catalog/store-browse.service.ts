@@ -9,6 +9,18 @@ const variantSize = folded("v->'attributes'->>'size'"),
   variantColor = folded("v->'attributes'->>'color'");
 export class StoreBrowseService {
   constructor(private readonly db: DataSource) {}
+  async navigation() {
+    return this.db.transaction('REPEATABLE READ', async (m) => {
+      await m.query('SET TRANSACTION READ ONLY');
+      await m.query("SET LOCAL statement_timeout='3000ms'");
+      const items = await m.query(
+        `WITH eligible AS(SELECT snapshot AS s FROM catalog_releases WHERE state='published' AND public.catalog_release_eligible(product_id)),nodes AS(SELECT n.value->>'id' AS id,n.value->>'slug' AS slug,n.value->>'name' AS name,CASE WHEN n.ord=1 THEN NULL ELSE s->'categoryPath'->(n.ord::int-2)->>'slug' END AS "parentSlug" FROM eligible CROSS JOIN LATERAL jsonb_array_elements(s->'categoryPath') WITH ORDINALITY n(value,ord)) SELECT DISTINCT id,slug,name,"parentSlug" FROM nodes ORDER BY name,slug LIMIT 201`,
+      );
+      if (items.length > 200)
+        throw new ServiceUnavailableException({ code: 'STORE_NAVIGATION_BUSY' });
+      return { items };
+    });
+  }
   async browse(q: StoreBrowseQuery): Promise<StoreBrowseResult> {
     const order = {
       name: 'lower(name),slug',

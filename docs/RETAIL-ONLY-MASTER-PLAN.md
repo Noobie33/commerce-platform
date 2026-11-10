@@ -239,3 +239,7 @@ Schema 24 adds a versioned photo/video gallery draft, private preview, keyboard-
 ## 11 November 2026: explicit mixed-media publication
 
 Schema 25 binds a separately reviewed photo/video order to an explicit product release. Native dimensions and ratios are retained in the public projection; derivative playback/posters use product/release-scoped links and current approval checks. Editing only a draft preserves the existing release, while selected-media changes or consent withdrawal close access. Initial public clips are silent; captions/audio accessibility and the actual Next.js customer pages remain pending. See [mixed gallery publication](MIXED-GALLERY-PUBLICATION.md).
+
+## 11 November 2026: first Next.js customer preview
+
+The [actual Next.js storefront](STOREFRONT.md) now implements read-only home, published-category navigation, collection search/facets/sorting/pagination and variant-aware mixed photo/video product pages with native media ratios. It advances the R3/SF browsing and presentation gates on unchanged schema 25. It does not complete the full Aarong reference contract: customer accounts, cart, checkout, confirmed-order availability, payment, delivery, redirects, complete content/policies and production deployment remain pending.

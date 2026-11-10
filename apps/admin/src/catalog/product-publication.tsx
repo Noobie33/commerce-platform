@@ -177,6 +177,19 @@ export function ProductPublication({
                 Release revision {view.version} / Content revision {view.contentVersion}
               </p>
               <p>The customer website and checkout are separate upcoming work.</p>
+              {view.galleryReview && (
+                <p>
+                  Mixed gallery: {view.galleryReview.state.replaceAll('_', ' ')}
+                  {view.galleryReview.state === 'approved'
+                    ? ' / ' +
+                      view.galleryReview.itemCount +
+                      ' items / ' +
+                      (view.galleryReview.eligible ? 'current approval' : 'changed since approval')
+                    : ' / next publish uses photos only'}
+                  . Review a mixed order in Product gallery. Gallery approval alone does not publish
+                  it.
+                </p>
+              )}
               {view.issues.length ? (
                 <ul>
                   {view.issues.map((x) => (

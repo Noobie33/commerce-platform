@@ -1,3 +1,4 @@
+import type { GalleryReviewInput } from './catalog/gallery-release.types';
 import type { GalleryView, GalleryInput } from './catalog/gallery-types';
 import type { VideoPage, VideoHistory, VideoResult } from './catalog/video-types';
 import type {
@@ -191,6 +192,18 @@ export class ApiError extends Error {
               PUBLICATION_MEDIA_UNAVAILABLE:
                 'A display photo is missing or changed. Restore and verify it before publishing.',
               PUBLICATION_INVALID: 'Check the reason, alternative text and current revisions.',
+              GALLERY_REVIEW_STALE:
+                'The gallery or review changed. Reopen it before recording this decision.',
+              GALLERY_REVIEW_FILES:
+                'A selected display file is missing or changed. Restore and verify it before approval.',
+              GALLERY_REVIEW_INCOMPLETE:
+                'Use approved, labelled photos and silent videos with a primary photo first. Audio accessibility requires a separate policy.',
+              GALLERY_REVIEW_STATE: 'This approval is no longer active.',
+              GALLERY_REVIEW_IDEMPOTENCY: 'This request was used for a different review decision.',
+              GALLERY_REVIEW_INVALID:
+                'Check the current revisions, reason and rights confirmation.',
+              PUBLICATION_GALLERY_INCOMPLETE:
+                'The approved mixed gallery changed. Review it again or revoke it before publishing.',
               GALLERY_STALE:
                 'Product media or gallery order changed. Keep a note of your edits, then reopen the gallery to use current information.',
               GALLERY_MEDIA_CHANGED:
@@ -907,6 +920,13 @@ export class StaffApi {
     if (!response.headers.get('content-type')?.startsWith('text/csv'))
       throw new Error('The workspace returned an unexpected export.');
     return response.blob();
+  }
+  reviewGallery(id: string, input: GalleryReviewInput, key: string) {
+    return this.request<{ version: number }>(
+      '/catalog/products/' + encodeURIComponent(id) + '/gallery/review',
+      input,
+      { key },
+    );
   }
   gallery(id: string, page = 1, read?: ReadOptions) {
     return this.request<GalleryView>(

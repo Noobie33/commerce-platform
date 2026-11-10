@@ -213,3 +213,47 @@
   background: #edf7ef;
   color: #315f39;
 }
+
+.gallery-public-review {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e4e6e8;
+  border-radius: 10px;
+}
+.gallery-public-review label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+.gallery-public-review textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 76px;
+  padding: 10px;
+  border: 1px solid #d9dde1;
+  border-radius: 8px;
+  font: inherit;
+}
+.gallery-public-review .gallery-rights {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.gallery-rights input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+}
+.gallery-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.gallery-public-review article {
+  padding: 12px 0;
+  border-bottom: 1px solid #e4e6e8;
+}

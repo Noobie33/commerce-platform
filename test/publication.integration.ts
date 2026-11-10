@@ -1,3 +1,6 @@
+import { verifyGalleryRelease } from './gallery-release.acceptance.js';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -23,6 +26,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
     new URL(databaseUrl(process.env, 'MIGRATION_DATABASE_URL')).pathname,
     '/commerce_platform_test',
   );
+  const videoRoot = await mkdtemp(join(tmpdir(), 'commerce-gallery-release-'));
   const db = createDataSource(),
     runtime = createRuntimeDataSource();
   await db.initialize();
@@ -192,7 +196,13 @@ test('publication: private drafts, explicit media consent, safe public releases 
       'INSERT INTO catalog_product_photos(id,product_id,width,height,byte_size,content_hash,is_primary) VALUES($1,$2,$3,$4,$5,$6,true)',
       [photo, product, image.width, image.height, image.image.length, imageHash],
     );
-    app = await createApp({ ...process.env, STAFF_ORIGIN: origin });
+    app = await createApp({
+      ...process.env,
+      HOST: '127.0.0.1',
+      VIDEO_INTAKE_MODE: 'local-development',
+      VIDEO_ARTIFACT_DIR: join(videoRoot, 'prepared'),
+      STAFF_ORIGIN: origin,
+    });
     await app.listen(0, '127.0.0.1');
     base = await app.getUrl();
     await t.test(
@@ -342,6 +352,20 @@ test('publication: private drafts, explicit media consent, safe public releases 
       },
     );
 
+    await verifyGalleryRelease({
+      t,
+      db,
+      runtime,
+      root: videoRoot,
+      base,
+      product,
+      photo,
+      slug,
+      actor: users[0]!,
+      call,
+      publish: () => action('publish'),
+      publicProduct,
+    });
     await t.test('tampered display bytes are denied and prevent a new release', async () => {
       const file = join(store.root, photo + '-thumbnail.webp');
       try {
@@ -749,6 +773,20 @@ test('publication: private drafts, explicit media consent, safe public releases 
       await m.query('DELETE FROM catalog_publication_requests WHERE actor_id=ANY($1::uuid[])', [
         users,
       ]);
+      for (const table of ['catalog_gallery_review_requests', 'catalog_gallery_requests'])
+        await m.query('DELETE FROM ' + table + ' WHERE actor_id=ANY($1::uuid[])', [users]);
+      for (const table of [
+        'catalog_gallery_review_events',
+        'catalog_gallery_reviews',
+        'catalog_gallery_events',
+        'catalog_gallery_drafts',
+      ])
+        await m.query('DELETE FROM ' + table + ' WHERE product_id=$1', [product]);
+      await m.query(
+        'DELETE FROM catalog_video_events WHERE video_id IN(SELECT id FROM catalog_product_videos WHERE product_id=$1)',
+        [product],
+      );
+      await m.query('DELETE FROM catalog_product_videos WHERE product_id=$1', [product]);
       await m.query('DELETE FROM catalog_publication_events WHERE product_id=$1', [product]);
       await m.query('DELETE FROM catalog_releases WHERE product_id=$1', [product]);
       await m.query('DELETE FROM catalog_media_reviews WHERE photo_id IN($1,$2)', [
@@ -788,5 +826,8 @@ test('publication: private drafts, explicit media consent, safe public releases 
     await store.discard(secondPhoto);
     for (const id of sortingPhotos) await store.discard(id);
     await db.destroy();
+    if (!videoRoot.startsWith(join(tmpdir(), 'commerce-gallery-release-')))
+      throw Error('Unsafe gallery test cleanup');
+    await rm(videoRoot, { recursive: true, force: true });
   }
 });

@@ -1,3 +1,4 @@
+import { GalleryReleaseService } from './gallery-release.service.js';
 import {
   BadRequestException,
   ConflictException,
@@ -51,7 +52,10 @@ export function galleryIssues(items: GalleryItem[], assets: GalleryAsset[]) {
   return issues;
 }
 export class GalleryService {
-  constructor(private readonly db: DataSource) {}
+  constructor(
+    private readonly db: DataSource,
+    private readonly release: GalleryReleaseService,
+  ) {}
   async read(id: string, page: number): Promise<GalleryView> {
     return this.db.transaction('REPEATABLE READ', async (m) => {
       const [row] = await m.query(
@@ -107,6 +111,7 @@ export class GalleryService {
         [id, (page - 1) * 20],
       );
       return {
+        publicReview: await this.release.read(id, m),
         productId: id,
         productVersion: b.productVersion,
         version: draft?.version ?? 0,

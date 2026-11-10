@@ -1,3 +1,4 @@
+import { GalleryReview } from './gallery-review';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StaffApi } from '../api';
 import { Dialog } from '../components/dialog';
@@ -11,22 +12,27 @@ export function ProductGallery({
   api,
   product,
   canManage,
+  canReview,
   close,
 }: {
   api: StaffApi;
   product: Product;
   canManage: boolean;
+  canReview: boolean;
   close: () => void;
 }) {
+  const [reviewDirty, setReviewDirty] = useState(false);
+  const [reviewPending, setReviewPending] = useState(false);
   const [view, setView] = useState<GalleryView | null>(null),
     [items, setItems] = useState<GalleryItem[]>([]),
     [active, setActive] = useState(''),
     [reason, setReason] = useState(''),
-    [busy, setBusy] = useState(false),
+    [working, setBusy] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
     [discard, setDiscard] = useState(false),
     [page, setPage] = useState(1);
+  const busy = working || reviewPending;
   const mounted = useRef(true),
     lastManual = useRef(0),
     retry = useRef<{ body: string; key: string } | null>(null),
@@ -34,7 +40,7 @@ export function ProductGallery({
   const dirty = JSON.stringify(items) !== JSON.stringify(view?.items ?? []) || reason.length > 0;
   const read = useLiveRead(
     useCallback((options) => api.gallery(product.id, page, options), [api, product.id, page]),
-    { topics: ['catalog'], allowInDialog: true, paused: dirty || busy },
+    { topics: ['catalog'], allowInDialog: true, paused: dirty || reviewDirty || busy },
   );
   const accept = (v: GalleryView) => {
     setView(v);
@@ -49,8 +55,9 @@ export function ProductGallery({
       setReason('');
       return;
     }
-    if (read.data && !dirty && (read.checkedAt ?? 0) >= lastManual.current) accept(read.data);
-  }, [read.data, read.accessDenied, read.checkedAt, dirty]);
+    if (read.data && !dirty && !reviewDirty && (read.checkedAt ?? 0) >= lastManual.current)
+      accept(read.data);
+  }, [read.data, read.accessDenied, read.checkedAt, dirty, reviewDirty]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -61,14 +68,14 @@ export function ProductGallery({
     if (error) errorRef.current?.focus();
   }, [error]);
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty && !reviewDirty) return;
     const warn = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  }, [dirty, reviewDirty]);
   async function reload() {
     setBusy(true);
     setError('');
@@ -145,8 +152,8 @@ export function ProductGallery({
       title="Product gallery"
       subtitle={product.name + ' / private website gallery draft'}
       onClose={() => {
-        if (!busy) {
-          if (dirty) setDiscard(true);
+        if (!busy && !reviewPending) {
+          if (dirty || reviewDirty) setDiscard(true);
           else close();
         }
       }}
@@ -385,6 +392,18 @@ export function ProductGallery({
               >
                 Reload current draft
               </button>
+            )}
+            {view.publicReview && (
+              <GalleryReview
+                api={api}
+                id={product.id}
+                view={view.publicReview}
+                blocked={dirty || busy}
+                canReview={canReview}
+                onSaved={reload}
+                onEditing={setReviewDirty}
+                onPending={setReviewPending}
+              />
             )}
             <details className="gallery-history">
               <summary>Saved order history</summary>

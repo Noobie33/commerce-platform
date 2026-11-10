@@ -18,7 +18,7 @@ try {
   const worker = new VideoWorker(db, process.env);
   if (process.argv.includes('--reconcile')) console.log(JSON.stringify(await worker.reconcile()));
   else {
-    console.log('Local restricted video worker ready. No public publication is enabled.');
+    console.log('Local restricted video worker ready. Processing does not publish products.');
     do {
       const worked = await worker.once(stop.signal);
       if (process.argv.includes('--once')) break;

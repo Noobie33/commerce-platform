@@ -1,6 +1,6 @@
 ﻿# Retail-only master plan
 
-Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 24; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
+Decision date: 9 November 2026, Asia/Dhaka. Status: approved business direction; R1 retail-only policy and R2a typed content/review are implemented (current schema 25; see dated checkpoints for subsequent catalog and staff access increments). See [retail cutover](RETAIL-CUTOVER.md) and [product content](PRODUCT-CONTENT.md). Neutral internal name: commerce-platform.
 
 This is the authoritative delivery plan for the owner's single retail fashion/lifestyle brand. It supersedes wholesale/B2B and customer-credit goals in older roadmaps. The original R0 planning change altered documentation only. The subsequent R1 implementation retires trade writes through a forward migration while preserving business history; later phases remain pending.
 
@@ -235,3 +235,7 @@ The [private video preparation engine](PRODUCT-VIDEO-PIPELINE.md) now has explic
 ## 10 November 2026: private mixed-media gallery preparation
 
 Schema 24 adds a versioned photo/video gallery draft, private preview, keyboard-accessible ordering, descriptive/review/accessibility checks and retained editorial history. It preserves current product/public release data and adds no public video route. See [gallery draft contract](PRODUCT-GALLERY-DRAFTS.md). Explicit mixed-media publication and the Next.js customer gallery remain the next delivery boundary.
+
+## 11 November 2026: explicit mixed-media publication
+
+Schema 25 binds a separately reviewed photo/video order to an explicit product release. Native dimensions and ratios are retained in the public projection; derivative playback/posters use product/release-scoped links and current approval checks. Editing only a draft preserves the existing release, while selected-media changes or consent withdrawal close access. Initial public clips are silent; captions/audio accessibility and the actual Next.js customer pages remain pending. See [mixed gallery publication](MIXED-GALLERY-PUBLICATION.md).

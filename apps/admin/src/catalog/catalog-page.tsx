@@ -542,6 +542,7 @@ export function CatalogPage({
             api={api}
             product={galleryProduct}
             canManage={canManage}
+            canReview={canReviewMedia}
             close={() => {
               setGalleryProduct(null);
               void open(galleryProduct.id);

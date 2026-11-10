@@ -1,3 +1,6 @@
+import { GalleryPublicController } from './gallery-public.controller.js';
+import { GalleryReviewController } from './gallery-release.controller.js';
+import { GalleryReleaseService } from './gallery-release.service.js';
 import { GalleryController } from './gallery.controller.js';
 import { GalleryService } from './gallery.service.js';
 import { CatalogVideoController } from './video.controller.js';
@@ -45,12 +48,21 @@ export class CatalogModule {
         StoreBrowseController,
         CatalogVideoController,
         GalleryController,
+        GalleryReviewController,
+        GalleryPublicController,
       ],
       providers: [
         {
-          provide: GalleryService,
-          useFactory: (source: DataSource) => new GalleryService(source),
+          provide: GalleryReleaseService,
+          useFactory: (source: DataSource) =>
+            new GalleryReleaseService(source, env, new LocalMediaStore(env)),
           inject: [DATABASE_SOURCE],
+        },
+        {
+          provide: GalleryService,
+          useFactory: (source: DataSource, release: GalleryReleaseService) =>
+            new GalleryService(source, release),
+          inject: [DATABASE_SOURCE, GalleryReleaseService],
         },
         {
           provide: CatalogVideoService,
@@ -64,9 +76,9 @@ export class CatalogModule {
         },
         {
           provide: PublicationService,
-          useFactory: (source: DataSource) =>
-            new PublicationService(source, new LocalMediaStore(env)),
-          inject: [DATABASE_SOURCE],
+          useFactory: (source: DataSource, release: GalleryReleaseService) =>
+            new PublicationService(source, new LocalMediaStore(env), release),
+          inject: [DATABASE_SOURCE, GalleryReleaseService],
         },
         {
           provide: TaxonomyService,

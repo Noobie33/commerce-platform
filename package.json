@@ -44,7 +44,8 @@
     "video:worker-local": "node --env-file=.env.video-worker dist/src/scripts/video-worker.js",
     "video:reconcile-local": "node --env-file=.env.video-worker dist/src/scripts/video-worker.js --reconcile",
     "video:verify-local": "node --env-file=.env dist/src/scripts/verify-video-intake.js",
-    "gallery:verify-local": "node --env-file=.env dist/src/scripts/verify-gallery.js"
+    "gallery:verify-local": "node --env-file=.env dist/src/scripts/verify-gallery.js",
+    "gallery:verify-publication": "node --env-file=.env dist/src/scripts/verify-gallery-release.js"
   },
   "dependencies": {
     "@nestjs/common": "12.4.0",

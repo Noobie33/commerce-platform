@@ -240,6 +240,21 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         role +
         '"',
     );
+    await manager.query(
+      'GRANT SELECT ON catalog_gallery_reviews,catalog_gallery_review_events,catalog_gallery_review_requests TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.catalog_gallery_selection(uuid,jsonb),public.catalog_gallery_review_post(uuid,uuid,uuid,jsonb) TO "' +
+        role +
+        '"',
+    );
+    await manager.query(
+      'REVOKE ALL ON FUNCTION public.catalog_release_eligible_v24(uuid),public.catalog_publication_post_v24(uuid,uuid,uuid,jsonb) FROM "' +
+        role +
+        '"',
+    );
     const worker =
       'commerce_' + (migration.pathname.endsWith('_test') ? 'test' : 'dev') + '_video_worker';
     if ((await manager.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [worker])).length) {

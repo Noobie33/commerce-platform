@@ -1,3 +1,4 @@
+import type { GalleryReviewView } from './gallery-release.types.js';
 export interface GalleryItem {
   kind: 'photo' | 'video';
   id: string;
@@ -25,6 +26,7 @@ export interface GalleryAsset extends GalleryItem {
   thumbnailUrl: string | null;
 }
 export interface GalleryView {
+  publicReview: GalleryReviewView;
   productId: string;
   productVersion: number;
   version: number;

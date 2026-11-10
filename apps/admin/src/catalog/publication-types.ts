@@ -7,6 +7,7 @@
   expectedContentVersion?: number;
 }
 export interface PublicationView {
+  galleryReview: { state: string; version: number; eligible: boolean; itemCount: number };
   productId: string;
   productVersion: number;
   contentVersion: number;

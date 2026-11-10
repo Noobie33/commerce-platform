@@ -79,9 +79,9 @@ The development owner exists. Its username and one-time password are in .local-s
 
 The saved pgAdmin connection was used for initial database/role provisioning. Administrator credentials were subsequently verified locally for restricted video-worker provisioning; routine application/test access continues to use separate limited accounts. Do not rerun setup SQL, automatic provisioning or owner bootstrap against the completed setup.
 
-## Verification - 10 November 2026
+## Verification - 11 November 2026
 
-Strict type checking, clean build, formatting check, 76 database-free/interface tests, 14 actual-video processing checks and 309 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+Strict type checking, clean build, formatting check, 77 database-free/interface tests, 14 actual-video processing checks and 323 reported PostgreSQL integration checks passed. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 
@@ -96,3 +96,5 @@ Private product-video preparation is now implemented and tested with generated c
 [Private product video intake](docs/PRODUCT-VIDEO-INTAKE.md) now adds a staff upload/status/retry/review interface backed by durable jobs and a separate restricted worker. start:local starts both local processes when configured. Public video and production intake remain disabled.
 
 Private mixed photo/video ordering: see [product gallery drafts](docs/PRODUCT-GALLERY-DRAFTS.md). Catalog > product > Product gallery prepares a private order with preview and retained history; customer publication remains separate.
+
+Schema 25 adds explicit mixed-gallery approval, immutable product-release binding and revocable verified playback/posters. See [mixed gallery publication](docs/MIXED-GALLERY-PUBLICATION.md). Source aspect ratios remain intact; the Next.js customer interface and internet deployment are separate pending work.

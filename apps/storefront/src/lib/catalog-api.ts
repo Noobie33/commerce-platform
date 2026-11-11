@@ -6,6 +6,7 @@ import {
   parseNavigation,
   parseProduct,
   parseRelated,
+  parseSavedCards,
   slugValue,
 } from './catalog-contract';
 export class CatalogError extends Error {
@@ -23,14 +24,19 @@ export function storeSettings() {
     site: apiOrigin(process.env.STORE_SITE_ORIGIN ?? 'http://127.0.0.1:3000'),
   };
 }
-async function json(path: string) {
+async function json(path: string, body?: unknown) {
   let r: Response;
   try {
     r = await fetch(storeSettings().origin + path, {
       cache: 'no-store',
       redirect: 'error',
       signal: AbortSignal.timeout(5000),
-      headers: { Accept: 'application/json', 'Accept-Encoding': 'identity' },
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'identity',
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      },
+      ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }),
     });
   } catch {
     throw new CatalogError(503);
@@ -112,3 +118,10 @@ export const getRelated = cache(async (slug: string) => {
     return [];
   }
 });
+
+export async function resolveSaved(ids: string[]) {
+  if (!ids.length) return [];
+  const r = await json('/api/v1/store/saved-products/resolve', { productIds: ids });
+  if (r === null) throw new CatalogError(503);
+  return parseSavedCards(r, ids);
+}

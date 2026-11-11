@@ -92,6 +92,7 @@ export async function verifyStorefront(c: {
   t: TestContext;
   api: string;
   slug: string;
+  productId: string;
   name: string;
   videoUrl: string;
   playback: Buffer;
@@ -197,6 +198,51 @@ export async function verifyStorefront(c: {
       assert.ok(!html.includes('101.00'));
     },
   );
+
+  await c.t.test(
+    'wishlist resolution is bounded, fresh and does not forward staff credentials',
+    async () => {
+      const from = c.requests.length,
+        r = await fetch(origin + '/saved-products/resolve', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: 'commerce_session=must-not-forward',
+            Authorization: 'Bearer must-not-forward',
+          },
+          body: JSON.stringify({
+            productIds: [c.productId, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+          }),
+        });
+      assert.equal(r.status, 200);
+      assert.equal(r.headers.get('cache-control'), 'no-store');
+      const p = await r.json();
+      assert.deepEqual(
+        p.items.map((x: { productId: string }) => x.productId),
+        [c.productId],
+      );
+      assert.ok(p.items[0].photo.thumbnailUrl.startsWith('/media/'));
+      for (const hash of c.privateHashes) assert.ok(!JSON.stringify(p).includes(hash));
+      const requests = c.requests.slice(from);
+      assert.ok(requests.some((x) => x.path === '/api/v1/store/saved-products/resolve'));
+      assert.ok(requests.every((x) => !x.cookie && !x.authorization));
+      const invalid = await fetch(origin + '/saved-products/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productIds: [c.productId, c.productId] }),
+      });
+      assert.equal(invalid.status, 400);
+      const large = await fetch(origin + '/saved-products/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'x'.repeat(9000),
+      });
+      assert.equal(large.status, 413);
+      const page = await fetch(origin + '/wishlist');
+      assert.equal(page.status, 200);
+      assert.ok((await page.text()).includes('MY WISHLIST'));
+    },
+  );
   await c.t.test(
     'Next storefront price and option filters use the same actual public SKU',
     async () => {
@@ -255,6 +301,13 @@ export async function verifyStorefront(c: {
       assert.equal(r.status, 404);
       assert.ok((await r.text()).includes('currently unavailable'));
       assert.equal((await fetch(origin + '/product-preview/' + c.slug)).status, 404);
+      const saved = await fetch(origin + '/saved-products/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productIds: [c.productId] }),
+      });
+      assert.equal(saved.status, 200);
+      assert.deepEqual((await saved.json()).items, []);
       assert.equal(
         (await fetch(c.api + '/api/v1/store/products/' + c.slug + '/related')).status,
         404,

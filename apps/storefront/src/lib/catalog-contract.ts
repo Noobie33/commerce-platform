@@ -135,7 +135,7 @@ export function parseBrowse(v: unknown): Browse {
     pageSize: num(r.pageSize, 1, 48),
     hasMore: bool(r.hasMore),
     facets: out,
-    items: list(r.items, 48).map(parseCard),
+    items: list(r.items, 48).map((v) => parseCard(v)),
   };
 }
 function parseSizeGuide(v: unknown): SizeGuide | null {
@@ -284,11 +284,11 @@ export function productSelection(
     : {};
 }
 
-function parseCard(v: unknown): Card {
+function parseCard(v: unknown, prefix = '/api/v1/store'): Card {
   const x = record(v),
     p = record(x.photo),
     id = uuid(p.id),
-    expected = '/api/v1/store/photos/' + id + '/thumbnail';
+    expected = prefix + '/photos/' + id + '/thumbnail';
   if (p.thumbnailUrl !== expected) fail();
   return {
     productId: uuid(x.productId),
@@ -310,10 +310,23 @@ function parseCard(v: unknown): Card {
   };
 }
 export function parseRelated(v: unknown): Card[] {
-  const items = list(record(v).items, 8).map(parseCard);
+  const items = list(record(v).items, 8).map((value) => parseCard(value));
   if (
     new Set(items.map((p) => p.productId)).size !== items.length ||
     new Set(items.map((p) => p.slug)).size !== items.length
+  )
+    fail();
+  return items;
+}
+
+export function parseSavedCards(v: unknown, requested: string[], frontend = false): Card[] {
+  const items = list(record(v).items, 50).map((v) =>
+      parseCard(v, frontend ? '/media' : '/api/v1/store'),
+    ),
+    allowed = new Set(requested);
+  if (
+    new Set(items.map((p) => p.productId)).size !== items.length ||
+    items.some((p) => !allowed.has(p.productId))
   )
     fail();
   return items;

@@ -105,3 +105,7 @@ The [actual Next.js storefront](STOREFRONT.md) now implements read-only home, pu
 ## 11 November 2026: closer collection-page fidelity
 
 The specific [Taaga Man Panjabis reference](https://www.aarong.com/bgd/brands/taaga-man/panjabis) now takes precedence over the first preview's independent editorial interpretation. See the [measured UI alignment and remaining acceptance work](REFERENCE-UI-ALIGNMENT.md). Single-brand/Bangladesh/retail-only exclusions remain unchanged.
+
+## Guest wishlist update - 11 November 2026
+
+[Guest saved products](GUEST-WISHLIST.md) now provide hearts, header count and a responsive /wishlist page with fresh public data and withdrawal handling. This advances the wishlist requirement for this browser only; account-backed persistence, cross-device sync and the full reference contract remain pending. No schema change or private catalog exposure is introduced.

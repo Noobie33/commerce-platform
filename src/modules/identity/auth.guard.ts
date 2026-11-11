@@ -11,6 +11,7 @@ import {
   PASSWORD_CHANGE_ALLOWED,
   PERMISSION,
   PUBLIC,
+  PUBLIC_BODY_READ,
 } from '../authorization/route-policy.js';
 import type { AuthConfig } from './auth.config.js';
 import type { StaffRequest } from './http.types.js';
@@ -34,6 +35,15 @@ export class StaffGuard implements CanActivate {
       : imageUpload
         ? ['image/jpeg', 'image/png', 'image/webp'].includes(type ?? '')
         : type === 'application/json';
+    // A body-based public catalog query has no staff identity or mutation capability.
+    // Keep login/activation and every staff write on the existing origin/CSRF path.
+    if (
+      req.method === 'POST' &&
+      type === 'application/json' &&
+      this.reflector.getAllAndOverride<boolean>(PUBLIC, targets) &&
+      this.reflector.getAllAndOverride<boolean>(PUBLIC_BODY_READ, targets)
+    )
+      return true;
     // Public login is also origin-checked. No wildcard CORS is enabled.
     if (
       writing &&

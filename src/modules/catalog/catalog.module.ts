@@ -1,3 +1,4 @@
+import { StoreSavedController } from './store-saved.controller.js';
 import { StoreRelatedController } from './store-related.controller.js';
 import { StoreNavigationController } from './store-navigation.controller.js';
 import { GalleryPublicController } from './gallery-public.controller.js';
@@ -49,6 +50,7 @@ export class CatalogModule {
         StoreProductController,
         StoreBrowseController,
         StoreRelatedController,
+        StoreSavedController,
         StoreNavigationController,
         CatalogVideoController,
         GalleryController,

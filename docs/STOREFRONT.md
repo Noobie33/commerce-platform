@@ -53,3 +53,7 @@ The owner requested closer visual fidelity to the specific Taaga Man Panjabis co
 ## Similar-products update - 11 November 2026
 
 [Published similar-product recommendations](SIMILAR-PRODUCTS.md) now add the reference-style rail with explainable same-category ranking, existing quick view and current withdrawal checks. This is read-only catalog discovery, not stock availability or completed checkout.
+
+## Guest wishlist update - 11 November 2026
+
+[Guest saved products](GUEST-WISHLIST.md) now provide hearts, header count and a responsive /wishlist page with fresh public data and withdrawal handling. This advances the wishlist requirement for this browser only; account-backed persistence, cross-device sync and the full reference contract remain pending. No schema change or private catalog exposure is introduced.

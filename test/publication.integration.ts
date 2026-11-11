@@ -424,6 +424,53 @@ test('publication: private drafts, explicit media consent, safe public releases 
         assert.equal((await fetch(base + '/api/v1/store/products/bad_slug/related')).status, 404);
       },
     );
+
+    await t.test(
+      'saved-product resolution reveals only eligible requested public cards and validates bounds',
+      async () => {
+        const url = base + '/api/v1/store/saved-products/resolve',
+          resolve = async (productIds: unknown) =>
+            fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productIds }),
+            }),
+          r = await resolve([randomUUID(), product]);
+        assert.equal(r.status, 200);
+        assert.equal(r.headers.get('cache-control'), 'no-store');
+        const b = await r.json();
+        assert.deepEqual(
+          b.items.map((p: { productId: string }) => p.productId),
+          [product],
+        );
+        for (const key of ['supplier', 'hash', 'original', 'stock'])
+          assert.ok(!JSON.stringify(b).includes(key));
+        assert.deepEqual(await (await resolve([randomUUID()])).json(), { items: [] });
+        assert.equal((await resolve([product, product])).status, 400);
+        assert.equal((await resolve(Array.from({ length: 51 }, () => randomUUID()))).status, 400);
+        assert.equal((await resolve(['invalid'])).status, 400);
+        assert.equal(
+          (
+            await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: '{}',
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          (
+            await fetch(base + '/api/v1/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: '{}',
+            })
+          ).status,
+          403,
+        );
+      },
+    );
     await t.test(
       'published size-guide measurements stay pinned after a newer library revision',
       async () => {
@@ -654,6 +701,22 @@ test('publication: private drafts, explicit media consent, safe public releases 
             assert.deepEqual(b.facets.materialGroup.items, [{ value: 'cotton', count: 1 }]);
           }
 
+          await sortingTest.test(
+            'saved-product resolution preserves requested order across real releases',
+            async () => {
+              const ids = [sortingProducts[1]!, product, sortingProducts[0]!],
+                r = await fetch(base + '/api/v1/store/saved-products/resolve', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ productIds: ids }),
+                });
+              assert.equal(r.status, 200);
+              assert.deepEqual(
+                (await r.json()).items.map((p: { productId: string }) => p.productId),
+                ids,
+              );
+            },
+          );
           await sortingTest.test(
             'similar products exclude the source and keep stable relevant prices and safe cards',
             async () => {

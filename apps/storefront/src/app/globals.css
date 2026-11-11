@@ -150,6 +150,7 @@ summary:focus-visible {
   grid-row: 1;
   justify-self: end;
   width: 240px;
+  margin-right: 58px;
   display: flex;
   align-items: center;
   border-bottom: 1px solid #555;
@@ -1337,7 +1338,7 @@ body:has(.image-viewer[open]) {
 }
 @media (max-width: 1100px) {
   .header-main {
-    grid-template-columns: minmax(0, 1fr) 240px 44px;
+    grid-template-columns: minmax(0, 1fr) 240px 44px 44px;
     grid-template-rows: 64px;
     gap: 18px;
     padding: 0 28px;
@@ -1346,7 +1347,7 @@ body:has(.image-viewer[open]) {
     grid-row: 1;
   }
   .mobile-menu {
-    grid-column: 3;
+    grid-column: 4;
     grid-row: 1;
   }
   .desktop-nav {
@@ -1354,6 +1355,7 @@ body:has(.image-viewer[open]) {
   }
   .header-search {
     margin-left: auto;
+    margin-right: 0;
   }
   .mobile-menu {
     display: block;
@@ -1433,16 +1435,16 @@ body:has(.image-viewer[open]) {
     padding: 15px 20px 12px;
     min-height: 112px;
     gap: 12px;
-    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-columns: minmax(0, 1fr) 44px 44px;
     grid-template-rows: 48px auto;
   }
   .wordmark {
     font-size: 27px;
-    max-width: calc(100% - 60px);
+    max-width: 100%;
     overflow: hidden;
   }
   .mobile-menu {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1;
     margin-left: auto;
   }
@@ -1786,5 +1788,177 @@ body:has(.size-guide-drawer[open]) {
   }
   .related-products h2 {
     font-size: 19px;
+  }
+}
+
+.wishlist-nav {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  position: relative;
+}
+.wishlist-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #111;
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 18px;
+  min-width: 18px;
+  text-align: center;
+}
+.card-save-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: #ffffffe8;
+  color: #111;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+.is-saved svg {
+  fill: currentColor;
+}
+.product-save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #aaa;
+  color: #111;
+  font-size: 14px;
+}
+.saved-toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  z-index: 50;
+  padding: 12px 20px;
+  max-width: calc(100vw - 32px);
+  font-size: 14px;
+  pointer-events: none;
+}
+.saved-toast:empty {
+  display: none;
+}
+.saved-storage-notice {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff7e8;
+  color: #382c16;
+  border-top: 1px solid #dec8a5;
+  padding: 10px 20px;
+  z-index: 49;
+  font-size: 13px;
+  text-align: center;
+}
+.wishlist-page {
+  max-width: 1600px;
+  padding: 20px 40px 64px;
+  margin: auto;
+  min-height: 55dvh;
+}
+.wishlist-page h1 {
+  font-size: 27px;
+  font-weight: 500;
+  margin: 28px 0 12px;
+}
+.wishlist-explanation {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+.wishlist-total {
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+}
+.wishlist-message {
+  padding: 50px 24px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+.wishlist-message h2 {
+  font-size: 23px;
+  font-weight: 500;
+}
+.wishlist-message p {
+  margin: 12px 0 24px;
+}
+.saved-unavailable {
+  min-height: 240px;
+  padding: 28px 20px;
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.saved-unavailable h2 {
+  font-size: 19px;
+  font-weight: 500;
+}
+.saved-unavailable p {
+  font-size: 14px;
+  color: #666;
+}
+.saved-unavailable .button {
+  margin-top: auto;
+}
+@media (max-width: 1100px) {
+  .wishlist-nav {
+    grid-column: 3;
+  }
+  .wishlist-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .header-search {
+    margin-right: 0;
+  }
+}
+@media (max-width: 700px) {
+  .wishlist-nav {
+    grid-column: 2;
+  }
+  .wishlist-page {
+    padding: 20px 20px 48px;
+  }
+  .wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 14px;
+  }
+  .wishlist-page h1 {
+    font-size: 24px;
+  }
+  .wishlist-message {
+    padding: 36px 16px;
+  }
+  .saved-unavailable {
+    padding: 20px 12px;
+  }
+  .saved-unavailable .button {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .saved-unavailable h2 {
+    font-size: 17px;
   }
 }

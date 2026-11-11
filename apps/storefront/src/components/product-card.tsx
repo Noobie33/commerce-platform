@@ -1,3 +1,4 @@
+import { SaveProductButton } from './saved-products';
 import { QuickViewButton } from './quick-view';
 import Link from 'next/link';
 import type { Card } from '../lib/catalog-contract';
@@ -45,6 +46,7 @@ export function ProductCard({
             />
           </div>
         </Link>
+        <SaveProductButton productId={p.productId} name={p.name} compact />
         <QuickViewButton slug={p.slug} name={p.name} selection={selection} />
       </div>
       <Link href={href} prefetch={false} className="product-card-link">

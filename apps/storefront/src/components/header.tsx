@@ -1,3 +1,4 @@
+import { WishlistLink } from './saved-products';
 import { MobileMenu } from './mobile-menu';
 import Link from 'next/link';
 import Form from 'next/form';
@@ -40,6 +41,7 @@ export function Header({ brand, categories }: { brand: string; categories: Categ
               <Icon name="search" />
             </button>
           </Form>
+          <WishlistLink />
           <MobileMenu categories={categories} />
         </div>
       </header>

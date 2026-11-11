@@ -216,6 +216,7 @@ export async function verifyGalleryRelease(c: {
   );
   const storefront = await verifyStorefront({
     t,
+    productId: product,
     api: base,
     slug,
     name: (await ok(await publicProduct())).name,

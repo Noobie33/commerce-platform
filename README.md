@@ -8,7 +8,7 @@ Active workspace: D:\Business Software\commerce-platform. See [architecture and 
 
 ## Customer website preview
 
-The actual Next.js storefront now provides a home, searchable/filterable collection and mixed photo/video product pages using eligible published releases. Open http://127.0.0.1:3000 with start:local after a full build. Cards now open a fresh, variant-aware [quick view](docs/PRODUCT-DETAILS-AND-QUICK-VIEW.md), with selected options carried into full details. [Photo enlargement and approved size guides](docs/PHOTO-ZOOM-AND-PUBLIC-SIZE-GUIDES.md) now use the existing public release boundary. [Similar products](docs/SIMILAR-PRODUCTS.md) now use current publication eligibility and an explainable same-category order. It is a read-only local preview; accounts, cart and checkout remain pending. See [storefront decisions and operation](docs/STOREFRONT.md).
+The actual Next.js storefront now provides a home, searchable/filterable collection and mixed photo/video product pages using eligible published releases. Open http://127.0.0.1:3000 with start:local after a full build. Cards now open a fresh, variant-aware [quick view](docs/PRODUCT-DETAILS-AND-QUICK-VIEW.md), with selected options carried into full details. [Photo enlargement and approved size guides](docs/PHOTO-ZOOM-AND-PUBLIC-SIZE-GUIDES.md) now use the existing public release boundary. [Similar products](docs/SIMILAR-PRODUCTS.md) now use current publication eligibility and an explainable same-category order. A [browser-local guest wishlist](docs/GUEST-WISHLIST.md) now saves stable product IDs and resolves current published cards. It is a local preview; accounts, cart and checkout remain pending. See [storefront decisions and operation](docs/STOREFRONT.md).
 
 ## Staff interface
 
@@ -85,7 +85,7 @@ The saved pgAdmin connection was used for initial database/role provisioning. Ad
 
 ## Verification - 11 November 2026
 
-For the similar-products increment, strict checking, production builds, 86 database-free tests and 44 focused publication/Next.js checks pass locally. Exact-commit GitHub CI additionally runs the complete 86-unit, 14-codec and 334-PostgreSQL regression gate before this increment is reported complete. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
+For the guest-wishlist increment, strict checking, production builds, 89 database-free tests and 47 focused publication/Next.js checks pass locally. Exact-commit GitHub CI additionally runs the complete unit, codec and PostgreSQL regression gate before this increment is reported complete. The PostgreSQL checks include real HTTP login/logout, CSRF denial, scope denial, forced password change, session expiry/revocation/deactivation, login throttling, audit rollback/immutability, Secure cookie policy and migration apply/repeat/revert.
 
 Development migration applied once. A separate owner smoke test verified login, forced-change restriction, logout/revocation, bootstrap refusal on repeat, unchanged credential artifact and no-op repeated migration. Private-file ACLs were inspected. Dependency installation audit reported zero known vulnerabilities.
 

@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { SaveProductButton } from './saved-products';
 import { ImageViewer } from './image-viewer';
 import { SizeGuide } from './size-guide';
 import { useEffect, useRef, useState } from 'react';
@@ -247,6 +248,7 @@ export function ProductExperience({
             </div>
           )}
         </dl>
+        <SaveProductButton productId={p.productId} name={p.name} />
         <p className="ordering-note">Online ordering is not open yet.</p>
         {!preview && (
           <>

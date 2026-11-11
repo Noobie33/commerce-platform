@@ -22,6 +22,22 @@ export class StoreBrowseService {
     });
   }
 
+  async resolveSaved(ids: string[]): Promise<{ items: StoreProductCard[] }> {
+    if (!ids.length) return { items: [] };
+    try {
+      return await this.db.transaction('REPEATABLE READ', async (m) => {
+        await m.query('SET TRANSACTION READ ONLY');
+        await m.query("SET LOCAL statement_timeout='3000ms'");
+        const [r] = await m.query(
+          `WITH requested AS (SELECT id,ord FROM unnest($1::uuid[]) WITH ORDINALITY AS x(id,ord)),eligible AS(SELECT r.snapshot AS s,r.version,q.ord FROM requested q JOIN public.catalog_releases r ON r.product_id=q.id WHERE r.state='published' AND public.catalog_release_eligible(r.product_id)),cards AS(SELECT ord,jsonb_build_object('productId',s->>'productId','slug',s->>'slug','name',s->>'name','styleCode',s->>'styleCode','currency','BDT','releaseVersion',version,'matchingVariantCount',jsonb_array_length(s->'variants'),'matchingPriceMinMinor',(SELECT min((v->>'priceMinor')::bigint)::text FROM jsonb_array_elements(s->'variants')v),'matchingPriceMaxMinor',(SELECT max((v->>'priceMinor')::bigint)::text FROM jsonb_array_elements(s->'variants')v),'photo',(SELECT jsonb_build_object('id',p->>'id','alt',p->>'alt','width',p->'width','height',p->'height','thumbnailUrl','/api/v1/store/photos/'||(p->>'id')||'/thumbnail') FROM jsonb_array_elements(s->'photos')p WHERE (p->>'primary')::boolean LIMIT 1)) AS card FROM eligible) SELECT coalesce(jsonb_agg(card ORDER BY ord),'[]'::jsonb) AS items FROM cards`,
+          [ids],
+        );
+        return { items: r.items as StoreProductCard[] };
+      });
+    } catch {
+      throw new ServiceUnavailableException({ code: 'SAVED_PRODUCTS_UNAVAILABLE' });
+    }
+  }
   async related(slug: string): Promise<{ items: StoreProductCard[] }> {
     try {
       return await this.db.transaction('REPEATABLE READ', async (m) => {

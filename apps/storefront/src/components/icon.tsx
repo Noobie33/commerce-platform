@@ -1,9 +1,11 @@
 export function Icon({
   name,
 }: {
-  name: 'search' | 'arrow' | 'menu' | 'close' | 'play' | 'chevron' | 'filter';
+  name: 'search' | 'arrow' | 'menu' | 'close' | 'play' | 'chevron' | 'filter' | 'heart';
 }) {
   const paths = {
+    heart:
+      'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z',
     filter: 'M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11M8 3v6m6 0v6M6 15v6',
     search: 'M21 21l-5-5m2-6a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
     arrow: 'M4 12h16m-6-6 6 6-6 6',

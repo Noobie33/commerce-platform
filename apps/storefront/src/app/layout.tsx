@@ -1,3 +1,4 @@
+import { SavedProductsProvider } from '../components/saved-products';
 import { QuickViewProvider } from '../components/quick-view';
 import localFont from 'next/font/local';
 import type { Metadata } from 'next';
@@ -32,29 +33,31 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        <Header brand={settings.brand} categories={categories} />
-        <QuickViewProvider>{children}</QuickViewProvider>
-        <footer className="store-footer">
-          <div>
-            <Link href="/" prefetch={false} className="footer-wordmark">
-              {settings.brand}
-            </Link>
-            <p>Clothing. Lifestyle. Your everyday.</p>
-          </div>
-          <nav aria-label="Footer navigation">
-            <Link href="/" prefetch={false}>
-              The edit
-            </Link>
-            <Link href="/shop" prefetch={false}>
-              Explore the collection
-            </Link>
-          </nav>
-          <div className="footer-note">
-            <span>Bangladesh / BDT</span>
-            <small>Store preview. Online ordering is not open yet.</small>
-          </div>
-        </footer>
-        <FocusRefresh />
+        <SavedProductsProvider>
+          <Header brand={settings.brand} categories={categories} />
+          <QuickViewProvider>{children}</QuickViewProvider>
+          <footer className="store-footer">
+            <div>
+              <Link href="/" prefetch={false} className="footer-wordmark">
+                {settings.brand}
+              </Link>
+              <p>Clothing. Lifestyle. Your everyday.</p>
+            </div>
+            <nav aria-label="Footer navigation">
+              <Link href="/" prefetch={false}>
+                The edit
+              </Link>
+              <Link href="/shop" prefetch={false}>
+                Explore the collection
+              </Link>
+            </nav>
+            <div className="footer-note">
+              <span>Bangladesh / BDT</span>
+              <small>Store preview. Online ordering is not open yet.</small>
+            </div>
+          </footer>
+          <FocusRefresh />
+        </SavedProductsProvider>
       </body>
     </html>
   );

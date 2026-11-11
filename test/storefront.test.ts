@@ -1,3 +1,10 @@
+import {
+  readSaved,
+  writeSaved,
+  updateSaved,
+  resolveInput,
+  SAVED_LIMIT,
+} from '../apps/storefront/src/lib/saved-products.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -14,6 +21,7 @@ import {
   productSelection,
   parseBrowse,
   parseRelated,
+  parseSavedCards,
   money,
   jsonLd,
   parseNavigation,
@@ -282,4 +290,56 @@ test('related-card parsing bounds results, rejects duplicates and strips nonpubl
   assert.throws(() => parseRelated({ items: [card, card] }));
   assert.throws(() => parseRelated({ items: Array(9).fill(card) }));
   assert.deepEqual(parseRelated({ items: [] }), []);
+});
+
+test('saved-product storage keeps only bounded stable IDs and rejects corrupt or unsupported records', () => {
+  const ids = [randomUUID(), randomUUID()];
+  assert.deepEqual(readSaved(null), []);
+  assert.deepEqual(readSaved(writeSaved(ids)), ids);
+  assert.deepEqual(Object.keys(JSON.parse(writeSaved(ids))).sort(), ['productIds', 'version']);
+  for (const raw of [
+    'broken',
+    JSON.stringify({ version: 2, productIds: ids }),
+    JSON.stringify({ version: 1, productIds: [ids[0], ids[0]] }),
+    JSON.stringify({ version: 1, productIds: ids, name: 'must not persist' }),
+    'x'.repeat(8193),
+  ])
+    assert.throws(() => readSaved(raw));
+  assert.throws(() => resolveInput({ productIds: ['not-an-id'] }));
+  assert.throws(() => resolveInput({ productIds: ids, price: '129000' }));
+});
+test('saved-product updates are idempotent, do not mutate prior state and enforce the declared limit', () => {
+  const a = randomUUID(),
+    b = randomUUID(),
+    original = [a];
+  assert.deepEqual(updateSaved(original, b, true).ids, [b, a]);
+  assert.deepEqual(original, [a]);
+  assert.deepEqual(updateSaved(original, a, true), { ids: original, full: false });
+  assert.deepEqual(updateSaved([a, b], a, false).ids, [b]);
+  const full = Array.from({ length: SAVED_LIMIT }, () => randomUUID());
+  assert.equal(updateSaved(full, randomUUID(), true).full, true);
+  assert.equal(updateSaved(full, full[0]!, true).full, false);
+  assert.equal(updateSaved(full, full[0]!, false).ids.length, SAVED_LIMIT - 1);
+});
+test('saved product resolution accepts only requested current public cards', () => {
+  const pid = randomUUID(),
+    card = {
+      productId: pid,
+      slug: 'saved-shirt',
+      name: 'Saved shirt',
+      styleCode: 'SAVE-1',
+      currency: 'BDT',
+      releaseVersion: 1,
+      matchingVariantCount: 1,
+      matchingPriceMinMinor: '129000',
+      matchingPriceMaxMinor: '129000',
+      photo: { id, alt: 'Front', width: 480, height: 600, thumbnailUrl: photo.thumbnailUrl },
+      internal: 'not public',
+    };
+  const items = parseSavedCards({ items: [card] }, [pid]);
+  assert.equal(items[0]!.matchingPriceMinMinor, '129000');
+  assert.ok(!JSON.stringify(items).includes('not public'));
+  assert.throws(() => parseSavedCards({ items: [card] }, []));
+  assert.throws(() => parseSavedCards({ items: [card, card] }, [pid]));
+  assert.equal(parseSavedCards({ items }, [pid], true)[0]!.productId, pid);
 });

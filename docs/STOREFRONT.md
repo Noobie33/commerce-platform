@@ -57,3 +57,7 @@ The owner requested closer visual fidelity to the specific Taaga Man Panjabis co
 ## Guest wishlist update - 11 November 2026
 
 [Guest saved products](GUEST-WISHLIST.md) now provide hearts, header count and a responsive /wishlist page with fresh public data and withdrawal handling. This advances the wishlist requirement for this browser only; account-backed persistence, cross-device sync and the full reference contract remain pending. No schema change or private catalog exposure is introduced.
+
+## Customer sign-in foundation checkpoint - schema 27
+
+[Separate customer sign-in and session handling](CUSTOMER-ACCOUNT-SIGN-IN.md) advance SF-14 with a retained demo account. Sign-in is closed by default; real registration/verification/recovery, addresses, account-backed wishlist and orders remain pending. Staff identity and ERP records are not automatically linked. This does not complete R5/R6 or open checkout.

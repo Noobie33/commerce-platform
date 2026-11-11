@@ -12,6 +12,7 @@ import {
   PERMISSION,
   PUBLIC,
   PUBLIC_BODY_READ,
+  STORE_CUSTOMER_ENDPOINT,
 } from '../authorization/route-policy.js';
 import type { AuthConfig } from './auth.config.js';
 import type { StaffRequest } from './http.types.js';
@@ -26,6 +27,11 @@ export class StaffGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<StaffRequest>();
     const targets = [context.getHandler(), context.getClass()];
+    if (
+      this.reflector.getAllAndOverride<boolean>(PUBLIC, targets) &&
+      this.reflector.getAllAndOverride<boolean>(STORE_CUSTOMER_ENDPOINT, targets)
+    )
+      return true;
     const writing = !['GET', 'HEAD', 'OPTIONS'].includes(req.method ?? '');
     const type = req.headers['content-type']?.split(';')[0]?.trim().toLowerCase();
     const imageUpload = this.reflector.getAllAndOverride<boolean>(IMAGE_UPLOAD, targets);

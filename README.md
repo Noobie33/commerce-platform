@@ -106,3 +106,7 @@ Schema 25 adds explicit mixed-gallery approval, immutable product-release bindin
 ## Staff profile photos and retained sample data
 
 [Private profile photos and persistent local demo](docs/PROFILE-PHOTOS-AND-LOCAL-DEMO.md) add avatar upload/removal and an isolated walkthrough dataset. Use npm run start:demo for staff at http://127.0.0.1:4100/admin and the customer preview at http://127.0.0.1:3100. Local demo credentials stay in the ignored .local-setup/demo-login.txt file. Demo data survives service restart and is never inserted into the real business or automated-test databases. Schema 26 adds only private staff-avatar storage and scoped functions.
+
+## Customer account preview
+
+[Customer sign-in foundation](docs/CUSTOMER-ACCOUNT-SIGN-IN.md) provides the /account screen with private customer sessions, independent of staff. The retained demo at http://127.0.0.1:3100/account uses local details in .local-setup/demo-customer-login.txt. Real registration/recovery remain closed and the main preview defaults to closed sign-in. Schema 27 is additive; demo business examples are retained.

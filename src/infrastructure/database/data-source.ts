@@ -1,3 +1,4 @@
+import { StoreAccounts1794125000000 } from '../../database/migrations/1794125000000-store-accounts.js';
 import { StaffProfilePhotos1794124000000 } from '../../database/migrations/1794124000000-staff-profile-photos.js';
 import { GalleryPublication1794123000000 } from '../../database/migrations/1794123000000-gallery-publication.js';
 import { CatalogGalleryDrafts1794122000000 } from '../../database/migrations/1794122000000-catalog-gallery-drafts.js';
@@ -87,6 +88,7 @@ export function createDataSource(env: NodeJS.ProcessEnv = process.env) {
       CatalogGalleryDrafts1794122000000,
       GalleryPublication1794123000000,
       StaffProfilePhotos1794124000000,
+      StoreAccounts1794125000000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

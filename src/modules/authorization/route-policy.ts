@@ -22,3 +22,6 @@ export const VideoUpload = () => SetMetadata(VIDEO_UPLOAD, true);
 // Opt-in for bounded public POST queries that never mutate application data.
 export const PUBLIC_BODY_READ = 'store.public_body_read';
 export const PublicBodyRead = () => SetMetadata(PUBLIC_BODY_READ, true);
+
+// Customer endpoints always use their own request boundary and never inherit staff identity.
+export const STORE_CUSTOMER_ENDPOINT = 'store.customer_endpoint';

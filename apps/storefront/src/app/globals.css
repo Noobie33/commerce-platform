@@ -1962,3 +1962,168 @@ body:has(.size-guide-drawer[open]) {
     font-size: 17px;
   }
 }
+
+/* Account actions share one grid cell, preserving search and mobile navigation. */
+.header-account-actions {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.header-search {
+  margin-right: 106px;
+}
+.customer-account-page {
+  max-width: 1240px;
+  min-height: 62vh;
+  margin: auto;
+  padding: 30px 40px 80px;
+}
+.customer-account-page h1 {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin: 40px 0 32px;
+}
+.account-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 64px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.account-intro h2,
+.account-profile h2 {
+  font-size: 25px;
+  font-weight: 400;
+  margin: 0 0 20px;
+}
+.account-intro p {
+  line-height: 1.8;
+  margin: 0 0 24px;
+}
+.account-form,
+.account-profile {
+  border: 1px solid #ddd;
+  padding: 30px;
+  min-width: 0;
+}
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.account-form label {
+  font-size: 14px;
+}
+.account-form input {
+  min-width: 0;
+  width: 100%;
+  font: inherit;
+  border: 1px solid #aaa;
+  background: #fff;
+  color: #111;
+  border-radius: 0;
+  padding: 12px;
+}
+.account-form > .button {
+  margin-top: 12px;
+  width: 100%;
+}
+.account-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.account-password input {
+  padding-right: 68px;
+}
+.account-password button {
+  position: absolute;
+  right: 4px;
+  min-height: 40px;
+  padding: 8px;
+  background: #fff;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.account-preview-note {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.8;
+}
+.account-profile dl {
+  margin: 0 0 24px;
+}
+.account-profile dt {
+  font-size: 12px;
+  color: #777;
+  margin-top: 14px;
+}
+.account-profile dd {
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+}
+.account-profile > a {
+  text-decoration: underline;
+}
+.account-notice {
+  padding: 36px 0;
+  max-width: 600px;
+  line-height: 1.8;
+}
+.account-notice h2 {
+  font-weight: 400;
+}
+.account-error {
+  margin: 16px auto 28px;
+  padding: 14px 20px;
+  border: 1px solid #b75445;
+  max-width: 1000px;
+  color: #8c2920;
+}
+@media (max-width: 1100px) {
+  .header-main {
+    grid-template-columns: minmax(0, 1fr) 240px 88px 44px;
+  }
+  .header-account-actions {
+    grid-column: 3;
+  }
+  .header-search {
+    margin-right: 0;
+  }
+  .account-columns {
+    gap: 32px;
+  }
+}
+@media (max-width: 700px) {
+  .header-main {
+    grid-template-columns: minmax(0, 1fr) 88px 44px;
+    column-gap: 10px;
+  }
+  .header-account-actions {
+    grid-column: 2;
+  }
+  .header-search {
+    margin-right: 0;
+  }
+  .customer-account-page {
+    padding: 20px 20px 50px;
+  }
+  .customer-account-page h1 {
+    font-size: 25px;
+    margin: 28px 0;
+  }
+  .account-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .account-form,
+  .account-profile {
+    padding: 22px;
+  }
+}

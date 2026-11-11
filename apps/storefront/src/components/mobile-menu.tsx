@@ -36,6 +36,9 @@ export function MobileMenu({ categories }: { categories: Category[] }) {
         <Link href="/shop" prefetch={false} onClick={close}>
           Shop all
         </Link>
+        <Link href="/account" prefetch={false} onClick={close}>
+          My account
+        </Link>
         {categories
           .filter((c) => c.parentSlug === null)
           .map((c) => (

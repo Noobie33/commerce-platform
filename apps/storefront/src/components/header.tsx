@@ -41,7 +41,12 @@ export function Header({ brand, categories }: { brand: string; categories: Categ
               <Icon name="search" />
             </button>
           </Form>
-          <WishlistLink />
+          <div className="header-account-actions">
+            <Link href="/account" className="icon-button" prefetch={false} aria-label="My account">
+              <Icon name="account" />
+            </Link>
+            <WishlistLink />
+          </div>
           <MobileMenu categories={categories} />
         </div>
       </header>

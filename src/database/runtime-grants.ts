@@ -277,6 +277,18 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         role +
         '"',
     );
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.store_customer_session_create(uuid,text,text,text,uuid) TO "' +
+        role +
+        '"',
+    );
+    await manager.query('GRANT SELECT ON store_customer_accounts TO "' + role + '"');
+    await manager.query(
+      'GRANT SELECT,INSERT,UPDATE ON store_customer_sessions,store_customer_login_limits TO "' +
+        role +
+        '"',
+    );
+    await manager.query('GRANT SELECT,INSERT ON store_customer_events TO "' + role + '"');
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

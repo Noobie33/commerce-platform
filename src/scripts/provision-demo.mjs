@@ -40,6 +40,7 @@ try {
   const common = {
     NODE_ENV: 'development',
     DEMO_MODE: '1',
+    CUSTOMER_ACCOUNT_MODE: 'preview',
     HOST: '127.0.0.1',
     PORT: '4100',
     STAFF_ORIGIN: 'http://127.0.0.1:4100',

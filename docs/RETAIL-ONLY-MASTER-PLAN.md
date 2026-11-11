@@ -243,3 +243,7 @@ Schema 25 binds a separately reviewed photo/video order to an explicit product r
 ## 11 November 2026: first Next.js customer preview
 
 The [actual Next.js storefront](STOREFRONT.md) now implements read-only home, published-category navigation, collection search/facets/sorting/pagination and variant-aware mixed photo/video product pages with native media ratios. It advances the R3/SF browsing and presentation gates on unchanged schema 25. It does not complete the full Aarong reference contract: customer accounts, cart, checkout, confirmed-order availability, payment, delivery, redirects, complete content/policies and production deployment remain pending.
+
+## Customer sign-in foundation checkpoint - schema 27
+
+[Separate customer sign-in and session handling](CUSTOMER-ACCOUNT-SIGN-IN.md) advance SF-14 with a retained demo account. Sign-in is closed by default; real registration/verification/recovery, addresses, account-backed wishlist and orders remain pending. Staff identity and ERP records are not automatically linked. This does not complete R5/R6 or open checkout.

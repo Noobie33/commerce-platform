@@ -14,13 +14,12 @@ export function Header({ brand, categories }: { brand: string; categories: Categ
         <div className="header-main">
           <Link href="/" prefetch={false} className="wordmark" aria-label={brand + ' home'}>
             {brand}
-            <span className="wordmark-dot" />
           </Link>
           <nav className="desktop-nav" aria-label="Main navigation">
             <Link href="/shop" prefetch={false}>
               Shop all
             </Link>
-            {roots.slice(0, 5).map((c) => (
+            {roots.map((c) => (
               <Link key={c.id} href={'/shop?category=' + c.slug} prefetch={false}>
                 {c.name}
               </Link>
@@ -35,7 +34,7 @@ export function Header({ brand, categories }: { brand: string; categories: Categ
               name="q"
               type="search"
               maxLength={80}
-              placeholder="Find your next favourite"
+              placeholder="Search products"
             />
             <button type="submit" aria-label="Search products">
               <Icon name="search" />

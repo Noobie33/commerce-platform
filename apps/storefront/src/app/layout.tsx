@@ -1,9 +1,17 @@
+import localFont from 'next/font/local';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getNavigation, storeSettings } from '../lib/catalog-api';
 import { Header } from '../components/header';
 import { FocusRefresh } from '../components/focus-refresh';
 import './globals.css';
+const storeFont = localFont({
+  src: '../fonts/Jost-Variable.ttf',
+  variable: '--font-store',
+  display: 'swap',
+  weight: '100 900',
+  fallback: ['Arial', 'sans-serif'],
+});
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: {
@@ -18,7 +26,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   const settings = storeSettings(),
     categories = await getNavigation();
   return (
-    <html lang="en">
+    <html lang="en" className={storeFont.variable}>
       <body>
         <a className="skip-link" href="#main-content">
           Skip to content

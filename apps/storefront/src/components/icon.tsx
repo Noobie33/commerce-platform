@@ -1,9 +1,10 @@
 export function Icon({
   name,
 }: {
-  name: 'search' | 'arrow' | 'menu' | 'close' | 'play' | 'chevron';
+  name: 'search' | 'arrow' | 'menu' | 'close' | 'play' | 'chevron' | 'filter';
 }) {
   const paths = {
+    filter: 'M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11M8 3v6m6 0v6M6 15v6',
     search: 'M21 21l-5-5m2-6a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
     arrow: 'M4 12h16m-6-6 6 6-6 6',
     menu: 'M3 6h18M3 12h18M3 18h18',

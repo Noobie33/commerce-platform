@@ -101,3 +101,7 @@ Staff category hierarchy, preserved category URL ownership, optional category/pr
 ## 11 November 2026: first Next.js customer preview
 
 The [actual Next.js storefront](STOREFRONT.md) now implements read-only home, published-category navigation, collection search/facets/sorting/pagination and variant-aware mixed photo/video product pages with native media ratios. It advances the R3/SF browsing and presentation gates on unchanged schema 25. It does not complete the full Aarong reference contract: customer accounts, cart, checkout, confirmed-order availability, payment, delivery, redirects, complete content/policies and production deployment remain pending.
+
+## 11 November 2026: closer collection-page fidelity
+
+The specific [Taaga Man Panjabis reference](https://www.aarong.com/bgd/brands/taaga-man/panjabis) now takes precedence over the first preview's independent editorial interpretation. See the [measured UI alignment and remaining acceptance work](REFERENCE-UI-ALIGNMENT.md). Single-brand/Bangladesh/retail-only exclusions remain unchanged.

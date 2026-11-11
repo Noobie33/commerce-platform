@@ -50,23 +50,22 @@ export default async function Shop({ searchParams }: { searchParams: Promise<Sea
         <span>/</span>
         <span>{category?.name ?? 'The collection'}</span>
       </nav>
-      <div className="shop-heading">
-        <div>
-          <p className="eyebrow">FIND YOUR EVERYDAY</p>
-          <h1>{query.values.q ? 'Search results' : (category?.name ?? 'The collection')}</h1>
-          {query.values.q && <p>For &ldquo;{query.values.q}&rdquo;</p>}
-        </div>
-        <p className="result-count">
-          {view.total} {view.total === 1 ? 'piece' : 'pieces'}
-        </p>
-      </div>
+      <h1 className="sr-only">
+        {query.values.q ? 'Search results' : (category?.name ?? 'The collection')}
+      </h1>
+      {query.values.q && (
+        <p className="search-summary">Search results for &ldquo;{query.values.q}&rdquo;</p>
+      )}
+      <Filters
+        key={JSON.stringify(query.values)}
+        view={view}
+        categories={categories}
+        values={query.values}
+      />
+      <p className="collection-result-count" aria-live="polite">
+        {view.total} RESULTS
+      </p>
       <div className="shop-layout">
-        <Filters
-          key={JSON.stringify(query.values)}
-          view={view}
-          categories={categories}
-          values={query.values}
-        />
         <section className="shop-results" aria-label="Product collection">
           {Object.entries(query.values).filter(([k]) => !['sort', 'page'].includes(k)).length >
             0 && (

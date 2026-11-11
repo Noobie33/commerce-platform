@@ -24,7 +24,7 @@ The same-origin /media proxy accepts only exact public photo or product/release-
 
 ## Media and interaction
 
-Product cards have a consistent 4:5 frame with contain, so imagery is not cropped. Product details use recorded native dimensions: 9:16 portrait, square and landscape retain their ratios within a viewport-height cap. Uploaded originals are unchanged; existing separate display derivatives remain in use. Video starts only on request, uses a poster, and pauses when inactive, offscreen or the page is hidden. Keyboard gallery navigation and native playback controls are provided. Audio/caption accessibility remains a future gate.
+Product cards now follow the measured collection reference with a consistent 3:4 frame with contain, so imagery is not cropped. Product details use recorded native dimensions: 9:16 portrait, square and landscape retain their ratios within a viewport-height cap. Uploaded originals are unchanged; existing separate display derivatives remain in use. Video starts only on request, uses a poster, and pauses when inactive, offscreen or the page is hidden. Keyboard gallery navigation and native playback controls are provided. Audio/caption accessibility remains a future gate.
 
 Search/filter forms use GET URLs with progressive Next.js navigation. Invalid queries fail safely, filters match one real SKU and product links preserve selected size/colour. Foreground/online events refresh the read-only server view; no staff live-event stream or recurring background polling is exposed to customers.
 
@@ -37,3 +37,7 @@ Optional root .env.storefront accepts only STORE_API_ORIGIN, STORE_SITE_ORIGIN a
 ## Validation
 
 Strict type checking and optimized production builds pass. Six new unit cases cover exact-money queries, DTO field stripping, native ratios, public process environment and safe structured-data escaping. Production Next.js integration tests run against the actual isolated PostgreSQL-backed API: SSR and metadata, filters, private-route denial, cookie/authorization isolation, byte-range playback and withdrawn product/media 404s. The full PostgreSQL suite reports 328 passing checks; database-free checks report 83. Real-codec coverage remains 14 checks. Screenshots and disposable fixtures are local-only evidence, never merchandise seeded into the business database.
+
+## Reference alignment update
+
+The owner requested closer visual fidelity to the specific Taaga Man Panjabis collection. The [alignment register](REFERENCE-UI-ALIGNMENT.md) records the measured structure, delivered toolbar/drawer/grid changes, vendored font license and remaining whole-site work. No schema or business-data changes are introduced.

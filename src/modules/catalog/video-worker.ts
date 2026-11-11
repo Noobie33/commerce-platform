@@ -23,7 +23,9 @@ export function videoWorkerSource(env: NodeJS.ProcessEnv) {
         ? 'test'
         : u.pathname === '/commerce_platform_dev'
           ? 'dev'
-          : null;
+          : u.pathname === '/commerce_platform_demo'
+            ? 'demo'
+            : null;
   if (!mode || u.username !== 'commerce_' + mode + '_video_worker')
     throw Error('Restricted video worker login required');
   return new DataSource({

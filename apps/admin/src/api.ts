@@ -313,6 +313,13 @@ export class ApiError extends Error {
               STOCK_QUANTITY_LIMIT: 'This quantity exceeds the supported stock balance.',
               LOCATION_CODE_EXISTS:
                 'This location code already exists. Refresh locations or choose another code.',
+              PROFILE_PHOTO_STALE:
+                'Your profile photo changed elsewhere. The latest version has been loaded; review it before trying again.',
+              INVALID_PROFILE_PHOTO:
+                'Choose a non-animated JPEG, PNG or WebP up to 5 MB and 16 million pixels.',
+              PROFILE_PHOTO_BUSY: 'Photo processing is busy. Please try again shortly.',
+              INVALID_PROFILE_PHOTO_VERSION: 'Reload your profile before changing the photo.',
+              PROFILE_SESSION: 'Your account access changed. Sign in again.',
               INVALID_PRODUCT_IMAGE:
                 'Choose a valid, non-animated JPEG, PNG or WebP image within the displayed upload limits.',
               PHOTO_LIMIT:
@@ -360,6 +367,7 @@ export class StaffApi {
       key?: string;
       image?: File;
       version?: number;
+      photoVersion?: number;
     } & ReadOptions,
   ): Promise<T> {
     const writing = body !== undefined;
@@ -374,6 +382,9 @@ export class StaffApi {
           ? {
               'Content-Type': options?.image?.type ?? 'application/json',
               ...(options?.image ? { 'X-Product-Version': String(options.version) } : {}),
+              ...(options?.photoVersion !== undefined
+                ? { 'X-Photo-Version': String(options.photoVersion) }
+                : {}),
               'X-Requested-With': 'commerce-staff',
               'X-CSRF-Token': this.csrf,
               ...(options?.key ? { 'X-Idempotency-Key': options.key } : {}),
@@ -430,6 +441,12 @@ export class StaffApi {
     this.csrf = result.csrfToken;
     this.authenticated = true;
     return this.me();
+  }
+  saveProfilePhoto(file: File, expectedVersion: number) {
+    return this.request('/staff/me/photo', {}, { image: file, photoVersion: expectedVersion });
+  }
+  removeProfilePhoto(expectedVersion: number) {
+    return this.request('/staff/me/photo/remove', { expectedVersion });
   }
   async logout() {
     await this.request('/auth/logout', {});

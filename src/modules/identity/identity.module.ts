@@ -1,3 +1,5 @@
+import { ProfilePhotoService } from './profile-photo.service.js';
+import { ProfilePhotoController } from './profile-photo.controller.js';
 import { StaffOnboardingController } from './onboarding.controller.js';
 import { StaffOnboardingService } from './onboarding.service.js';
 import { Module } from '@nestjs/common';
@@ -19,9 +21,14 @@ export class IdentityModule {
     return {
       module: IdentityModule,
       imports: [databaseModule],
-      controllers: [IdentityController, StaffOnboardingController],
+      controllers: [IdentityController, StaffOnboardingController, ProfilePhotoController],
       exports: [IdentityService, AUTH_CONFIG],
       providers: [
+        {
+          provide: ProfilePhotoService,
+          useFactory: (source: DataSource) => new ProfilePhotoService(source),
+          inject: [DATABASE_SOURCE],
+        },
         {
           provide: StaffOnboardingService,
           useFactory: (

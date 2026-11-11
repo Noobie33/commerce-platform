@@ -102,3 +102,7 @@ Private product-video preparation is now implemented and tested with generated c
 Private mixed photo/video ordering: see [product gallery drafts](docs/PRODUCT-GALLERY-DRAFTS.md). Catalog > product > Product gallery prepares a private order with preview and retained history; customer publication remains separate.
 
 Schema 25 adds explicit mixed-gallery approval, immutable product-release binding and revocable verified playback/posters. See [mixed gallery publication](docs/MIXED-GALLERY-PUBLICATION.md). Source aspect ratios remain intact; the Next.js customer interface and internet deployment are separate pending work.
+
+## Staff profile photos and retained sample data
+
+[Private profile photos and persistent local demo](docs/PROFILE-PHOTOS-AND-LOCAL-DEMO.md) add avatar upload/removal and an isolated walkthrough dataset. Use npm run start:demo for staff at http://127.0.0.1:4100/admin and the customer preview at http://127.0.0.1:3100. Local demo credentials stay in the ignored .local-setup/demo-login.txt file. Demo data survives service restart and is never inserted into the real business or automated-test databases. Schema 26 adds only private staff-avatar storage and scoped functions.

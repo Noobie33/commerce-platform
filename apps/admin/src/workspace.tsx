@@ -1,3 +1,4 @@
+import { Avatar } from './avatar';
 import { SalesPage } from './sales/sales-page';
 import { CustomersPage } from './customers/customers-page';
 import { PurchasingPage } from './purchasing/purchasing-page';
@@ -256,17 +257,17 @@ export function Workspace({
         <div className="sidebar-note">
           <span className="tiny-diamond" />
           <p>
-            Built to grow
+            {user.demo ? 'Sample data - explore safely' : 'Built to grow'}
             <br />
             with your business.
           </p>
           <span className="small">One connected workspace.</span>
         </div>
         <div className="sidebar-account">
-          <span className="avatar">{user.displayName.slice(0, 1).toUpperCase()}</span>
+          <Avatar user={user} />
           <span>
             <strong>{user.displayName}</strong>
-            <small>Staff workspace</small>
+            <small>{user.demo ? 'Demo workspace' : 'Staff workspace'}</small>
           </span>
         </div>
         <button
@@ -318,11 +319,9 @@ export function Workspace({
           >
             <span className="private-label">
               <Icon name="lock" />
-              Private workspace
+              {user.demo ? 'Demo workspace' : 'Private workspace'}
             </span>
-            <span className="avatar avatar-small">
-              {user.displayName.slice(0, 1).toUpperCase()}
-            </span>
+            <Avatar user={user} className="avatar avatar-small" />
           </button>
         </header>
         <main className="main-content" id="main-content" tabIndex={-1}>

@@ -256,7 +256,13 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
         '"',
     );
     const worker =
-      'commerce_' + (migration.pathname.endsWith('_test') ? 'test' : 'dev') + '_video_worker';
+      'commerce_' +
+      (migration.pathname.endsWith('_test')
+        ? 'test'
+        : migration.pathname.endsWith('_demo')
+          ? 'demo'
+          : 'dev') +
+      '_video_worker';
     if ((await manager.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [worker])).length) {
       await manager.query('GRANT USAGE ON SCHEMA public TO "' + worker + '"');
       await manager.query('GRANT SELECT ON app_schema_version TO "' + worker + '"');
@@ -266,6 +272,11 @@ export async function grantRuntime(source: DataSource, env: NodeJS.ProcessEnv): 
           '"',
       );
     }
+    await manager.query(
+      'GRANT EXECUTE ON FUNCTION public.staff_profile_photo_read(uuid,uuid,boolean),public.staff_profile_photo_write(uuid,uuid,uuid,integer,bytea) TO "' +
+        role +
+        '"',
+    );
     await manager.query('GRANT INSERT, SELECT ON audit_events TO "' + role + '"');
   });
 }

@@ -1804,3 +1804,48 @@ td {
     font-size: 12px;
   }
 }
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.profile-photo-editor {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  max-width: 100%;
+}
+.profile-photo-label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  max-width: 100%;
+}
+.profile-photo-label input {
+  max-width: 100%;
+  width: 100%;
+  font-size: 13px;
+}
+.profile-photo-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.profile-photo-label input::file-selector-button {
+  font: inherit;
+  padding: 9px 12px;
+  margin-right: 10px;
+  border: 1px solid #deded9;
+  border-radius: 8px;
+  background: #fff;
+  color: #252525;
+  cursor: pointer;
+}
+.profile-photo-label input:focus-visible {
+  outline: 2px solid #e67d20;
+  outline-offset: 3px;
+}

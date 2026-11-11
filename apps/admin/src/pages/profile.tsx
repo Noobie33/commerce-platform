@@ -1,3 +1,4 @@
+import { ProfilePhoto } from './profile-photo';
 import { useState } from 'react';
 import { StaffApi } from '../api';
 import { ChangePassword } from '../auth';
@@ -43,9 +44,7 @@ export function ProfilePage({
       <div className="profile-grid">
         <div>
           <section className="panel profile-card">
-            <span className="avatar avatar-large">
-              {user.displayName.slice(0, 1).toUpperCase()}
-            </span>
+            <ProfilePhoto api={api} user={user} onRefresh={onRefresh} />
             <h2>{user.displayName}</h2>
             <p className="muted">{user.username}</p>
             <span className="badge badge-green">Active staff account</span>

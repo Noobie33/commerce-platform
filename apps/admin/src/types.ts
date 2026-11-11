@@ -3,6 +3,8 @@ export interface Grant {
   locationId: string | null;
 }
 export interface Profile {
+  demo?: boolean;
+  profilePhoto?: { version: number; hasPhoto: boolean };
   id: string;
   username: string;
   displayName: string;

@@ -1,3 +1,4 @@
+import { ProfilePhotoService } from './profile-photo.service.js';
 import {
   BadRequestException,
   Body,
@@ -43,6 +44,7 @@ function fields(body: unknown, expected: string[]): Record<string, string> {
 export class IdentityController {
   constructor(
     private readonly identity: IdentityService,
+    private readonly photos: ProfilePhotoService,
     @Inject(AUTH_CONFIG) private readonly config: AuthConfig,
   ) {}
 
@@ -82,9 +84,11 @@ export class IdentityController {
   @Authenticated()
   @PasswordChangeAllowed()
   @Get('staff/me')
-  me(@Req() req: StaffRequest) {
+  async me(@Req() req: StaffRequest) {
     const user = req.principal!;
     return {
+      demo: this.config.demo ?? false,
+      profilePhoto: await this.photos.metadata(user),
       id: user.id,
       username: user.username,
       displayName: user.displayName,

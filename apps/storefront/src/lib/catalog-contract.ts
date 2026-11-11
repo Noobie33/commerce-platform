@@ -232,3 +232,23 @@ export function jsonLd(value: unknown) {
     (c) => String.fromCharCode(92) + 'u' + c.charCodeAt(0).toString(16).padStart(4, '0'),
   );
 }
+
+export function productSelection(
+  p: Product,
+  query: Record<string, unknown>,
+): Record<string, string> {
+  const selection: Record<string, string> = {};
+  for (const key of ['color', 'size']) {
+    const v = query[key];
+    if (typeof v !== 'string' || v.length > 60) continue;
+    const match = p.variants
+      .map((x) => x.attributes[key])
+      .find((x) => x?.normalize('NFKC').toLowerCase() === v.normalize('NFKC').toLowerCase());
+    if (match) selection[key] = match;
+  }
+  return p.variants.some((v) =>
+    Object.entries(selection).every(([k, value]) => v.attributes[k] === value),
+  )
+    ? selection
+    : {};
+}

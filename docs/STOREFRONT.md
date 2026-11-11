@@ -41,3 +41,7 @@ Strict type checking and optimized production builds pass. Six new unit cases co
 ## Reference alignment update
 
 The owner requested closer visual fidelity to the specific Taaga Man Panjabis collection. The [alignment register](REFERENCE-UI-ALIGNMENT.md) records the measured structure, delivered toolbar/drawer/grid changes, vendored font license and remaining whole-site work. No schema or business-data changes are introduced.
+
+## Product details and quick-view increment
+
+[Shared product details and quick view](PRODUCT-DETAILS-AND-QUICK-VIEW.md) now provide reference-aligned information, a fresh public-only preview endpoint, variant-aware gallery/price selection and deliberate navigation to full details. This remains read-only and does not enable cart or checkout.

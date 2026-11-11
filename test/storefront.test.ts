@@ -11,6 +11,7 @@ import {
 } from '../apps/storefront/src/lib/store-query.js';
 import {
   parseProduct,
+  productSelection,
   parseBrowse,
   money,
   jsonLd,
@@ -188,4 +189,31 @@ test('product structured data cannot terminate its HTML script element', () => {
   assert.ok(!safe.includes('<'));
   assert.ok(!safe.includes('&'));
   assert.deepEqual(JSON.parse(safe), value);
+});
+
+test('product selection keeps one real SKU combination and discards unrelated URL parameters', () => {
+  const p = {
+    ...parseProduct(product),
+    variants: [
+      {
+        id: randomUUID(),
+        sku: 'RED-M',
+        priceMinor: '129000',
+        attributes: { size: 'M', color: 'Red' },
+      },
+      {
+        id: randomUUID(),
+        sku: 'BLUE-L',
+        priceMinor: '149000',
+        attributes: { size: 'L', color: 'Blue' },
+      },
+    ],
+  };
+  assert.deepEqual(
+    productSelection(p, { size: 'm', color: 'rEd', q: 'other', sort: 'price_desc' }),
+    { size: 'M', color: 'Red' },
+  );
+  assert.deepEqual(productSelection(p, { size: 'L', color: 'Red' }), {});
+  assert.deepEqual(productSelection(p, { size: ['M', 'L'], color: 'missing', q: 'other' }), {});
+  assert.deepEqual(productSelection(p, { size: 'L', color: 'blue' }), { size: 'L', color: 'Blue' });
 });

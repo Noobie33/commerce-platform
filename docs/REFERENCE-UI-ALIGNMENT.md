@@ -23,3 +23,7 @@ This increment aligns the collection page and common header; it does not complet
 ## Acceptance evidence
 
 Strict checking and optimized Next.js build pass. The real API/publication acceptance suite reports 38 passing checks. Browser inspection measured four 266.25px columns at the desktop viewport with 266.25 x 355px contain frames. Mobile shows two columns and a viewport-contained drawer. Combined colour/size submission, sorting with retained filters, exact upper-price exclusion, clear-all navigation and Escape dismissal with focus returning to the opening shortcut were exercised. The separately generated fictional product/media and their test-only servers are removed after QA. Main business data are not seeded or migrated. GitHub CI remains the final exact-commit gate.
+
+## Product presentation follow-up
+
+The [product-details and quick-view slice](PRODUCT-DETAILS-AND-QUICK-VIEW.md) now advances the previously pending product layout and quick-view work. Approved public size guides, zoom, reviews, related merchandising and transactional features remain incomplete.

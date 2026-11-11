@@ -1,3 +1,4 @@
+import { QuickViewProvider } from '../components/quick-view';
 import localFont from 'next/font/local';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -32,7 +33,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           Skip to content
         </a>
         <Header brand={settings.brand} categories={categories} />
-        {children}
+        <QuickViewProvider>{children}</QuickViewProvider>
         <footer className="store-footer">
           <div>
             <Link href="/" prefetch={false} className="footer-wordmark">

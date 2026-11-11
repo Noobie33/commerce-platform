@@ -118,6 +118,55 @@ export async function verifyStorefront(c: {
           );
     },
   );
+
+  await c.t.test(
+    'quick-view projection is fresh, public-only and never forwards staff credentials',
+    async () => {
+      const from = c.requests.length,
+        r = await fetch(origin + '/product-preview/' + c.slug, {
+          headers: {
+            Cookie: 'commerce_session=do-not-forward',
+            Authorization: 'Bearer do-not-forward',
+          },
+        });
+      assert.equal(r.status, 200);
+      assert.equal(r.headers.get('cache-control'), 'no-store');
+      const p = await r.json();
+      assert.equal(p.name, c.name);
+      assert.deepEqual(
+        Object.keys(p).sort(),
+        [
+          'productId',
+          'slug',
+          'name',
+          'styleCode',
+          'currency',
+          'description',
+          'specifications',
+          'variants',
+          'gallery',
+          'categoryPath',
+          'releaseVersion',
+          'seo',
+        ].sort(),
+      );
+      assert.ok(
+        p.gallery.every(
+          (m: { url: string; thumbnailUrl: string }) =>
+            m.url.startsWith('/media/') && m.thumbnailUrl.startsWith('/media/'),
+        ),
+      );
+      for (const hash of c.privateHashes) assert.ok(!JSON.stringify(p).includes(hash));
+      const rows = c.requests.slice(from);
+      assert.ok(rows.some((x) => x.path === '/api/v1/store/products/' + c.slug));
+      assert.ok(rows.every((x) => !x.cookie && !x.authorization));
+      assert.equal(
+        (await fetch(origin + '/product-preview/' + c.slug + '?url=http://remote.example')).status,
+        404,
+      );
+      assert.equal((await fetch(origin + '/product-preview/not-published-quick-view')).status, 404);
+    },
+  );
   await c.t.test(
     'Next storefront price and option filters use the same actual public SKU',
     async () => {
@@ -175,6 +224,7 @@ export async function verifyStorefront(c: {
       const r = await fetch(origin + '/products/' + c.slug);
       assert.equal(r.status, 404);
       assert.ok((await r.text()).includes('currently unavailable'));
+      assert.equal((await fetch(origin + '/product-preview/' + c.slug)).status, 404);
       assert.equal(
         (await fetch(origin + c.videoUrl.replace('/api/v1/store', '/media'))).status,
         404,

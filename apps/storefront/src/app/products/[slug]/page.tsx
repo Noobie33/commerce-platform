@@ -1,4 +1,4 @@
-import { jsonLd } from '../../../lib/catalog-contract';
+import { jsonLd, productSelection } from '../../../lib/catalog-contract';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -31,17 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params, searchParams }: Props) {
   const p = await getProduct((await params).slug);
   if (!p) notFound();
-  const query = await searchParams,
-    initial: Record<string, string> = {};
-  for (const key of ['color', 'size']) {
-    const value = query[key];
-    if (typeof value === 'string' && value.length <= 60) {
-      const match = p.variants
-        .map((v) => v.attributes[key])
-        .find((v) => v?.normalize('NFKC').toLowerCase() === value.normalize('NFKC').toLowerCase());
-      if (match) initial[key] = match;
-    }
-  }
+  const initial = productSelection(p, await searchParams);
   const prices = p.variants.map((v) => BigInt(v.priceMinor)),
     decimal = (n: bigint) => (n / 100n).toString() + '.' + (n % 100n).toString().padStart(2, '0'),
     structured = {

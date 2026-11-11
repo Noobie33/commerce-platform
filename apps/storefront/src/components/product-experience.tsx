@@ -1,11 +1,18 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CSSProperties } from 'react';
 import type { Media, Product } from '../lib/catalog-contract';
 import { money } from '../lib/catalog-contract';
 import { Icon } from './icon';
-function Gallery({ media }: { media: Media[] }) {
+function Gallery({
+  media,
+  onUnavailable,
+}: {
+  media: Media[];
+  onUnavailable?: (() => void) | undefined;
+}) {
   const [index, setIndex] = useState(0),
     [error, setError] = useState(false),
     video = useRef<HTMLVideoElement>(null),
@@ -46,7 +53,8 @@ function Gallery({ media }: { media: Media[] }) {
     setError(true);
     if (!refreshed.current) {
       refreshed.current = true;
-      router.refresh();
+      if (onUnavailable) onUnavailable();
+      else router.refresh();
     }
   }
   return (
@@ -132,11 +140,24 @@ function Gallery({ media }: { media: Media[] }) {
 export function ProductExperience({
   product: p,
   initialSelection = {},
+  preview = false,
+  onViewDetails,
+  onMediaUnavailable,
+  onSelectionChange,
 }: {
   product: Product;
   initialSelection?: Record<string, string>;
+  preview?: boolean;
+  onViewDetails?: () => void;
+  onMediaUnavailable?: () => void;
+  onSelectionChange?: (selection: Record<string, string>) => void;
 }) {
   const [selection, setSelection] = useState(initialSelection);
+  const Title = preview ? 'h2' : 'h1';
+  const detailQuery = new URLSearchParams();
+  for (const k of ['size', 'color']) if (selection[k]) detailQuery.set(k, selection[k]);
+  const detailsHref =
+    '/products/' + p.slug + (detailQuery.size ? '?' + detailQuery.toString() : '');
   const keys = [...new Set(p.variants.flatMap((v) => Object.keys(v.attributes)))],
     matches = (attrs: Record<string, string>, s: Record<string, string>) =>
       Object.entries(s).every(([k, v]) => attrs[k] === v),
@@ -147,23 +168,21 @@ export function ProductExperience({
     high = prices.reduce((a, b) => (a > b ? a : b)),
     media = p.gallery.filter((m) => !selected || !m.variantId || m.variantId === selected.id);
   function choose(k: string, value: string) {
-    setSelection((old) => {
-      const next = { ...old, [k]: value };
-      return p.variants.some((v) => matches(v.attributes, next)) ? next : { [k]: value };
-    });
+    const next = { ...selection, [k]: value },
+      valid = p.variants.some((v) => matches(v.attributes, next)) ? next : { [k]: value };
+    setSelection(valid);
+    onSelectionChange?.(valid);
   }
   return (
-    <div className="product-layout">
-      <Gallery media={media.length ? media : p.gallery} />
+    <div className={preview ? 'product-layout product-preview-layout' : 'product-layout'}>
+      <Gallery media={media.length ? media : p.gallery} onUnavailable={onMediaUnavailable} />
       <section className="product-info">
-        <p className="eyebrow">{p.styleCode}</p>
-        <h1>{p.name}</h1>
+        <Title>{p.name}</Title>
         <p className="product-price">
           {low === high
             ? money(low.toString())
             : money(low.toString()) + ' - ' + money(high.toString())}
         </p>
-        {p.description && <p className="product-description">{p.description}</p>}
         <div className="product-options">
           {keys.map((k) => (
             <fieldset key={k}>
@@ -191,25 +210,60 @@ export function ProductExperience({
           ))}
         </div>
         {Object.keys(selection).length > 0 && (
-          <button className="clear-options" onClick={() => setSelection({})}>
+          <button
+            className="clear-options"
+            onClick={() => {
+              setSelection({});
+              onSelectionChange?.({});
+            }}
+          >
             Clear selections
           </button>
         )}
-        {selected && <p className="selected-sku">SKU / {selected.sku}</p>}
+        <dl className="product-code">
+          <div>
+            <dt>Product Code</dt>
+            <dd>{p.styleCode}</dd>
+          </div>
+          {selected && (
+            <div>
+              <dt>SKU</dt>
+              <dd>{selected.sku}</dd>
+            </div>
+          )}
+        </dl>
         <p className="ordering-note">Online ordering is not open yet.</p>
-        <details className="product-details" open>
-          <summary>Details &amp; care</summary>
-          <dl>
-            {Object.entries(p.specifications)
-              .filter(([, v]) => !!v)
-              .map(([k, v]) => (
-                <div key={k}>
-                  <dt>{k.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</dt>
-                  <dd>{v.replaceAll('_', ' ')}</dd>
-                </div>
-              ))}
-          </dl>
-        </details>
+        {!preview && (
+          <>
+            <details className="product-details">
+              <summary>Product Description</summary>
+              <p className="product-description">{p.description}</p>
+            </details>
+            <details className="product-details">
+              <summary>Details &amp; care</summary>
+              <dl>
+                {Object.entries(p.specifications)
+                  .filter(([, v]) => !!v)
+                  .map(([k, v]) => (
+                    <div key={k}>
+                      <dt>{k.replace(/([A-Z])/g, ' $1').replaceAll('_', ' ')}</dt>
+                      <dd>{v.replaceAll('_', ' ')}</dd>
+                    </div>
+                  ))}
+              </dl>
+            </details>
+          </>
+        )}
+        {preview && (
+          <Link
+            href={detailsHref}
+            prefetch={false}
+            className="button button-outline view-product-details"
+            onClick={() => onViewDetails?.()}
+          >
+            View details
+          </Link>
+        )}
       </section>
     </div>
   );

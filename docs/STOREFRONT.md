@@ -49,3 +49,7 @@ The owner requested closer visual fidelity to the specific Taaga Man Panjabis co
 ## Public photo and size-guide update - 11 November 2026
 
 [Native-pixel photo inspection and pinned public size guides](PHOTO-ZOOM-AND-PUBLIC-SIZE-GUIDES.md) now implement the next product-presentation slice. Guide data comes only from the approved release; later library edits do not silently change published measurements. Schema remains 25 and originals remain private.
+
+## Similar-products update - 11 November 2026
+
+[Published similar-product recommendations](SIMILAR-PRODUCTS.md) now add the reference-style rail with explainable same-category ranking, existing quick view and current withdrawal checks. This is read-only catalog discovery, not stock availability or completed checkout.

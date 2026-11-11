@@ -1,7 +1,13 @@
 import 'server-only';
 import { cache } from 'react';
 import { apiOrigin } from './store-query';
-import { parseBrowse, parseNavigation, parseProduct, slugValue } from './catalog-contract';
+import {
+  parseBrowse,
+  parseNavigation,
+  parseProduct,
+  parseRelated,
+  slugValue,
+} from './catalog-contract';
 export class CatalogError extends Error {
   constructor(readonly status: number) {
     super('Catalog is currently unavailable');
@@ -94,5 +100,15 @@ export const getProduct = cache(async (slug: string) => {
     return p;
   } catch {
     throw new CatalogError(502);
+  }
+});
+
+export const getRelated = cache(async (slug: string) => {
+  try {
+    slugValue(slug);
+    const r = await json('/api/v1/store/products/' + slug + '/related');
+    return r === null ? [] : parseRelated(r);
+  } catch {
+    return [];
   }
 });

@@ -1,5 +1,5 @@
 import type { StoreBrowseResult, StoreProductCard } from './store-browse.types.js';
-import { ServiceUnavailableException } from '@nestjs/common';
+import { ServiceUnavailableException, NotFoundException } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
 import type { StoreBrowseQuery } from './store-browse.validation.js';
 // Match catalog fold() for the supported size/color keys without changing stored SKU values.
@@ -20,6 +20,24 @@ export class StoreBrowseService {
         throw new ServiceUnavailableException({ code: 'STORE_NAVIGATION_BUSY' });
       return { items };
     });
+  }
+
+  async related(slug: string): Promise<{ items: StoreProductCard[] }> {
+    try {
+      return await this.db.transaction('REPEATABLE READ', async (m) => {
+        await m.query('SET TRANSACTION READ ONLY');
+        await m.query("SET LOCAL statement_timeout='3000ms'");
+        const [result] = await m.query(
+          `WITH source AS MATERIALIZED(SELECT snapshot AS s,version,(SELECT min((v->>'priceMinor')::bigint) FROM jsonb_array_elements(snapshot->'variants')v) AS price FROM public.catalog_releases WHERE snapshot->>'slug'=$1 AND state='published' AND public.catalog_release_eligible(product_id)),priced AS(SELECT r.snapshot AS s,r.version,(SELECT min((v->>'priceMinor')::bigint) FROM jsonb_array_elements(r.snapshot->'variants')v) AS price FROM public.catalog_releases r CROSS JOIN source src WHERE r.state='published' AND r.product_id::text<>src.s->>'productId' AND r.snapshot->'categoryPath' -> -1->>'id'=src.s->'categoryPath' -> -1->>'id' AND public.catalog_release_eligible(r.product_id)),candidates AS(SELECT p.*,3*CASE WHEN nullif(src.s->'specifications'->>'materialGroup','')=p.s->'specifications'->>'materialGroup' THEN 1 ELSE 0 END+2*CASE WHEN nullif(src.s->'specifications'->>'occasion','')=p.s->'specifications'->>'occasion' THEN 1 ELSE 0 END+CASE WHEN nullif(src.s->'specifications'->>'fit','')=p.s->'specifications'->>'fit' THEN 1 ELSE 0 END AS score,abs(p.price-src.price) AS distance FROM priced p CROSS JOIN source src WHERE p.s->>'productId'<>src.s->>'productId' AND p.s->'categoryPath' -> -1->>'id'=src.s->'categoryPath' -> -1->>'id' ORDER BY score DESC,distance,lower(p.s->>'name'),p.s->>'slug' LIMIT 8),cards AS(SELECT score,distance,s->>'name' AS name,s->>'slug' AS slug,jsonb_build_object('productId',s->>'productId','slug',s->>'slug','name',s->>'name','styleCode',s->>'styleCode','currency','BDT','releaseVersion',version,'matchingVariantCount',jsonb_array_length(s->'variants'),'matchingPriceMinMinor',price::text,'matchingPriceMaxMinor',(SELECT max((v->>'priceMinor')::bigint)::text FROM jsonb_array_elements(s->'variants')v),'photo',(SELECT jsonb_build_object('id',p->>'id','alt',p->>'alt','width',p->'width','height',p->'height','thumbnailUrl','/api/v1/store/photos/'||(p->>'id')||'/thumbnail') FROM jsonb_array_elements(s->'photos')p WHERE (p->>'primary')::boolean LIMIT 1)) AS card FROM candidates) SELECT EXISTS(SELECT 1 FROM source) AS found,coalesce((SELECT jsonb_agg(card ORDER BY score DESC,distance,lower(name),slug) FROM cards),'[]'::jsonb) AS items`,
+          [slug],
+        );
+        if (!result.found) throw new NotFoundException({ code: 'PUBLIC_PRODUCT_UNAVAILABLE' });
+        return { items: result.items as StoreProductCard[] };
+      });
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new ServiceUnavailableException({ code: 'STORE_RELATED_BUSY' });
+    }
   }
   async browse(q: StoreBrowseQuery): Promise<StoreBrowseResult> {
     const order = {

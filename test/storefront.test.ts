@@ -13,6 +13,7 @@ import {
   parseProduct,
   productSelection,
   parseBrowse,
+  parseRelated,
   money,
   jsonLd,
   parseNavigation,
@@ -259,4 +260,26 @@ test('public size-guide parsing preserves exact units and measurements and rejec
   assert.throws(() =>
     parseProduct({ ...product, merchandising: { sizeGuide: { ...guide, active: false } } }),
   );
+});
+
+test('related-card parsing bounds results, rejects duplicates and strips nonpublic fields', () => {
+  const card = {
+    productId: randomUUID(),
+    slug: 'related-shirt',
+    name: 'Related shirt',
+    styleCode: 'REL-1',
+    currency: 'BDT',
+    releaseVersion: 1,
+    matchingVariantCount: 1,
+    matchingPriceMinMinor: '129000',
+    matchingPriceMaxMinor: '149000',
+    photo: { id, alt: 'Front', width: 480, height: 600, thumbnailUrl: photo.thumbnailUrl },
+    supplier: 'not public',
+  };
+  const p = parseRelated({ items: [card], internal: 'not public' });
+  assert.equal(p[0]!.slug, 'related-shirt');
+  assert.ok(!JSON.stringify(p).includes('not public'));
+  assert.throws(() => parseRelated({ items: [card, card] }));
+  assert.throws(() => parseRelated({ items: Array(9).fill(card) }));
+  assert.deepEqual(parseRelated({ items: [] }), []);
 });

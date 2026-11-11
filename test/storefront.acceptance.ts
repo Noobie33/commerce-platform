@@ -11,16 +11,7 @@ export interface PublicRequest {
   cookie: boolean;
   authorization: boolean;
 }
-export async function verifyStorefront(c: {
-  t: TestContext;
-  api: string;
-  slug: string;
-  name: string;
-  videoUrl: string;
-  playback: Buffer;
-  privateHashes: string[];
-  requests: PublicRequest[];
-}) {
+export async function openStorefrontFixture(t: TestContext, api: string) {
   const server = createServer();
   await new Promise<void>((ok, no) => {
     server.once('error', no);
@@ -51,7 +42,7 @@ export async function verifyStorefront(c: {
         windowsHide: true,
         env: {
           ...publicStoreEnvironment(process.env, {
-            STORE_API_ORIGIN: c.api,
+            STORE_API_ORIGIN: api,
             STORE_SITE_ORIGIN: origin,
             STORE_BRAND_NAME: 'Fixture label',
           }),
@@ -65,7 +56,7 @@ export async function verifyStorefront(c: {
     stream.on('data', (b) => {
       diagnostic = (diagnostic + String(b)).slice(-12000);
     });
-  c.t.after(async () => {
+  t.after(async () => {
     if (child.exitCode === null) {
       await new Promise<void>((resolve) => {
         const deadline = setTimeout(() => {
@@ -95,6 +86,19 @@ export async function verifyStorefront(c: {
     await wait(100);
   }
   assert.ok(ready, 'Isolated storefront must start');
+  return origin;
+}
+export async function verifyStorefront(c: {
+  t: TestContext;
+  api: string;
+  slug: string;
+  name: string;
+  videoUrl: string;
+  playback: Buffer;
+  privateHashes: string[];
+  requests: PublicRequest[];
+}) {
+  const origin = await openStorefrontFixture(c.t, c.api);
   await c.t.test(
     'Next storefront server-renders published products, metadata and variant controls',
     async () => {
@@ -108,6 +112,10 @@ export async function verifyStorefront(c: {
       assert.ok(html.includes('application/ld+json'));
       assert.ok(html.includes('noindex'));
       assert.ok(html.includes('Online ordering is not open yet'));
+      assert.ok(
+        !html.includes('aria-label="Similar products"'),
+        'No invented related products when none are eligible',
+      );
       for (const value of c.privateHashes)
         assert.ok(!html.includes(value), 'Private media hashes stay server-side');
       for (const key of ['DATABASE_URL', 'MIGRATION_DATABASE_URL'])
@@ -247,6 +255,10 @@ export async function verifyStorefront(c: {
       assert.equal(r.status, 404);
       assert.ok((await r.text()).includes('currently unavailable'));
       assert.equal((await fetch(origin + '/product-preview/' + c.slug)).status, 404);
+      assert.equal(
+        (await fetch(c.api + '/api/v1/store/products/' + c.slug + '/related')).status,
+        404,
+      );
       assert.equal(
         (await fetch(origin + c.videoUrl.replace('/api/v1/store', '/media'))).status,
         404,

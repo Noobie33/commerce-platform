@@ -135,31 +135,7 @@ export function parseBrowse(v: unknown): Browse {
     pageSize: num(r.pageSize, 1, 48),
     hasMore: bool(r.hasMore),
     facets: out,
-    items: list(r.items, 48).map((v) => {
-      const x = record(v),
-        p = record(x.photo),
-        id = uuid(p.id),
-        expected = '/api/v1/store/photos/' + id + '/thumbnail';
-      if (p.thumbnailUrl !== expected) fail();
-      return {
-        productId: uuid(x.productId),
-        slug: slugValue(x.slug),
-        name: text(x.name),
-        styleCode: text(x.styleCode, 80),
-        currency: bdt(x.currency),
-        releaseVersion: num(x.releaseVersion, 1),
-        matchingVariantCount: num(x.matchingVariantCount, 1),
-        matchingPriceMinMinor: moneyValue(x.matchingPriceMinMinor),
-        matchingPriceMaxMinor: moneyValue(x.matchingPriceMaxMinor),
-        photo: {
-          id,
-          alt: text(p.alt, 240),
-          width: dimension(p.width),
-          height: dimension(p.height),
-          thumbnailUrl: photoLink(id, 'thumbnail'),
-        },
-      };
-    }),
+    items: list(r.items, 48).map(parseCard),
   };
 }
 function parseSizeGuide(v: unknown): SizeGuide | null {
@@ -306,4 +282,39 @@ export function productSelection(
   )
     ? selection
     : {};
+}
+
+function parseCard(v: unknown): Card {
+  const x = record(v),
+    p = record(x.photo),
+    id = uuid(p.id),
+    expected = '/api/v1/store/photos/' + id + '/thumbnail';
+  if (p.thumbnailUrl !== expected) fail();
+  return {
+    productId: uuid(x.productId),
+    slug: slugValue(x.slug),
+    name: text(x.name),
+    styleCode: text(x.styleCode, 80),
+    currency: bdt(x.currency),
+    releaseVersion: num(x.releaseVersion, 1),
+    matchingVariantCount: num(x.matchingVariantCount, 1),
+    matchingPriceMinMinor: moneyValue(x.matchingPriceMinMinor),
+    matchingPriceMaxMinor: moneyValue(x.matchingPriceMaxMinor),
+    photo: {
+      id,
+      alt: text(p.alt, 240),
+      width: dimension(p.width),
+      height: dimension(p.height),
+      thumbnailUrl: photoLink(id, 'thumbnail'),
+    },
+  };
+}
+export function parseRelated(v: unknown): Card[] {
+  const items = list(record(v).items, 8).map(parseCard);
+  if (
+    new Set(items.map((p) => p.productId)).size !== items.length ||
+    new Set(items.map((p) => p.slug)).size !== items.length
+  )
+    fail();
+  return items;
 }

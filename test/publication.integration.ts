@@ -1,3 +1,4 @@
+import { openStorefrontFixture } from './storefront.acceptance.js';
 import type { PublicRequest } from './storefront.acceptance.js';
 import { verifyGalleryRelease } from './gallery-release.acceptance.js';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -408,6 +409,22 @@ test('publication: private drafts, explicit media consent, safe public releases 
     );
 
     await t.test(
+      'related products return no placeholders and reject unpublished sources or arbitrary parameters',
+      async () => {
+        const path = base + '/api/v1/store/products/' + slug + '/related',
+          r = await fetch(path);
+        assert.equal(r.status, 200);
+        assert.equal(r.headers.get('cache-control'), 'no-store');
+        assert.deepEqual(await r.json(), { items: [] });
+        assert.equal((await fetch(path + '?limit=9999')).status, 400);
+        assert.equal(
+          (await fetch(base + '/api/v1/store/products/not-published-related/related')).status,
+          404,
+        );
+        assert.equal((await fetch(base + '/api/v1/store/products/bad_slug/related')).status, 404);
+      },
+    );
+    await t.test(
       'published size-guide measurements stay pinned after a newer library revision',
       async () => {
         const r = await call('merchandising', {
@@ -553,7 +570,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
     });
     await t.test(
       'multiple published products sort by matching price with stable page order',
-      async () => {
+      async (sortingTest) => {
         for (let i = 0; i < sortingProducts.length; i++) {
           const pid = sortingProducts[i]!,
             ph = sortingPhotos[i]!,
@@ -636,12 +653,91 @@ test('publication: private drafts, explicit media consent, safe public releases 
             assert.deepEqual(b.facets.fit.items, [{ value: 'regular', count: 3 }]);
             assert.deepEqual(b.facets.materialGroup.items, [{ value: 'cotton', count: 1 }]);
           }
+
+          await sortingTest.test(
+            'similar products exclude the source and keep stable relevant prices and safe cards',
+            async () => {
+              const r = await fetch(base + '/api/v1/store/products/' + slug + '/related');
+              assert.equal(r.status, 200);
+              const b = await r.json();
+              assert.deepEqual(
+                b.items.map((p: { productId: string }) => p.productId),
+                [sortingProducts[1], sortingProducts[0]],
+              );
+              assert.ok(b.items.every((p: { productId: string }) => p.productId !== product));
+              assert.deepEqual(
+                Object.keys(b.items[0]).sort(),
+                [
+                  'productId',
+                  'slug',
+                  'name',
+                  'styleCode',
+                  'currency',
+                  'releaseVersion',
+                  'matchingVariantCount',
+                  'matchingPriceMinMinor',
+                  'matchingPriceMaxMinor',
+                  'photo',
+                ].sort(),
+              );
+              for (const v of ['supplier', 'hash', 'original', 'stock', 'specifications'])
+                assert.ok(!JSON.stringify(b).includes(v));
+            },
+          );
+          await sortingTest.test(
+            'Next similar-product rail uses real releases and removes a withdrawn recommendation on the next read',
+            async () => {
+              const origin = await openStorefrontFixture(sortingTest, base),
+                read = async () => {
+                  const r = await fetch(origin + '/products/' + slug);
+                  assert.equal(r.status, 200);
+                  return (
+                    (await r.text()).match(
+                      /<section[^>]*aria-label="Similar products"[\s\S]*?<\/section>/,
+                    )?.[0] ?? ''
+                  );
+                };
+              let html = await read();
+              assert.ok(html.includes('Aardvark sorted shirt'));
+              assert.ok(html.includes('Zebra sorted shirt'));
+              assert.ok(!html.includes('Publication cotton shirt'));
+              const pid = sortingProducts[1]!,
+                pub = await (await call('products/' + pid + '/publication')).json();
+              assert.equal(
+                (
+                  await call('products/' + pid + '/publication', {
+                    action: 'unpublish',
+                    expectedVersion: pub.version,
+                    reason: 'Withdraw recommendation fixture',
+                  })
+                ).status,
+                200,
+              );
+              html = await read();
+              assert.ok(!html.includes('Zebra sorted shirt'));
+              assert.ok(html.includes('Aardvark sorted shirt'));
+              const next = await (await call('products/' + pid + '/publication')).json();
+              assert.equal(
+                (
+                  await call('products/' + pid + '/publication', {
+                    action: 'publish',
+                    expectedVersion: next.version,
+                    expectedProductVersion: next.productVersion,
+                    expectedContentVersion: next.contentVersion,
+                    reason: 'Restore fixture before cleanup',
+                  })
+                ).status,
+                200,
+              );
+            },
+          );
         } finally {
           // Keep subsequent withdrawal/history tests scoped to the original single product.
           for (const pid of sortingProducts) {
+            const current = await (await call('products/' + pid + '/publication')).json();
             const r = await call('products/' + pid + '/publication', {
               action: 'unpublish',
-              expectedVersion: 1,
+              expectedVersion: current.version,
               reason: 'End isolated sorting fixture',
             });
             assert.equal(r.status, 200);

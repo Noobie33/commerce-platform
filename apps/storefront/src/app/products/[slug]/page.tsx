@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import { RelatedProducts } from '../../../components/related-products';
 import { jsonLd, productSelection } from '../../../lib/catalog-contract';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -68,6 +70,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <span>{p.name}</span>
       </nav>
       <ProductExperience key={p.releaseVersion} product={p} initialSelection={initial} />
+      <Suspense fallback={null}>
+        <RelatedProducts slug={p.slug} />
+      </Suspense>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />
     </main>
   );

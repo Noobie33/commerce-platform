@@ -47,7 +47,17 @@ export interface Variant {
   priceMinor: string;
   attributes: Record<string, string>;
 }
+export interface SizeGuide {
+  title: string;
+  version: number;
+  unit: 'cm' | 'in';
+  basis: 'garment' | 'body';
+  instructions: string;
+  columns: string[];
+  rows: { size: string; values: string[] }[];
+}
 export interface Product {
+  sizeGuide: SizeGuide | null;
   productId: string;
   slug: string;
   name: string;
@@ -152,6 +162,50 @@ export function parseBrowse(v: unknown): Browse {
     }),
   };
 }
+function parseSizeGuide(v: unknown): SizeGuide | null {
+  if (v === undefined || v === null) return null;
+  const merch = record(v);
+  if (merch.sizeGuide === undefined || merch.sizeGuide === null) return null;
+  const g = record(merch.sizeGuide),
+    d = record(g.definition);
+  if (
+    g.kind !== 'size_guide' ||
+    g.active !== true ||
+    d.active !== true ||
+    !['cm', 'in'].includes(String(d.unit)) ||
+    !['garment', 'body'].includes(String(d.basis))
+  )
+    fail();
+  const columns = list(d.columns, 8).map((c) => text(c, 40)),
+    rows = list(d.rows, 30).map((v) => {
+      const r = record(v),
+        values = list(r.values, 8).map((v) => {
+          const s = text(v, 7);
+          if (!/^(0|[1-9][0-9]{0,3})(\.[0-9]{1,2})?$/.test(s) || /^0(?:\.0{1,2})?$/.test(s)) fail();
+          return s;
+        });
+      if (values.length !== columns.length) fail();
+      return { size: text(r.size, 30), values };
+    });
+  if (
+    !columns.length ||
+    !rows.length ||
+    columns.some((c) => !c.trim()) ||
+    rows.some((r) => !r.size.trim()) ||
+    new Set(columns.map((c) => c.trim().normalize('NFKC').toLowerCase())).size !== columns.length ||
+    new Set(rows.map((r) => r.size.trim().normalize('NFKC').toLowerCase())).size !== rows.length
+  )
+    fail();
+  return {
+    title: text(d.title, 200),
+    version: num(g.version, 1),
+    unit: d.unit as 'cm' | 'in',
+    basis: d.basis as 'garment' | 'body',
+    instructions: text(d.instructions, 1000),
+    columns,
+    rows,
+  };
+}
 export function parseProduct(v: unknown): Product {
   const r = record(v),
     slug = slugValue(r.slug),
@@ -164,6 +218,7 @@ export function parseProduct(v: unknown): Product {
     styleCode: text(r.styleCode, 80),
     currency: bdt(r.currency),
     description: text(r.description, 10000),
+    sizeGuide: parseSizeGuide(r.merchandising),
     specifications: fields(r.specifications),
     releaseVersion: version,
     seo: {

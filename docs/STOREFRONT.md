@@ -45,3 +45,7 @@ The owner requested closer visual fidelity to the specific Taaga Man Panjabis co
 ## Product details and quick-view increment
 
 [Shared product details and quick view](PRODUCT-DETAILS-AND-QUICK-VIEW.md) now provide reference-aligned information, a fresh public-only preview endpoint, variant-aware gallery/price selection and deliberate navigation to full details. This remains read-only and does not enable cart or checkout.
+
+## Public photo and size-guide update - 11 November 2026
+
+[Native-pixel photo inspection and pinned public size guides](PHOTO-ZOOM-AND-PUBLIC-SIZE-GUIDES.md) now implement the next product-presentation slice. Guide data comes only from the approved release; later library edits do not silently change published measurements. Schema remains 25 and originals remain private.

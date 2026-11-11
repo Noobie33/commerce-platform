@@ -43,3 +43,7 @@ Before development cutover, restore a schema-16 database backup in an isolated P
 Development advanced from schema 16 to 17 after a restored-backup comparison. All 46 pre-existing non-schema/non-permission data-table fingerprints stayed identical; one permission and one owner-role grant were added as expected. Development has no sample guides, collections or assignments. The current validation set is 52 unit/interface tests and 214 reported database checks, with the final three focused upgrade/concurrency/rollback cases verified separately after the full regression pass.
 
 Disposable browser records exercised creating a two-column garment guide (98.50 cm chest, 72.00 cm length), creating a collection, assigning both in a content draft and showing them in its safe preview. Updating the shared guide to v2 (100.00/73.00 cm) left that product pinned to v1 and its original values. At 390px, page/dialog widths were 390px and the read-only chart fit its 299px region; the editable grid remained contained. Desktop preview was reviewed and browser error logs were empty. Test records, session, media and viewport override were cleaned up.
+
+## Public photo and size-guide update - 11 November 2026
+
+[Native-pixel photo inspection and pinned public size guides](PHOTO-ZOOM-AND-PUBLIC-SIZE-GUIDES.md) now implement the next product-presentation slice. Guide data comes only from the approved release; later library edits do not silently change published measurements. Schema remains 25 and originals remain private.

@@ -143,6 +143,7 @@ export async function verifyStorefront(c: {
           'currency',
           'description',
           'specifications',
+          'sizeGuide',
           'variants',
           'gallery',
           'categoryPath',
@@ -165,6 +166,27 @@ export async function verifyStorefront(c: {
         404,
       );
       assert.equal((await fetch(origin + '/product-preview/not-published-quick-view')).status, 404);
+    },
+  );
+
+  await c.t.test(
+    'public size guide renders pinned exact measurements without exposing the library record',
+    async () => {
+      const r = await fetch(origin + '/product-preview/' + c.slug);
+      assert.equal(r.status, 200);
+      const p = await r.json();
+      assert.equal(p.sizeGuide.version, 1);
+      assert.equal(p.sizeGuide.unit, 'cm');
+      assert.equal(p.sizeGuide.basis, 'garment');
+      assert.equal(p.sizeGuide.rows[0].values[0], '98.50');
+      assert.ok(!('id' in p.sizeGuide));
+      const page = await fetch(origin + '/products/' + c.slug);
+      assert.equal(page.status, 200);
+      const html = await page.text();
+      assert.ok(html.includes('Size Guide'));
+      assert.ok(html.includes('98.50'));
+      assert.ok(html.includes('centimetres (cm)'));
+      assert.ok(!html.includes('101.00'));
     },
   );
   await c.t.test(

@@ -40,6 +40,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
     tokens = users.map(() => randomBytes(32).toString('base64url')),
     csrf = users.map(() => randomBytes(32).toString('hex')),
     product = randomUUID(),
+    guide = randomUUID(),
     category = randomUUID(),
     variant = randomUUID(),
     secondVariant = randomUUID(),
@@ -109,6 +110,7 @@ test('publication: private drafts, explicit media consent, safe public releases 
             profile: 'clothing-v2',
             slug,
             description: 'A soft cotton shirt.',
+            merchandising: { sizeGuide: { id: guide, version: 1 }, collections: [] },
             specifications: {
               material: 'Cotton',
               care: 'Gentle wash',
@@ -217,6 +219,32 @@ test('publication: private drafts, explicit media consent, safe public releases 
       });
     await app.listen(0, '127.0.0.1');
     base = await app.getUrl();
+    const guideDefinition = {
+      title: 'Published shirt measurements',
+      active: true,
+      unit: 'cm',
+      basis: 'garment',
+      instructions: 'Measure the garment flat.',
+      columns: ['Chest', 'Length'],
+      rows: [
+        { size: 'M', values: ['98.50', '72.00'] },
+        { size: 'L', values: ['104.00', '74.00'] },
+      ],
+    };
+    assert.equal(
+      (
+        await call('merchandising', {
+          id: guide,
+          kind: 'size_guide',
+          slug: 'publication-guide-' + suffix,
+          expectedVersion: 0,
+          reason: 'Reviewed publication guide fixture',
+          definition: guideDefinition,
+        })
+      ).status,
+      200,
+    );
+
     await t.test(
       'anonymous and ordinary staff cannot publish or approve images; original downloads stay private',
       async () => {
@@ -376,6 +404,32 @@ test('publication: private drafts, explicit media consent, safe public releases 
             Object.keys(x).every((k) => ['id', 'slug', 'name', 'parentSlug'].includes(k)),
           ),
         );
+      },
+    );
+
+    await t.test(
+      'published size-guide measurements stay pinned after a newer library revision',
+      async () => {
+        const r = await call('merchandising', {
+          id: guide,
+          kind: 'size_guide',
+          slug: 'publication-guide-' + suffix,
+          expectedVersion: 1,
+          reason: 'New measurements require explicit reassignment',
+          definition: {
+            ...guideDefinition,
+            rows: [
+              { size: 'M', values: ['101.00', '73.00'] },
+              { size: 'L', values: ['107.00', '75.00'] },
+            ],
+          },
+        });
+        assert.equal(r.status, 200);
+        const publicReply = await publicProduct();
+        assert.equal(publicReply.status, 200);
+        const p = await publicReply.json();
+        assert.equal(p.merchandising.sizeGuide.version, 1);
+        assert.equal(p.merchandising.sizeGuide.definition.rows[0].values[0], '98.50');
       },
     );
     await verifyGalleryRelease({
@@ -843,6 +897,9 @@ test('publication: private drafts, explicit media consent, safe public releases 
       ])
         await m.query('DELETE FROM ' + table + ' WHERE category_id=$1', [category]);
       await m.query('DELETE FROM catalog_categories WHERE id=$1', [category]);
+      await m.query('DELETE FROM catalog_merch_requests WHERE actor_id=ANY($1::uuid[])', [users]);
+      await m.query('DELETE FROM catalog_merch_versions WHERE item_id=$1', [guide]);
+      await m.query('DELETE FROM catalog_merch_items WHERE id=$1', [guide]);
       await m.query('DELETE FROM staff_sessions WHERE staff_id=ANY($1::uuid[])', [users]);
       await m.query('DELETE FROM staff_role_assignments WHERE staff_id=ANY($1::uuid[])', [users]);
       await m.query('DELETE FROM role_permissions WHERE role_id=ANY($1::uuid[])', [roles]);

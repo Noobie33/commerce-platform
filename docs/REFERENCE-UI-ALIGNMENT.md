@@ -27,3 +27,7 @@ Strict checking and optimized Next.js build pass. The real API/publication accep
 ## Product presentation follow-up
 
 The [product-details and quick-view slice](PRODUCT-DETAILS-AND-QUICK-VIEW.md) now advances the previously pending product layout and quick-view work. Approved public size guides, zoom, reviews, related merchandising and transactional features remain incomplete.
+
+## Public photo and size-guide update - 11 November 2026
+
+[Native-pixel photo inspection and pinned public size guides](PHOTO-ZOOM-AND-PUBLIC-SIZE-GUIDES.md) now implement the next product-presentation slice. Guide data comes only from the approved release; later library edits do not silently change published measurements. Schema remains 25 and originals remain private.

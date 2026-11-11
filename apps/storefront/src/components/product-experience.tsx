@@ -1,5 +1,7 @@
 'use client';
 import Link from 'next/link';
+import { ImageViewer } from './image-viewer';
+import { SizeGuide } from './size-guide';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CSSProperties } from 'react';
@@ -15,6 +17,7 @@ function Gallery({
 }) {
   const [index, setIndex] = useState(0),
     [error, setError] = useState(false),
+    [zoomOpen, setZoomOpen] = useState(false),
     video = useRef<HTMLVideoElement>(null),
     buttons = useRef<(HTMLButtonElement | null)[]>([]),
     refreshed = useRef(false),
@@ -46,6 +49,7 @@ function Gallery({
   function select(i: number, focus = false) {
     video.current?.pause();
     setError(false);
+    setZoomOpen(false);
     setIndex(i);
     if (focus) buttons.current[i]?.focus();
   }
@@ -82,15 +86,23 @@ function Gallery({
               <source src={item.url} type="video/mp4" />
             </video>
           ) : (
-            <img
-              key={item.url}
-              src={item.url}
-              alt={item.label}
-              width={item.width}
-              height={item.height}
-              fetchPriority="high"
-              onError={unavailable}
-            />
+            <button
+              type="button"
+              className="open-photo-viewer"
+              aria-label={'Enlarge photo: ' + item.label}
+              onClick={() => setZoomOpen(true)}
+            >
+              <img
+                key={item.url}
+                src={item.url}
+                alt={item.label}
+                width={item.width}
+                height={item.height}
+                fetchPriority="high"
+                onError={unavailable}
+              />
+              <span className="photo-enlarge-label">Enlarge photo</span>
+            </button>
           )}
         </div>
       </div>
@@ -134,6 +146,9 @@ function Gallery({
         ))}
       </div>
       <p className="media-caption">{item.label}</p>
+      {zoomOpen && item.kind === 'photo' && (
+        <ImageViewer photo={item} onClose={() => setZoomOpen(false)} onUnavailable={unavailable} />
+      )}
     </section>
   );
 }
@@ -235,6 +250,11 @@ export function ProductExperience({
         <p className="ordering-note">Online ordering is not open yet.</p>
         {!preview && (
           <>
+            {p.sizeGuide && (
+              <div className="product-details">
+                <SizeGuide guide={p.sizeGuide} productName={p.name} />
+              </div>
+            )}
             <details className="product-details">
               <summary>Product Description</summary>
               <p className="product-description">{p.description}</p>

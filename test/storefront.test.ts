@@ -217,3 +217,46 @@ test('product selection keeps one real SKU combination and discards unrelated UR
   assert.deepEqual(productSelection(p, { size: ['M', 'L'], color: 'missing', q: 'other' }), {});
   assert.deepEqual(productSelection(p, { size: 'L', color: 'blue' }), { size: 'L', color: 'Blue' });
 });
+
+test('public size-guide parsing preserves exact units and measurements and rejects malformed or retired charts', () => {
+  const definition = {
+      title: 'Shirt measurements',
+      active: true,
+      unit: 'in',
+      basis: 'body',
+      instructions: 'Measure around your chest.',
+      columns: ['Chest'],
+      rows: [{ size: 'M', values: ['38.50'] }],
+    },
+    guide = {
+      id: randomUUID(),
+      kind: 'size_guide',
+      active: true,
+      version: 3,
+      definition,
+      privateNotes: 'not public',
+    };
+  const parsed = parseProduct({
+    ...product,
+    merchandising: { sizeGuide: guide, collections: [] },
+  }).sizeGuide!;
+  assert.equal(parsed.rows[0]!.values[0], '38.50');
+  assert.equal(parsed.unit, 'in');
+  assert.equal(parsed.basis, 'body');
+  assert.ok(!JSON.stringify(parsed).includes('not public'));
+  assert.equal(parseProduct(product).sizeGuide, null);
+  for (const d of [
+    { ...definition, unit: 'mm' },
+    { ...definition, basis: 'guess' },
+    { ...definition, active: false },
+    { ...definition, rows: [{ size: 'M', values: ['0.00'] }] },
+    { ...definition, rows: [{ size: 'M', values: ['1.234'] }] },
+    { ...definition, rows: [{ size: 'M', values: [] }] },
+  ])
+    assert.throws(() =>
+      parseProduct({ ...product, merchandising: { sizeGuide: { ...guide, definition: d } } }),
+    );
+  assert.throws(() =>
+    parseProduct({ ...product, merchandising: { sizeGuide: { ...guide, active: false } } }),
+  );
+});
